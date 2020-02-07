@@ -2,4 +2,6 @@
 server/node_modules
 server/uploads
 server/renders
+audio_processing/.env
+audio_processing/output
 
