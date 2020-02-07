@@ -5,3 +5,5 @@ server/renders
 audio_processing/.env
 audio_processing/output
 credentials/*.json
+audio_processing/tmp
+audio_processing/log.txt

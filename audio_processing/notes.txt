@@ -1,0 +1,2 @@
+make sure to set up and log in to gsutil so the upload script can access the bucket
+dont forget to export GOOGLE_APPLICATION_CREDENTIALS="/home/user/Downloads/[FILE_NAME].json"

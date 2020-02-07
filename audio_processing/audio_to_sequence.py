@@ -1,3 +1,4 @@
+import datetime as dt
 import numpy as np
 from scipy.io.wavfile import read, write
 from matplotlib import pyplot as plt
@@ -6,6 +7,9 @@ import wave
 import glob
 from pydub import AudioSegment
 import soundfile as sf
+import sys
+import os
+from google.cloud import storage
 
 
 THRESHOLD = 0.008
@@ -73,18 +77,17 @@ def crop_audio (audio_fp, out_fp='output/cropped/cropped.wav'):
     to_cropped_audio(crops, raw, out_fp)
 
 
-def to_audio_sequence (audio_fp, sequence=SEQUENCE):
+def to_audio_sequence (audio_fp, in_dir=None, out_fp=None, sequence=SEQUENCE):
     f = sf.SoundFile(audio_fp)
     crop_duration = len(f) / f.samplerate
     # quarter note is .5 seconds, so get the scalar to do that
     scalar = crop_duration / 0.5
     c = 1
     for pitch, duration in sequence:
-        sp.call('rubberband -p {} -t {} {} output/tmp/{:03}.wav'.format(pitch, duration / scalar, audio_fp, c), shell=True)
+        sp.call('rubberband -p {} -t {} {} {}/{:03}.wav'.format(pitch, duration / scalar, audio_fp, in_dir, c), shell=True)
         c += 1
 
-    infiles = sorted(glob.glob('output/tmp/*.wav'))
-    out_fp = 'output/sequences/sequence.wav'
+    infiles = sorted(glob.glob(os.path.join(in_dir, '*.wav')))
     sounds = [AudioSegment.from_wav(fp) for fp in infiles]
     combined_sounds = None
     for sound in sounds:
@@ -96,5 +99,40 @@ def to_audio_sequence (audio_fp, sequence=SEQUENCE):
 
 
 if __name__ == '__main__':
-    crop_audio('sample_audio/sample_woof_3.wav')
-    to_audio_sequence('output/cropped/cropped.wav')
+    logfile = open('log.txt', 'a')
+    input_fp = sys.argv[1]
+    render_fp = sys.argv[2]
+    uuid = sys.argv[3]
+    logfile.write('{} {} starting audio_to_sequence.py\n'.format(dt.datetime.now(), uuid))
+
+    tmp_dir = os.path.join('tmp', uuid)
+    tmp_input = os.path.join(tmp_dir, 'input_audio')
+    tmp_input_fp = os.path.join(tmp_input, 'input_audio.wav')
+    tmp_cropped = os.path.join(tmp_dir, 'cropped')
+    tmp_cropped_fp = os.path.join(tmp_cropped, 'cropped.wav')
+    tmp_sequence = os.path.join(tmp_dir, 'sequence')
+    sequence_fp = os.path.join(tmp_dir, 'sequence.wav')
+
+    os.mkdir(tmp_dir)
+    os.mkdir(tmp_input)
+    os.mkdir(tmp_cropped)
+    os.mkdir(tmp_sequence)
+
+    storage_client = storage.Client()
+
+    bucket = storage_client.bucket('song_barker_sequences')
+    blob = bucket.blob(input_fp)
+    blob.download_to_filename(tmp_input_fp)
+    logfile.write('{} {} finished downloading input audio\n'.format(dt.datetime.now(), uuid))
+
+    sequence_fp = os.path.join(tmp_dir, 'sequence', 'sequence.wav')
+    crop_audio(tmp_input_fp, out_fp=tmp_cropped_fp)
+    logfile.write('{} {} finished cropping\n'.format(dt.datetime.now(), uuid))
+
+    to_audio_sequence(tmp_cropped_fp, in_dir=tmp_sequence, out_fp=sequence_fp)
+    logfile.write('{} {} finished sequencing\n'.format(dt.datetime.now(), uuid))
+
+    bucket = storage_client.bucket('song_barker_sequences')
+    blob = bucket.blob(render_fp)
+    blob.upload_from_filename(sequence_fp)
+    logfile.write('{} {} finished uploading generated sequence\n'.format(dt.datetime.now(), uuid))
