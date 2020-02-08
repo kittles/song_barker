@@ -4,7 +4,6 @@ from logger import log
 from io import BytesIO
 
 BUCKET_NAME = 'song_barker_sequences'
-TMP_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tmp')
 
 storage_client = storage.Client()
 
@@ -25,6 +24,7 @@ def upload_to_bucket (bytestream, dest_fp):
     bucket = storage_client.bucket(BUCKET_NAME)
     blob = bucket.blob(dest_fp)
     log('start upload {}\n'.format(dest_fp))
+    # TODO the file type is text/plain in the bucket... should be audio
     blob.upload_from_string(data=bytestream.read())
     log('finish upload {}\n'.format(dest_fp))
 

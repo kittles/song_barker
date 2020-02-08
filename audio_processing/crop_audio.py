@@ -15,6 +15,8 @@ import wave
 from io import BytesIO
 import argparse
 
+# TODO make sure crop doesnt result in an empty file
+
 
 THRESHOLD = 0.008
 AVERAGE_BANDWIDTH = 2048
@@ -73,6 +75,7 @@ parser.add_argument('--input', help='the file to be cropped')
 parser.add_argument('--dest', help='where to put the cropped file')
 args = parser.parse_args()
 
+log('start crop audio {}'.format(args.input))
 input_audio = download_from_bucket(args.input)
 input_audio.seek(0)
 # TODO why do i need to put this in BytesIO() again?
@@ -85,3 +88,4 @@ crops = crops_from_crossings(crossings)
 bytestream = BytesIO()
 write(bytestream, SAMPLERATE, raw[crops[0]:crops[1]])
 upload_to_bucket(bytestream, args.dest)
+log('finish crop audio {}'.format(args.input))

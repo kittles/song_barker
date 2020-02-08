@@ -2,36 +2,35 @@ var sqlite3 = require('sqlite3').verbose()
 var db = new sqlite3.Database('render_database.db')
 
 var initialize_db_sql = `
-CREATE TABLE IF NOT EXISTS renders (
+CREATE TABLE IF NOT EXISTS client_audio (
 	client_id TEXT,
-    uuid TEXT
+    audio_uuid TEXT
 )`;
 
 function initialize_db () {
 	db.run(initialize_db_sql);
 }
 
-
-var add_render_sql = `
-INSERT INTO renders (
+var add_audio_sql = `
+INSERT INTO clien_audio (
 	client_id, 
-	uuid
+	audio_uuid
 )
 VALUES (
 	?,
 	?
 )`;
 
-function add_render (client_id, uuid) {
-	db.run(add_render_sql, client_id, uuid);
+function add_audio (client_id, audio_uuid) {
+	db.run(add_audio_sql, client_id, audio_uuid);
 }
 
 
-var list_renders_sql = `SELECT * FROM renders where client_id = ?`;
+var list_audio_sql = `SELECT * FROM client_audio where client_id = ?`;
 
-function list_renders (client_id, resp_fn) {
+function list_audio (client_id, resp_fn) {
     return new Promise(function(resolve, reject) {
-        db.all(list_renders_sql, client_id, function (err, rows)  {
+        db.all(list_audio_sql, client_id, function (err, rows)  {
             if (err) {
                 reject("Read error: " + err.message);
             } else {
@@ -47,6 +46,6 @@ function close_db () {
 }
 
 
-exports.add_render = add_render;
-exports.list_renders = list_renders;
+exports.add_audio = add_audio;
+exports.list_audio = list_audio;
 exports.close_db = close_db;
