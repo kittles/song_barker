@@ -49,3 +49,4 @@ function close_db () {
 exports.add_audio = add_audio;
 exports.list_audio = list_audio;
 exports.close_db = close_db;
+exports.initialize_db = initialize_db;
