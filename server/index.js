@@ -32,7 +32,7 @@ app.get('/crop_audio/:audio_uuid', function (req, res) {
 	exec(`
 		cd ../audio_processing && 
 		source .env/bin/activate &&
-		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/songbarker-50dfd44f0393.json" &&
+		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
 		python crop_audio.py --input ${input_audio_dir}/${req.params.audio_uuid}.wav --dest ${crop_dir}/${req.params.audio_uuid}.wav
 	`, {
 		'shell': '/bin/bash',
@@ -53,7 +53,7 @@ app.get('/sequence_audio/:audio_uuid', function (req, res) {
 	exec(`
 		cd ../audio_processing && 
 		source .env/bin/activate &&
-		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/songbarker-50dfd44f0393.json" &&
+		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
 		python sequence_audio.py --input ${crop_dir}/${req.params.audio_uuid}.wav --dest ${sequence_dir}/${req.params.audio_uuid}.wav
 	`, {
 		'shell': '/bin/bash',
