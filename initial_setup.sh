@@ -1,3 +1,7 @@
+# python
+sudo apt-get install python-dev   # for python2.x installs
+sudo apt-get install python3-dev  # for python3.x installs
+
 # python env
 sudo apt install virtualenv
 cd audio_processing
