@@ -26,6 +26,7 @@ app.get('/list_audio/:client_id', function (req, res) {
 app.get('/add_audio/:audio_uuid', function (req, res) {
 	// this will make an entry in the database that associates an audio uuid with a client id
 	// you should call this whenever you upload a raw audio file to the bucket
+	// this probably be a POST with client-id coming in as a post param
 	db.add_audio('some-client-id', req.params.audio_uuid);
 	res.send(req.params);
 });

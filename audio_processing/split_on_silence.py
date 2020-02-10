@@ -5,6 +5,9 @@ import argparse
 from pyAudioAnalysis import audioSegmentation as audio_seg
 from pyAudioAnalysis import audioBasicIO
 import scipy.io.wavfile as wavfile
+'''
+inspiration: https://walczak.org/2019/02/automatic-splitting-audio-files-silence-python/
+'''
 
 smoothing_window = 1.0
 weight = 0.3
