@@ -4,10 +4,10 @@ var db = new sqlite3.Database('render_database.db')
 var initialize_db_sql = `
 CREATE TABLE IF NOT EXISTS client_audio (
 	client_id TEXT,
-    audio_uuid TEXT
-    )
-    UNIQUE (client_id, audio_uuid) ON CONFLICT REPLACE
-)`;
+    audio_uuid TEXT,
+	UNIQUE (client_id, audio_uuid) ON CONFLICT REPLACE
+)
+`;
 
 function initialize_db () {
 	db.run(initialize_db_sql);
