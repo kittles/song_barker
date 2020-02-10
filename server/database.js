@@ -5,6 +5,7 @@ var initialize_db_sql = `
 CREATE TABLE IF NOT EXISTS client_audio (
 	client_id TEXT,
     audio_uuid TEXT
+    )
     UNIQUE (client_id, audio_uuid) ON CONFLICT REPLACE
 )`;
 
