@@ -56,14 +56,28 @@ app.get('/split_audio/:audio_uuid', function (req, res) {
 });
 
 
-app.get('/sequence_audio/:audio_uuid', function (req, res) {
+app.get('/sequence_audio/:audio_uuid/:crop_number', function (req, res) {
 	// for a give cropped audio, generate a musical sequence from it
 	// this sequence will be in audio-uuid/sequences/filename.wav
 	// it will have to look for already existing sequences and generate a filename sequentially (like 008.wav if there
 	// were already 7 rendered sequences in there i guess)
 	// TODO not implemented
-	req.params.not_implemented = 'NOT IMPLEMENTED'
 	res.send(req.params);
+	exec(`
+		cd ../audio_processing && 
+		source .env/bin/activate &&
+		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
+		python sequence_audio.py -i ${req.params.audio_uuid} -c ${req.params.crop_number}
+	`, {
+		'shell': '/bin/bash',
+	}, (error, stdout, stderr) => {
+		if (error) {
+			console.error(`exec error: ${error}`);
+			return;
+		}
+		console.log(`stdout: ${stdout}`);
+		console.error(`stderr: ${stderr}`);
+	});
 });
 
 
