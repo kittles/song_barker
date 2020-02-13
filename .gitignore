@@ -7,4 +7,4 @@ audio_processing/output
 credentials/*.json
 audio_processing/tmp
 audio_processing/log.txt
-server/render_database.db
+server/barker_database.db

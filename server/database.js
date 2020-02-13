@@ -9,6 +9,8 @@ var db = {
 	cursor: sqlite.connect(DB_FILENAME),
 }
 
+exports.cursor = db.cursor;
+
 
 // db initialization
 
@@ -28,6 +30,7 @@ var create_table_sql = [
 	//`DROP TABLE IF EXISTS crops`,
 	`CREATE TABLE crops (
 		client_id TEXT,
+		uuid TEXT UNIQUE,
 		raw_fk INTEGER,
 		name TEXT,
 		url TEXT,
@@ -36,6 +39,7 @@ var create_table_sql = [
 	//`DROP TABLE IF EXISTS sequences`,
 	`CREATE TABLE sequences (
 		client_id TEXT,
+		uuid TEXT UNIQUE,
 		raw_fk INTEGER,
 		name TEXT,
 		url TEXT,
@@ -92,13 +96,13 @@ function add_raw (params) {
 		url: null,
 		stream_url: null,
 	});
-	return sqlite.insert('raw', params);
+	return db.cursor.insert('raw', params);
 };
 exports.add_raw = add_raw;
 
 
 function list_raw (client_id) {
-	return sqlite.run(`SELECT * FROM raw where client_id = ?`, [client_id]);
+	return db.cursor.run(`SELECT * FROM raw where client_id = ?`, [client_id]);
 };
 exports.list_raw = list_raw;
 
@@ -116,18 +120,19 @@ exports.list_raw = list_raw;
 function add_crop (params) {
 	default_params({
 		client_id: 'default-id',
+        uuid: 'this-should-never-be-empty',
 		raw_fk: 'this-shoul-never-be-empty',
 		name: 'default-name',
 		url: null,
 		stream_url: null,
 	});
-	return sqlite.insert('crops', params);
+	return db.cursor.insert('crops', params);
 };
 exports.add_crop = add_crop;
 
 
 function list_crops (raw_fk) {
-	return sqlite.run(`SELECT * FROM crops where raw_fk = ?`, [raw_fk]);
+	return db.cursor.run(`SELECT * FROM crops where raw_fk = ?`, [raw_fk]);
 };
 exports.list_crops = list_crops;
 
@@ -150,13 +155,13 @@ function add_sequence (params) {
 		stream_url: null,
 	});
 	
-	return sqlite.insert('sequences', params);
+	return db.cursor.insert('sequences', params);
 };
 exports.add_sequence = add_sequence;
 
 
 function list_sequences (raw_fk) {
-	return sqlite.run(`SELECT * FROM sequences where raw_fk = ?`, [raw_fk]);
+	return db.cursor.run(`SELECT * FROM sequences where raw_fk = ?`, [raw_fk]);
 };
 exports.list_sequences = list_sequences;
 
@@ -190,104 +195,116 @@ exports.list_sequences = list_sequences;
 fill_with_mock_data = function fill_with_mock_data () {
 	//fs.unlinkSync(DB_FILENAME);
 	initialize_db();
-	var rows = db.cursor.run("select name from sqlite_master where type='table'");
+	//var rows = db.cursor.run("select name from sqlite_master where type='table'");
 
 	var rowid = add_raw({
-		client_id: 'client-1',
-		uuid: uuidv4(),
+		client_id: 'jeff-epstein',
+		uuid: 'some-audio-uuid',
 		name: 'Fred',
 	});
-	var fred_id = rowid;
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'loud bark',
-	});
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'growl',
-	});
-	add_sequence({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'fred barking happy birthday',
-	});
-	add_sequence({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'fred growling happy birthday',
-	});
 
 	var rowid = add_raw({
-		client_id: 'client-1',
-		uuid: uuidv4(),
-		name: 'Ben',
-	});
-	var ben_id = rowid;
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'bark',
-	});
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'whimper',
-	});
-
-	var rowid = add_raw({
-		client_id: 'client-1',
-		uuid: uuidv4(),
+		client_id: 'jeff-epstein',
+		uuid: 'some-other-uuid',
 		name: 'Joe',
 	});
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'woof',
-	});
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'mega woof',
-	});
 
-	var rowid = add_raw({
-		client_id: 'client-2',
-		uuid: uuidv4(),
-		name: 'Weird Dog',
-	});
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'loud bark',
-	});
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'groan',
-	});
+	//var rowid = add_raw({
+	//	client_id: 'client-1',
+	//	uuid: uuidv4(),
+	//	name: 'Fred',
+	//});
+	//var fred_id = rowid;
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'loud bark',
+	//});
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'growl',
+	//});
+	//add_sequence({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'fred barking happy birthday',
+	//});
+	//add_sequence({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'fred growling happy birthday',
+	//});
 
-	var rowid = add_raw({
-		client_id: 'client-2',
-		uuid: uuidv4(),
-		name: 'Weird Dog 2',
-	});
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'bark',
-	});
-	add_crop({
-		client_id: 'client-1',
-		raw_fk: rowid,
-		name: 'loud bark',
-	});
+	//var rowid = add_raw({
+	//	client_id: 'client-1',
+	//	uuid: uuidv4(),
+	//	name: 'Ben',
+	//});
+	//var ben_id = rowid;
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'bark',
+	//});
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'whimper',
+	//});
+
+	//var rowid = add_raw({
+	//	client_id: 'client-1',
+	//	uuid: uuidv4(),
+	//	name: 'Joe',
+	//});
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'woof',
+	//});
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'mega woof',
+	//});
+
+	//var rowid = add_raw({
+	//	client_id: 'client-2',
+	//	uuid: uuidv4(),
+	//	name: 'Weird Dog',
+	//});
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'loud bark',
+	//});
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'groan',
+	//});
+
+	//var rowid = add_raw({
+	//	client_id: 'client-2',
+	//	uuid: uuidv4(),
+	//	name: 'Weird Dog 2',
+	//});
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'bark',
+	//});
+	//add_crop({
+	//	client_id: 'client-1',
+	//	raw_fk: rowid,
+	//	name: 'loud bark',
+	//});
 
 
-	console.log(list_raw('client-1'));
-	console.log(list_crops(ben_id));
-	console.log(list_sequences(fred_id));
+	//console.log(list_raw('client-1'));
+	//console.log(list_crops(ben_id));
+	//console.log(list_sequences(fred_id));
 };
 
 
