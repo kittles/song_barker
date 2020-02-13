@@ -48,7 +48,10 @@ app.post('/add_raw', function (req, res) {
     });
 	// TODO handle uuid already exists
 	res.json({
-        rows: db.cursor.run('select * from raw where uuid = ?', [req.body.uuid]),
+        rows: _.map(db.cursor.run('select * from raw where uuid = ?', [req.body.uuid]), (row) => {
+			row.obj_type = 'raw';
+			return row;
+		}),
     });
 });
 
