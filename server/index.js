@@ -13,7 +13,7 @@ var db = require('./database.js');
 app.use(express.json({
 	// NOTE: make sure your post requests header Content-Type matches this, otherwise
 	// the json will not be parsed
-	type: 'application/x-www-form-urlencoded',
+	type: 'application/json',
 }));
 
 
