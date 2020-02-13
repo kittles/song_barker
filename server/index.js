@@ -39,12 +39,14 @@ app.post('/add_raw', function (req, res) {
     //    uuid: the uuid that was used to create the dir in the bucket where the raw audio was uploaded
     //    name: the user specified name of the file (this is NOT what the file is called in the bucket,
     //        its what the user sees when they need to interact / select the file in the clientside app
-	db.add_raw({
+	//    pet_id: just use the name of the pet for now
+	var result = db.add_raw({
         client_id: req.body.client_id,
         uuid: req.body.uuid,
         name: req.body.name,
+        pet_id: req.body.pet_id,
     });
-
+	// TODO handle uuid already exists
 	res.json({
         rows: db.cursor.run('select * from raw where uuid = ?', [req.body.uuid]),
     });

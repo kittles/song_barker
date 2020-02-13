@@ -24,8 +24,10 @@ var create_table_sql = [
 		client_id TEXT,
 		uuid TEXT UNIQUE,
 		name TEXT,
+		pet_id TEXT,
 		url TEXT,
-		stream_url TEXT
+		stream_url TEXT,
+        hidden INTEGER DEFAULT 0
 	)`,
 	//`DROP TABLE IF EXISTS crops`,
 	`CREATE TABLE crops (
@@ -34,7 +36,8 @@ var create_table_sql = [
 		raw_fk INTEGER,
 		name TEXT,
 		url TEXT,
-		stream_url TEXT
+		stream_url TEXT,
+        hidden INTEGER DEFAULT 0
 	)`,
 	//`DROP TABLE IF EXISTS sequences`,
 	`CREATE TABLE sequences (
@@ -43,7 +46,8 @@ var create_table_sql = [
 		crop_fk INTEGER,
 		name TEXT,
 		url TEXT,
-		stream_url TEXT
+		stream_url TEXT,
+        hidden INTEGER DEFAULT 0
 	)`,
 ];
 
@@ -93,6 +97,7 @@ function add_raw (params) {
 		client_id: 'default-id',
 		uuid: 'default-uuid',
 		name: 'default-name',
+        pet_id: null,
 		url: null,
 		stream_url: null,
 	});
@@ -200,13 +205,15 @@ fill_with_mock_data = function fill_with_mock_data () {
 	var rowid = add_raw({
 		client_id: 'jeff-epstein',
 		uuid: 'some-audio-uuid',
-		name: 'Fred',
+		pet_id: 'Fred',
+		name: 'fred getting mad',
 	});
 
 	var rowid = add_raw({
 		client_id: 'jeff-epstein',
 		uuid: 'some-other-uuid',
-		name: 'Joe',
+		pet_id: 'Fred',
+		name: 'fred being scared',
 	});
 
 	//var rowid = add_raw({

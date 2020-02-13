@@ -4,7 +4,8 @@
   "description": "woof",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
   },
   "author": "Patrick Brooks",
   "license": "ISC",
@@ -16,5 +17,8 @@
     "sqlite-sync": "^0.3.9",
     "sqlite3": "^4.1.1",
     "uuid": "^3.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
   }
 }
