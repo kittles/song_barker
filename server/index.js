@@ -72,11 +72,23 @@ app.post('/split_audio', function (req, res) {
 				error: 'there was an error',
 			});
 		} else {
-			console.log(`stdout: ${stdout}`);
-			console.error(`stderr: ${stderr}`);
+			var output = stdout.split(/\r?\n/); // split by line and strip
+			output.pop(); // ditch empty line
+			var crop_uuids = _.map(output, (line) => {
+				return line.split(' ')[0];
+			});
+			var crop_fps = _.map(output, (line) => {
+				return line.split(' ')[1];
+			});
+			console.log(crop_uuids, crop_fps);
 			res.json({
-				rows: db.cursor.run('select * from crops where raw_fk = ?', [req.body.uuid]),
-				//rows: db.cursor.run('select * from crops'),
+				rows: _.map(_.zip(crop_uuids, crop_fps), (pair) => {
+					return {
+						obj_type: 'crop',
+						uuid: pair[0],
+						url: pair[1],
+					};
+				})
 			});
 		}
 	});
@@ -109,7 +121,7 @@ app.post('/sequence_audio', function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python sequence_audio.py -c ${req.body.crop_uuid}
+		python sequence_audio.py -c "${req.body.crop_uuid}"
 	`, {
 		'shell': '/bin/bash',
 	}, (error, stdout, stderr) => {
@@ -119,11 +131,18 @@ app.post('/sequence_audio', function (req, res) {
 				error: 'there was an error',
 			});
 		} else {
-			console.log(`stdout: ${stdout}`);
-			console.error(`stderr: ${stderr}`);
+			var output = stdout.split(/\r?\n/);
+			var line = output.shift();
+			var sequence_uuid = line.split(' ')[0];
+			var sequence_url = line.split(' ')[1];
 			res.json({
-				rows: db.cursor.run('select * from sequences where raw_fk = ?', [req.body.crop_uuid]),
-				//rows: db.cursor.run('select * from crops'),
+				rows: [
+					{
+						obj_type: 'sequence',
+						uuid: sequence_uuid,
+						url: sequence_url,
+					},
+				],
 			});
 		}
 	});
