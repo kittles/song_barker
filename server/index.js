@@ -20,12 +20,15 @@ app.use(express.json({
 app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
 
 
-app.get('/list_raw/:client_id', function (req, res) {
-	// shows all the audio uuids associated with a client id
-    res.json({
-		rows: db.cursor.run('select * from raw where client_id = ?', [req.params.client_id]),
-	});
-});
+// util
+
+
+function where_in_sql (sql_in, xs) {
+	return	sql_in + ' ( ' + xs.map(() => { return '?' }).join(',') + ' )';
+}
+
+
+// non indempotent fns
 
 
 app.post('/add_raw', function (req, res) {
@@ -80,7 +83,6 @@ app.post('/split_audio', function (req, res) {
 			var crop_fps = _.map(output, (line) => {
 				return line.split(' ')[1];
 			});
-			console.log(crop_uuids, crop_fps);
 			res.json({
 				rows: _.map(_.zip(crop_uuids, crop_fps), (pair) => {
 					return {
@@ -91,23 +93,6 @@ app.post('/split_audio', function (req, res) {
 				})
 			});
 		}
-	});
-});
-
-
-app.get('/list_all_crops/:client_id', function (req, res) {
-	// shows all crops for a client
-	var fks = _.map(
-		db.cursor.run('select uuid from raw where client_id = ?', [req.params.client_id]),
-		'uuid'
-	);
-	console.log('uuids are', fks);
-	var rows = db.cursor.run(
-		'select * from crops where raw_fk in ( ' + fks.map(() => { return '?' }).join(',') + ' )',
-		fks
-	);
-    res.json({
-		rows: rows,
 	});
 });
 
@@ -145,6 +130,67 @@ app.post('/sequence_audio', function (req, res) {
 				],
 			});
 		}
+	});
+});
+
+
+
+app.get('/list_raw/:client_id', function (req, res) {
+	// shows all the audio uuids associated with a client id
+    res.json({
+		rows: _.map(db.cursor.run('select * from raw where client_id = ?', [req.params.client_id]), (obj) => {
+			obj.obj_type = 'raw';
+			return obj;
+		}),
+	});
+});
+
+
+app.get('/list_crop/:client_id', function (req, res) {
+	// shows all crops for a client
+	var fks = _.map(
+		db.cursor.run('select uuid from raw where client_id = ?', [req.params.client_id]),
+		'uuid'
+	);
+	var rows = db.cursor.run(
+		'select * from crops where raw_fk in ( ' + fks.map(() => { return '?' }).join(',') + ' )',
+		fks
+	);
+    res.json({
+		rows: _.map(rows, (row) => {
+			row.obj_type = 'crop';
+			row.raw_obj = db.cursor.run('select * from raw where uuid = ?', [row.raw_fk])[0];
+			return row;
+		}),
+	});
+});
+
+
+app.get('/list_sequence/:client_id', function (req, res) {
+	// shows all crops for a client
+	var raw_fks = _.map(
+		db.cursor.run('select uuid from raw where client_id = ?', [req.params.client_id]),
+		'uuid'
+	);
+	console.log(raw_fks);
+	var crop_fks = _.map(raw_fks, (raw_fk) => {
+		return db.cursor.run(where_in_sql('select uuid from crops where raw_fk in ', raw_fks), raw_fks);
+	})
+	crop_fks = _.map(_.flatten(crop_fks), 'uuid');
+	console.log(crop_fks);
+	var rows = db.cursor.run(
+		where_in_sql('select * from sequences where crop_fk in ', crop_fks),
+		crop_fks
+	);
+    res.json({
+		rows: _.map(rows, (row) => {
+			row.obj_type = 'sequence';
+			row.crop_obj = db.cursor.run('select * from crops where uuid = ?', [row.crop_fk])[0];
+			row.raw_obj = db.cursor.run('select * from raw where uuid = ?', [row.crop_obj.raw_fk])[0];
+			// TODO make a nice where in fn...
+			// include the parent objects for each sequence...
+			return row;
+		}),
 	});
 });
 

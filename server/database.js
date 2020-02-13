@@ -40,7 +40,7 @@ var create_table_sql = [
 	`CREATE TABLE sequences (
 		client_id TEXT,
 		uuid TEXT UNIQUE,
-		raw_fk INTEGER,
+		crop_fk INTEGER,
 		name TEXT,
 		url TEXT,
 		stream_url TEXT
@@ -149,7 +149,7 @@ exports.list_crops = list_crops;
 function add_sequence (params) {
 	default_params({
 		client_id: 'default-id',
-		raw_fk: 'this-should-never-be-empty',
+		crop_fk: 'this-should-never-be-empty',
 		name: 'default-name',
 		url: null,
 		stream_url: null,

@@ -39,8 +39,8 @@ if __name__ == '__main__':
     with tempfile.TemporaryDirectory() as tmp_dir:
         conn = sqlite3.connect('../server/barker_database.db')
         cur = conn.cursor()
-        cur.execute('select url, raw_fk from crops where uuid = ?', [args.crop_uuid])
-        crop_url, raw_fk = cur.fetchone()
+        cur.execute('select url, uuid, raw_fk from crops where uuid = ?', [args.crop_uuid])
+        crop_url, crop_fk, raw_fk = cur.fetchone()
 
         #crop_filename = '{:03}.wav'.format(args.crop_number)
         #remote_fp = os.path.join(args.input_audio_uuid, 'cropped', crop_filename)
@@ -75,7 +75,7 @@ if __name__ == '__main__':
             cur.execute('INSERT INTO sequences VALUES (?, ?, ?, ?, ?, ?)', [
                 'who-cares',
                 str(sequence_uuid),
-                raw_fk,
+                crop_fk,
                 None,
                 remote_sequence_url,
                 None,
