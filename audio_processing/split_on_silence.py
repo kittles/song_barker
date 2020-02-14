@@ -42,16 +42,20 @@ if __name__ == '__main__':
                     crop_uuid = uuid.uuid4()
                     crop_uuids.append(crop_uuid)
                     filename = '{}.wav'.format(crop_uuid)
-                    filenames.append(filename)
                     out_fp = os.path.join(tmp_dir, filename)
                     wavfile.write(out_fp, fs, x[int(fs * s[0]):int(fs * s[1])])
-                    bucket_client.upload_filename_to_bucket(out_fp, os.path.join(args.input_audio_uuid, 'cropped/{}'.format(filename)))
+                    # convert to aac
+                    out_fp_aac = out_fp.replace('.wav', '.aac')
+                    sp.call('ffmpeg -nostats -hide_banner -loglevel panic  -i {} {}'.format(out_fp, out_fp_aac), shell=True)
+                    filename_aac = filename.replace('.wav', '.aac')
+                    filenames.append(filename_aac)
+                    bucket_client.upload_filename_to_bucket(out_fp_aac, os.path.join(args.input_audio_uuid, 'cropped/{}'.format(filename_aac)))
                     cur.execute('INSERT INTO crops VALUES (?, ?, ?, ?, ?, ?, ?)', [
                         'dont-matter',
                         str(crop_uuid),
                         args.input_audio_uuid,
                         None,
-                        os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename),
+                        os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename_aac),
                         None,
                         0
                     ])
