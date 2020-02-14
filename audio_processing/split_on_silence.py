@@ -46,13 +46,14 @@ if __name__ == '__main__':
                     out_fp = os.path.join(tmp_dir, filename)
                     wavfile.write(out_fp, fs, x[int(fs * s[0]):int(fs * s[1])])
                     bucket_client.upload_filename_to_bucket(out_fp, os.path.join(args.input_audio_uuid, 'cropped/{}'.format(filename)))
-                    cur.execute('INSERT INTO crops VALUES (?, ?, ?, ?, ?, ?)', [
+                    cur.execute('INSERT INTO crops VALUES (?, ?, ?, ?, ?, ?, ?)', [
                         'dont-matter',
                         str(crop_uuid),
                         args.input_audio_uuid,
                         None,
                         os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename),
-                        None
+                        None,
+                        0
                     ])
                     bucket_crop_paths.append(os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename))
                 conn.commit()
