@@ -111,7 +111,7 @@ app.post('/sequence_audio', function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python sequence_audio.py -c "${req.body.crop_uuid}"
+		python sequence_audio.py -c "${req.body.uuid}"
 	`, {
 		'shell': '/bin/bash',
 	}, (error, stdout, stderr) => {
