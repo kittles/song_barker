@@ -7,6 +7,9 @@ from pyAudioAnalysis import audioBasicIO
 import scipy.io.wavfile as wavfile
 import sqlite3
 import uuid
+import subprocess as sp
+import warnings
+warnings.filterwarnings('ignore')
 '''
 inspiration: https://walczak.org/2019/02/automatic-splitting-audio-files-silence-python/
 '''
@@ -22,33 +25,40 @@ if __name__ == '__main__':
     crop_uuids = []
     bucket_crop_paths = []
     with tempfile.TemporaryDirectory() as tmp_dir:
-        remote_fp = os.path.join(args.input_audio_uuid, 'raw.wav')
-        local_fp = os.path.join(tmp_dir, 'raw.wav')
+        remote_fp = os.path.join(args.input_audio_uuid, 'raw.aac')
+        local_fp = os.path.join(tmp_dir, 'raw.aac')
         bucket_client.download_filename_from_bucket(remote_fp, local_fp)
-        [fs, x] = audioBasicIO.readAudioFile(local_fp)
-        segmentLimits = audio_seg.silenceRemoval(x, fs, 0.05, 0.05, smoothing_window, weight)
-        filenames = []
-        conn = sqlite3.connect('../server/barker_database.db')
-        cur = conn.cursor()
-        for i, s in enumerate(segmentLimits):
-            crop_uuid = uuid.uuid4()
-            crop_uuids.append(crop_uuid)
-            filename = '{}.wav'.format(crop_uuid)
-            filenames.append(filename)
-            out_fp = os.path.join(tmp_dir, filename)
-            wavfile.write(out_fp, fs, x[int(fs * s[0]):int(fs * s[1])])
-            bucket_client.upload_filename_to_bucket(out_fp, os.path.join(args.input_audio_uuid, 'cropped/{}'.format(filename)))
-            cur.execute('INSERT INTO crops VALUES (?, ?, ?, ?, ?, ?)', [
-                'dont-matter',
-                str(crop_uuid),
-                args.input_audio_uuid,
-                None,
-                os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename),
-                None
-            ])
-            bucket_crop_paths.append(os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename))
-        conn.commit()
-        conn.close()
+        # convert to wav
+        local_fp_wav = local_fp.replace('.aac', '.wav')
+        sp.call('ffmpeg -nostats -hide_banner -loglevel panic  -i {} {}'.format(local_fp, local_fp_wav), shell=True)
+        with warnings.catch_warnings():
+            try:
+                [fs, x] = audioBasicIO.readAudioFile(local_fp_wav)
+                segmentLimits = audio_seg.silenceRemoval(x, fs, 0.05, 0.05, smoothing_window, weight)
+                filenames = []
+                conn = sqlite3.connect('../server/barker_database.db')
+                cur = conn.cursor()
+                for i, s in enumerate(segmentLimits):
+                    crop_uuid = uuid.uuid4()
+                    crop_uuids.append(crop_uuid)
+                    filename = '{}.wav'.format(crop_uuid)
+                    filenames.append(filename)
+                    out_fp = os.path.join(tmp_dir, filename)
+                    wavfile.write(out_fp, fs, x[int(fs * s[0]):int(fs * s[1])])
+                    bucket_client.upload_filename_to_bucket(out_fp, os.path.join(args.input_audio_uuid, 'cropped/{}'.format(filename)))
+                    cur.execute('INSERT INTO crops VALUES (?, ?, ?, ?, ?, ?)', [
+                        'dont-matter',
+                        str(crop_uuid),
+                        args.input_audio_uuid,
+                        None,
+                        os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename),
+                        None
+                    ])
+                    bucket_crop_paths.append(os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename))
+                conn.commit()
+                conn.close()
+            except ValueError as e:
+                pass
 
     for cuuid, cpath in zip(crop_uuids, bucket_crop_paths):
         print(cuuid, cpath)
