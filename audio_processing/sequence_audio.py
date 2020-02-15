@@ -11,7 +11,7 @@ import sys
 import bucket_client
 import tempfile
 import os
-from logger import log
+import logger
 from bucket_client import download_from_bucket, upload_to_bucket
 import wave
 import argparse
@@ -54,6 +54,7 @@ def wav_to_aac (wav_fp):
 
 
 if __name__ == '__main__':
+    logger.log('{} crop_uuid: {} started'.format(os.path.basename(__file__), args.crop_uuid))
     with warnings.catch_warnings():
         with tempfile.TemporaryDirectory() as tmp_dir:
             conn = sqlite3.connect('../server/barker_database.db')
@@ -100,3 +101,4 @@ if __name__ == '__main__':
             conn.commit()
             conn.close()
     print(sequence_uuid, remote_sequence_url)
+    logger.log('{} crop_uuid: {} succeeded'.format(os.path.basename(__file__), args.crop_uuid))

@@ -1,4 +1,5 @@
 import os
+import logger
 import bucket_client
 import tempfile
 import argparse
@@ -22,6 +23,7 @@ parser.add_argument('--input-audio-uuid', '-i', help='audio file to be split')
 args = parser.parse_args()
 
 if __name__ == '__main__':
+    logger.log('{} input_audio_uuid: {} started'.format(os.path.basename(__file__), args.input_audio_uuid))
     crop_uuids = []
     bucket_crop_paths = []
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -63,8 +65,9 @@ if __name__ == '__main__':
                 conn.commit()
                 conn.close()
             except ValueError as e:
-                pass
+                logger.log('{} input_audio_uuid: {} failed with ValueError'.format(os.path.basename(__file__), args.input_audio_uuid))
 
     for cuuid, cpath in zip(crop_uuids, bucket_crop_paths):
         print(cuuid, cpath)
+    logger.log('{} input_audio_uuid: {} succeeded'.format(os.path.basename(__file__), args.input_audio_uuid))
 
