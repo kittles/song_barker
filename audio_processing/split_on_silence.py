@@ -59,7 +59,7 @@ if __name__ == '__main__':
                         None,
                         0
                     ])
-                    bucket_crop_paths.append(os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename))
+                    bucket_crop_paths.append(os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename_aac))
                 conn.commit()
                 conn.close()
             except ValueError as e:
