@@ -4,17 +4,58 @@ var exec = require('child_process').exec;
 
 const app = express();
 const port = 3000;
-const bucket_name = 'song_barker_sequences';
-const crop_dir = 'cropped_audio';
-const sequence_dir = 'sequenced_audio';
-const input_audio_dir = 'input_audio';
-var db = require('./database.js');
+var api = require('./rest_api.js');
+//var db = require('./database.js');
 
 app.use(express.json({
 	// NOTE: make sure your post requests header Content-Type matches this, otherwise
 	// the json will not be parsed
 	type: 'application/json',
 }));
+
+
+//(async () => {
+//	await api.initialize_db(api.table_defs);
+//	const db = await api.dbPromise;
+//
+//	var user_api = api.obj_rest_api(api.table_defs[0], db);
+//    _.map(user_api, (def) => {
+//        app[def.request_method](def.endpoint, def.handler);
+//    });
+//
+//	var pet_api = api.obj_rest_api(api.table_defs[1], db);
+//    _.map(pet_api, (def) => {
+//        app[def.request_method](def.endpoint, def.handler);
+//    });
+//
+//    // put some stuff in db to test
+//	await user_api.post.handler({
+//		body: {
+//			user_id: 'some-user-id',
+//			name: 'patrick',
+//			email: 'pat.w.brooks@gmail.com',
+//		},
+//	}, { json: _.noop});
+//	await pet_api.post.handler({
+//		body: {
+//			user_id: 'some-user-id',				
+//			name: 'spot',
+//		},
+//	}, { json: _.noop});
+//	await pet_api.post.handler({
+//		body: {
+//			user_id: 'some-user-id',				
+//			name: 'fido',
+//		},
+//	}, { json: _.noop});
+//	//await pet_api.put.handler({
+//	//	body: {
+//    //        pet_id: 2,
+//	//		name: 'fucko',
+//	//	},
+//	//});
+//})();
+
 
 
 app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
@@ -29,31 +70,6 @@ function where_in_sql (sql_in, xs) {
 
 
 // non indempotent fns
-
-
-app.post('/add_raw', function (req, res) {
-    // do this when you just uploaded a new raw audio file
-    //
-    // post params:
-    //    client_id: this is the string that identifies the user from other users
-    //    uuid: the uuid that was used to create the dir in the bucket where the raw audio was uploaded
-    //    name: the user specified name of the file (this is NOT what the file is called in the bucket,
-    //        its what the user sees when they need to interact / select the file in the clientside app
-	//    pet_id: just use the name of the pet for now
-	var result = db.add_raw({
-        client_id: req.body.client_id,
-        uuid: req.body.uuid,
-        name: req.body.name,
-        pet_id: req.body.pet_id,
-    });
-	// TODO handle uuid already exists
-	res.json({
-        rows: _.map(db.cursor.run('select * from raw where uuid = ?', [req.body.uuid]), (row) => {
-			row.obj_type = 'raw';
-			return row;
-		}),
-    });
-});
 
 
 app.post('/split_audio', function (req, res) {
@@ -139,65 +155,90 @@ app.post('/sequence_audio', function (req, res) {
 });
 
 
-
-app.get('/list_raw/:client_id', function (req, res) {
-	// shows all the audio uuids associated with a client id
-    res.json({
-		rows: _.map(db.cursor.run('select * from raw where client_id = ?', [req.params.client_id]), (obj) => {
-			obj.obj_type = 'raw';
-			return obj;
-		}),
-	});
-});
-
-
-app.get('/list_crop/:client_id', function (req, res) {
-	// shows all crops for a client
-	var fks = _.map(
-		db.cursor.run('select uuid from raw where client_id = ?', [req.params.client_id]),
-		'uuid'
-	);
-	var rows = db.cursor.run(
-		'select * from crops where raw_fk in ( ' + fks.map(() => { return '?' }).join(',') + ' )',
-		fks
-	);
-    res.json({
-		rows: _.map(rows, (row) => {
-			row.obj_type = 'crop';
-			row.raw_obj = db.cursor.run('select * from raw where uuid = ?', [row.raw_fk])[0];
-			return row;
-		}),
-	});
-});
+//app.post('/add_raw', function (req, res) {
+//    // do this when you just uploaded a new raw audio file
+//    //
+//    // post params:
+//    //    client_id: this is the string that identifies the user from other users
+//    //    uuid: the uuid that was used to create the dir in the bucket where the raw audio was uploaded
+//    //    name: the user specified name of the file (this is NOT what the file is called in the bucket,
+//    //        its what the user sees when they need to interact / select the file in the clientside app
+//	//    pet_id: just use the name of the pet for now
+//	var result = db.add_raw({
+//        client_id: req.body.client_id,
+//        uuid: req.body.uuid,
+//        name: req.body.name,
+//        pet_id: req.body.pet_id,
+//    });
+//	// TODO handle uuid already exists
+//	res.json({
+//        rows: _.map(db.cursor.run('select * from raw where uuid = ?', [req.body.uuid]), (row) => {
+//			row.obj_type = 'raw';
+//			return row;
+//		}),
+//    });
+//});
 
 
-app.get('/list_sequence/:client_id', function (req, res) {
-	// shows all crops for a client
-	var raw_fks = _.map(
-		db.cursor.run('select uuid from raw where client_id = ?', [req.params.client_id]),
-		'uuid'
-	);
-	console.log(raw_fks);
-	var crop_fks = _.map(raw_fks, (raw_fk) => {
-		return db.cursor.run(where_in_sql('select uuid from crops where raw_fk in ', raw_fks), raw_fks);
-	})
-	crop_fks = _.map(_.flatten(crop_fks), 'uuid');
-	console.log(crop_fks);
-	var rows = db.cursor.run(
-		where_in_sql('select * from sequences where crop_fk in ', crop_fks),
-		crop_fks
-	);
-    res.json({
-		rows: _.map(rows, (row) => {
-			row.obj_type = 'sequence';
-			row.crop_obj = db.cursor.run('select * from crops where uuid = ?', [row.crop_fk])[0];
-			row.raw_obj = db.cursor.run('select * from raw where uuid = ?', [row.crop_obj.raw_fk])[0];
-			// TODO make a nice where in fn...
-			// include the parent objects for each sequence...
-			return row;
-		}),
-	});
-});
+
+//app.get('/list_raw/:client_id', function (req, res) {
+//	// shows all the audio uuids associated with a client id
+//    res.json({
+//		rows: _.map(db.cursor.run('select * from raw where client_id = ?', [req.params.client_id]), (obj) => {
+//			obj.obj_type = 'raw';
+//			return obj;
+//		}),
+//	});
+//});
+//
+//
+//app.get('/list_crop/:client_id', function (req, res) {
+//	// shows all crops for a client
+//	var fks = _.map(
+//		db.cursor.run('select uuid from raw where client_id = ?', [req.params.client_id]),
+//		'uuid'
+//	);
+//	var rows = db.cursor.run(
+//		'select * from crops where raw_fk in ( ' + fks.map(() => { return '?' }).join(',') + ' )',
+//		fks
+//	);
+//    res.json({
+//		rows: _.map(rows, (row) => {
+//			row.obj_type = 'crop';
+//			row.raw_obj = db.cursor.run('select * from raw where uuid = ?', [row.raw_fk])[0];
+//			return row;
+//		}),
+//	});
+//});
+//
+//
+//app.get('/list_sequence/:client_id', function (req, res) {
+//	// shows all crops for a client
+//	var raw_fks = _.map(
+//		db.cursor.run('select uuid from raw where client_id = ?', [req.params.client_id]),
+//		'uuid'
+//	);
+//	console.log(raw_fks);
+//	var crop_fks = _.map(raw_fks, (raw_fk) => {
+//		return db.cursor.run(where_in_sql('select uuid from crops where raw_fk in ', raw_fks), raw_fks);
+//	})
+//	crop_fks = _.map(_.flatten(crop_fks), 'uuid');
+//	console.log(crop_fks);
+//	var rows = db.cursor.run(
+//		where_in_sql('select * from sequences where crop_fk in ', crop_fks),
+//		crop_fks
+//	);
+//    res.json({
+//		rows: _.map(rows, (row) => {
+//			row.obj_type = 'sequence';
+//			row.crop_obj = db.cursor.run('select * from crops where uuid = ?', [row.crop_fk])[0];
+//			row.raw_obj = db.cursor.run('select * from raw where uuid = ?', [row.crop_obj.raw_fk])[0];
+//			// TODO make a nice where in fn...
+//			// include the parent objects for each sequence...
+//			return row;
+//		}),
+//	});
+//});
 
 
 app.listen(port, () => console.log(`listening on port ${port}!`));

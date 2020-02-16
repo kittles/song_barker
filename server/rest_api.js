@@ -1,16 +1,20 @@
 var _ = require('lodash');
+var Promise = require('bluebird');
 //var sqlite = require('sqlite-sync');
 //var DB_FILENAME = 'barker_database.db';
 //var db = {
 //  cursor: sqlite.connect(DB_FILENAME),
 //};
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(':memory:');
+var sqlite = require('sqlite');
+const dbPromise = sqlite.open(':memory:', { Promise });
+//var db = new sqlite3.Database(':memory:');
+exports.dbPromise = dbPromise;
 
 var table_defs = [
     {
         table_name:  'users',
         obj_type: 'user',
+		primary_key: 'user_id',
         schema: {
             columns: [
                 {
@@ -28,18 +32,29 @@ var table_defs = [
                     type: 'text',
                     desc: 'the user specified email of the user',
                 },
+                {
+                    name: 'hidden',
+                    type: 'integer default 0',
+                    desc: 'whether the account is active',
+                },
             ],
         },
     },
     {
         table_name:  'pets',
         obj_type: 'pet',
+		primary_key: 'pet_id',
         schema: {
             columns: [
                 {
                     name: 'pet_id',
                     type: 'integer primary key autoincrement',
                     desc: 'primary key',
+                },
+                {
+                    name: 'user_id',
+                    type: 'text',
+                    desc: 'the foreign key to the user object',
                 },
                 {
                     name: 'name',
@@ -62,6 +77,7 @@ var table_defs = [
     {
         table_name:  'raws',
         obj_type: 'raw',
+		primary_key: 'uuid',
         schema: {
             columns: [
                 {
@@ -73,6 +89,11 @@ var table_defs = [
                     name: 'pet_fk',
                     type: 'text',
                     desc: 'the foreign key to the pet object the raw audio was recorded from',
+                },
+                {
+                    name: 'user_id',
+                    type: 'text',
+                    desc: 'the foreign key to the user object',
                 },
                 {
                     name: 'name',
@@ -105,6 +126,7 @@ var table_defs = [
     {
         table_name:  'crops',
         obj_type: 'crop',
+		primary_key: 'uuid',
         schema: {
             columns: [
                 {
@@ -116,6 +138,11 @@ var table_defs = [
                     name: 'raw_fk',
                     type: 'text',
                     desc: 'the foreign key to the raw object the crop was generated from',
+                },
+                {
+                    name: 'user_id',
+                    type: 'text',
+                    desc: 'the foreign key to the user object',
                 },
                 {
                     name: 'name',
@@ -148,6 +175,7 @@ var table_defs = [
     {
         table_name:  'sequences',
         obj_type: 'sequence',
+		primary_key: 'uuid',
         schema: {
             columns: [
                 {
@@ -159,6 +187,11 @@ var table_defs = [
                     name: 'crop_fk',
                     type: 'text',
                     desc: 'the foreign key to the crop object the sequence was generated from',
+                },
+                {
+                    name: 'user_id',
+                    type: 'text',
+                    desc: 'the foreign key to the user object',
                 },
                 {
                     name: 'name',
@@ -189,9 +222,12 @@ var table_defs = [
         },
     },
 ];
+exports.table_defs = table_defs;
 
-function initialize_db (table_defs) {
-    //db.cursor = sqlite.connect(DB_FILENAME);
+
+async function initialize_db (table_defs) {
+	const db = await dbPromise;
+	var queries = [];
     _.each(table_defs, (def) => {
         var sql = `CREATE TABLE ${def.table_name} (\n`;
         var col_sql = _.map(_.initial(def.schema.columns), (column) => {
@@ -201,32 +237,11 @@ function initialize_db (table_defs) {
         col_sql.push(`    ${last_column.name} ${_.upperCase(last_column.type)}`);
         sql += _.join(col_sql, '\n')
         sql += '\n);';
-        //console.log(sql);
-        // execute
+		queries.push(db.run(sql));
     })
+	await Promise.all(queries);
 };
-
-initialize_db(table_defs);
-
-
-
-function default_params (params, defaults) {
-    for (var key in defaults) {
-        if (defaults.hasOwnProperty(key)) {
-            params[key] = (params[key] ? params : defaults)[key];
-        }
-    }
-}
-
-//  default_params(params, {
-//      client_id: 'default-id',
-//      uuid: 'default-uuid',
-//      name: 'default-name',
-//        pet_id: null,
-//      url: null,
-//      stream_url: null,
-//  });
-//  return db.cursor.insert('raw', params);
+exports.initialize_db = initialize_db;
 
 
 function obj_to_sql (obj) {
@@ -240,9 +255,9 @@ function obj_to_sql (obj) {
 
     var placeholders = '(\n';
     placeholders += _.join(_.map(_.initial(keys), (key) => {
-        return `    :${key}, \n`;
+        return `    $${key}, \n`;
     }), '');
-    placeholders += `    :${_.last(keys)}\n)`;
+    placeholders += `    $${_.last(keys)}\n)`;
 
     return {
         columns: cols,
@@ -251,68 +266,142 @@ function obj_to_sql (obj) {
 }
 
 
+function prefix_obj (obj) {
+	return _.fromPairs(_.map(_.toPairs(obj), (pair) => {
+		return ['$' + pair[0], pair[1]];
+	}));
+}
 
-//function insert_sql (table_name, obj) {
-//  var sql = `INSERT INTO ${table name} (\n`;
-//  name) VALUES?)
-//
-//}
 
-function obj_rest_api (def) {
+function obj_rest_api (def, db) {
     // generate rest endpoints for an object
+	// TODO make sure primary keys are immutable
+	// TODO error response
     return {
-        get: {
-            endpoint: def.obj_type,
-            handler:  (req, res) => {
+        get_all: {
+			request_method: 'get',
+            endpoint: `/all/${def.obj_type}/:user_id`,
+            handler: async (req, res) => {
                 var sql = `SELECT * from ${def.table_name}\n`;
-                sql += `    where ${def.primary_key} = ${req.body[def.primary_key]};`;
-                console.log(sql);
+                sql += `    where user_id = "${req.params.user_id}";`;
+				var rows = await db.all(sql);
+				return res.json(rows);
+            },
+        },
+        get: {
+			request_method: 'get',
+            endpoint: `/${def.obj_type}/:primary_key`,
+            handler: async (req, res) => {
+                var sql = `SELECT * from ${def.table_name}\n`;
+                sql += `    where ${def.primary_key} = "${req.params.primary_key}";`;
+                //console.log(sql);
+				return res.json(await db.get(sql));
+				//return res.json(rows);
             },
         },
         post: {
-            endpoint: def.obj_type,
-            handler:  (req, res) => {
+			request_method: 'post',
+            endpoint: `/${def.obj_type}`,
+            handler: async (req, res) => {
                 var sql_obj = obj_to_sql(req.body);
                 var sql = `INSERT INTO ${def.table_name} ${sql_obj.columns} VALUES ${sql_obj.placeholders};`
-                console.log(sql);
+                //console.log(sql);
+				//console.log(prefix_obj(req.body));
+				return res.json({
+					last_id: await db.run(sql, prefix_obj(req.body)).lastID,
+				});
             },
         },
         put: {
-            endpoint: def.obj_type,
-            handler:  (req, res) => {
+			request_method: 'put',
+            endpoint: `/${def.obj_type}`,
+            handler:  async (req, res) => {
                 var columns = _.keys(req.body);
                 var sql = `UPDATE ${def.table_name} SET\n`
                 sql += _.join(_.map(_.initial(columns), (column) => {
-                    return `    ${column} = ':${column}',\n`;
+                    return `    ${column} = $${column},\n`;
                 }), '');
-                sql += `    ${_.last(columns)} = :${_.last(columns)}\n`;
+                sql += `    ${_.last(columns)} = $${_.last(columns)}\n`;
                 //${sql_obj.columns} VALUES ${sql_obj.placeholders};`
-                sql += `WHERE ${def.primary_key} = ${req.body[def.primary_key]};`
-                console.log(sql);
+                sql += `WHERE ${def.primary_key} = "${req.body[def.primary_key]}";`
+				return res.json({
+					last_id: await db.run(sql, prefix_obj(req.body)).lastID,
+				});
             },
         },
         delete: {
-            endpoint: def.obj_type,
-            handler:  (req, res) => {
+			request_method: 'delete',
+            endpoint: `/${def.obj_type}/:primary_key`,
+            handler:  async (req, res) => {
                 var sql = `UPDATE ${def.table_name}\n`;
-                sql += `    set hidden = 1 where ${def.primary_key} = ${req.body[def.primary_key]};`;
-                console.log(sql);
+                sql += `    set hidden = 1 where ${def.primary_key} = "${req.params.primary_key}";`;
+                //console.log(sql);
+				return res.json({
+					last_id: await db.run(sql).lastID,
+				});
             },
         },
     };
 }
+exports.obj_rest_api = obj_rest_api;
 
-sample_obj = {
-    sample: 'fuck you',
-    hehe: 123,
-};
 
-var api = obj_rest_api({
-    table_name: 'sample_table',
-    primary_key: 'sample',
-});
-api.get.handler({body: sample_obj});
-
+//(async () => {
+//	await initialize_db(table_defs);
+//	const db = await dbPromise;
+//	var api = obj_rest_api(table_defs[0], db);
+//	await api.post.handler({
+//		body: {
+//			user_id: 'some-user-id',
+//			name: 'patrick',
+//			email: 'pat.w.brooks@gmail.com',
+//		},
+//	});
+//	var rows = await api.get.handler({
+//		params: {
+//			primary_key: 'some-user-id',
+//		},
+//	});
+//	await api.put.handler({
+//		body: {
+//			user_id: 'some-user-id',
+//			name: 'fart',
+//		},
+//	});
+//	var rows = await api.get.handler({
+//		params: {
+//			primary_key: 'some-user-id',
+//		},
+//	});
+//	await api.delete.handler({
+//		params: {
+//			primary_key: 'some-user-id',
+//		},
+//	});
+//	var rows = await api.get.handler({
+//		params: {
+//			primary_key: 'some-user-id',
+//		},
+//	});
+//	var pet_api = obj_rest_api(table_defs[1], db);
+//	var rowid = await pet_api.post.handler({
+//		body: {
+//			user_fk: 'some-user-id',				
+//			name: 'spot',
+//		},
+//	});
+//	var rowid = await pet_api.post.handler({
+//		body: {
+//			user_fk: 'some-user-id',				
+//			name: 'fido',
+//		},
+//	});
+//	var rows = await pet_api.get_all.handler({
+//		params: {
+//			user_id: 'some-user-id',
+//		},
+//	});
+//})();
 
 
 
