@@ -38,6 +38,10 @@ app.get('/describe', (req, res) => {
 
 
 // audio processing apis
+// TODO dont interpolate user input
+// directly into shell scripts...
+// should use user id and uuid to check database for objects
+// then use result from that to execute shell script.
 
 app.post('/split_audio', async function (req, res) {
 	// call this when you have uploaded a new audio file and
@@ -47,6 +51,7 @@ app.post('/split_audio', async function (req, res) {
 	//
 	// post params:
     //     uuid: the uuid of the dir where the raw file resides
+    //     user_id: the user id
 
 	// TODO: refactor to async await format
 	exec(`
@@ -96,19 +101,20 @@ app.post('/split_audio', async function (req, res) {
 });
 
 
-app.post('/sequence_audio', function (req, res) {
+app.post('/sequence_audio', async function (req, res) {
 	// for a give cropped audio, generate a musical sequence from it
 	//
-	// params:
+	// post params:
 	//     crop_uuid: this is the uuid of the crop. you can get it from list_all_crops
+    //     user_id: the user id
 	exec(`
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python sequence_audio.py -c "${req.body.uuid}"
+		python sequence_audio.py -c "${req.body.uuid}" -u "${req.body.user_id}"
 	`, {
 		'shell': '/bin/bash',
-	}, (error, stdout, stderr) => {
+	}, async (error, stdout, stderr) => {
 		if (error) {
 			console.error(`exec error: ${error}`);
 			res.json({
@@ -119,16 +125,10 @@ app.post('/sequence_audio', function (req, res) {
 			var line = output.shift();
 			var sequence_uuid = line.split(' ')[0];
 			var sequence_url = line.split(' ')[1];
-			// TODO make this like rest api response
-			res.json({
-				rows: [
-					{
-						obj_type: 'sequence',
-						uuid: sequence_uuid,
-						url: sequence_url,
-					},
-				],
-			});
+			const db = await _db.dbPromise;
+			var sequence = await db.get('select * from sequences where uuid = ?', sequence_uuid);
+			sequence.obj_type = 'sequence';
+			res.json(sequence);
 		}
 	});
 });

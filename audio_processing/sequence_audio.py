@@ -35,6 +35,7 @@ SEQUENCE = [(i[0], i[1]/(BPM/60)) for i in [
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--crop-uuid', '-c', help='the uuid of the crop file to use', type=str)
+parser.add_argument('--user-id', '-u', help='the user id', type=str)
 args = parser.parse_args()
 
 
@@ -59,9 +60,8 @@ if __name__ == '__main__':
         with tempfile.TemporaryDirectory() as tmp_dir:
             conn = sqlite3.connect('../server/barker_database.db')
             cur = conn.cursor()
-            cur.execute('select url, uuid, raw_fk from crops where uuid = ?', [args.crop_uuid])
-            crop_url, crop_fk, raw_fk = cur.fetchone()
-            remote_fp = crop_url.replace('gs://', '')
+            cur.execute('select bucket_fp, uuid, raw_id from crops where uuid = ?', [args.crop_uuid])
+            remote_fp, crop_fk, raw_fk = cur.fetchone()
             local_crop_fp = os.path.join(tmp_dir, 'crop.aac')
             bucket_client.download_filename_from_bucket(remote_fp, local_crop_fp)
             local_crop_fp_wav = aac_to_wav(local_crop_fp)
@@ -88,15 +88,29 @@ if __name__ == '__main__':
                 sequence_uuid = uuid.uuid4()
                 remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
                 remote_sequence_url = 'gs://{}'.format(remote_sequence_fp)
-                cur.execute('INSERT INTO sequences VALUES (?, ?, ?, ?, ?, ?, ?)', [
-                    'who-cares',
-                    str(sequence_uuid),
-                    crop_fk,
-                    None,
-                    remote_sequence_url,
-                    None,
-                    0,
-                ])
+                cur.execute('''
+                        INSERT INTO sequences VALUES (
+                            :uuid,
+                            :crop_id,
+                            :user_id,
+                            :name,
+                            :bucket_url,
+                            :bucket_fp,
+                            :stream_url,
+                            :hidden
+                        )
+                    ''', 
+                    {
+                        'uuid': str(sequence_uuid),
+                        'crop_id': args.crop_uuid,
+                        'user_id': args.user_id, 
+                        'name': None,
+                        'bucket_url': remote_sequence_url,
+                        'bucket_fp': remote_sequence_fp,
+                        'stream_url': None,
+                        'hidden': 0,
+                    }
+                )
                 bucket_client.upload_filename_to_bucket(combined_fp_aac, remote_sequence_fp)
             conn.commit()
             conn.close()

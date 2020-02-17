@@ -5,3 +5,4 @@ TODO:
 - endpoint descriptions
 - informative error responses
 - express logging
+- logrotate
