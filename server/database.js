@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var sqlite = require('sqlite');
-const dbPromise = sqlite.open(':memory:', { Promise });
+const dbPromise = sqlite.open('barker_database.db', { Promise });
 
 exports.dbPromise = dbPromise;
 

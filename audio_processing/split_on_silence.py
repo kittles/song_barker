@@ -20,6 +20,7 @@ weight = 0.3
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input-audio-uuid', '-i', help='audio file to be split')
+parser.add_argument('--user-id', '-u', help='user_id')
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -52,15 +53,30 @@ if __name__ == '__main__':
                     filename_aac = filename.replace('.wav', '.aac')
                     filenames.append(filename_aac)
                     bucket_client.upload_filename_to_bucket(out_fp_aac, os.path.join(args.input_audio_uuid, 'cropped/{}'.format(filename_aac)))
-                    cur.execute('INSERT INTO crops VALUES (?, ?, ?, ?, ?, ?, ?)', [
-                        'dont-matter',
-                        str(crop_uuid),
-                        args.input_audio_uuid,
-                        None,
-                        os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename_aac),
-                        None,
-                        0
-                    ])
+                    logger.log('crop uuid ' + str(crop_uuid));
+                    cur.execute('''
+                            INSERT INTO crops VALUES (
+                                :uuid,
+                                :raw_id,
+                                :user_id,
+                                :name,
+                                :bucket_url,
+                                :bucket_fp,
+                                :stream_url,
+                                :hidden
+                            )
+                        ''',
+                        {
+                            'uuid': str(crop_uuid),
+                            'raw_id': args.input_audio_uuid,
+                            'user_id': args.user_id, 
+                            'name': 'placeholder name',
+                            'bucket_url': os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename_aac),
+                            'bucket_fp': os.path.join(args.input_audio_uuid, 'cropped', filename_aac),
+                            'stream_url': None,
+                            'hidden': 0,
+                        }
+                    )
                     bucket_crop_paths.append(os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename_aac))
                 conn.commit()
                 conn.close()

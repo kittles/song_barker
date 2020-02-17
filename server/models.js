@@ -74,7 +74,7 @@ exports.models = [
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
                 },
                 {
-                    name: 'pet_fk',
+                    name: 'pet_id',
                     type: 'text',
                     desc: 'the foreign key to the pet object the raw audio was recorded from',
                 },
@@ -123,7 +123,7 @@ exports.models = [
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
                 },
                 {
-                    name: 'raw_fk',
+                    name: 'raw_id',
                     type: 'text',
                     desc: 'the foreign key to the raw object the crop was generated from',
                 },
@@ -172,7 +172,7 @@ exports.models = [
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
                 },
                 {
-                    name: 'crop_fk',
+                    name: 'crop_id',
                     type: 'text',
                     desc: 'the foreign key to the crop object the sequence was generated from',
                 },

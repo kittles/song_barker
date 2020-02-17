@@ -35,6 +35,9 @@ function obj_rest_api (def, db) {
                 var sql = `SELECT * from ${def.table_name}\n`;
                 sql += `    where user_id = "${req.params.user_id}";`;
 				var rows = await db.all(sql);
+                _.each(rows, (row) => {
+                    row.obj_type = def.obj_type;
+                });
 				return res.json(rows);
             },
         },
@@ -45,8 +48,9 @@ function obj_rest_api (def, db) {
                 var sql = `SELECT * from ${def.table_name}\n`;
                 sql += `    where ${def.primary_key} = "${req.params.primary_key}";`;
                 //console.log(sql);
-				return res.json(await db.get(sql));
-				//return res.json(rows);
+				var row = res.json(await db.get(sql));
+                row.obj_type = def.obj_type;
+				return res.json(rows);
             },
         },
         post: {
