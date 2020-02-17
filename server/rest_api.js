@@ -42,11 +42,10 @@ function obj_rest_api (def, db) {
             handler: async (req, res) => {
                 var sql_obj = obj_to_sql(req.body);
                 var sql = `INSERT INTO ${def.table_name} ${sql_obj.columns} VALUES ${sql_obj.placeholders};`
-                //console.log(sql);
-				//console.log(prefix_obj(req.body));
-				return res.json({
-					last_id: await db.run(sql, prefix_obj(req.body)).lastID,
-				});
+				var db_response = await db.run(sql, prefix_obj(req.body));
+				var row = await db.get(`SELECT * from ${def.table_name} where rowid = ${db_response.lastID};`);
+                row.obj_type = def.obj_type;
+				return res.json(row);
             },
         },
         put: {
@@ -61,9 +60,10 @@ function obj_rest_api (def, db) {
                 sql += `    ${_.last(columns)} = $${_.last(columns)}\n`;
                 //${sql_obj.columns} VALUES ${sql_obj.placeholders};`
                 sql += `WHERE ${def.primary_key} = "${req.body[def.primary_key]}";`
-				return res.json({
-					last_id: await db.run(sql, prefix_obj(req.body)).lastID,
-				});
+				var db_response = await db.run(sql, prefix_obj(req.body));
+				var row = await db.get(`SELECT * from ${def.table_name} where rowid = ${db_response.lastID};`);
+                row.obj_type = def.obj_type;
+				return res.json(row);
             },
         },
         delete: {
@@ -72,10 +72,10 @@ function obj_rest_api (def, db) {
             handler:  async (req, res) => {
                 var sql = `UPDATE ${def.table_name}\n`;
                 sql += `    set hidden = 1 where ${def.primary_key} = "${req.params.primary_key}";`;
-                //console.log(sql);
-				return res.json({
-					last_id: await db.run(sql).lastID,
-				});
+				var db_response = await db.run(sql);
+				var row = await db.get(`SELECT * from ${def.table_name} where rowid = ${db_response.lastID};`);
+                row.obj_type = def.obj_type;
+				return res.json(row);
             },
         },
     };
