@@ -4,29 +4,12 @@ var sqlite = require('sqlite');
 const dbPromise = require('./database.js').dbPromise;
 
 
-//async function initialize_db (models) {
-//	const db = await dbPromise;
-//	var queries = [];
-//    _.each(models, (def) => {
-//        var sql = `CREATE TABLE ${def.table_name} (\n`;
-//        var col_sql = _.map(_.initial(def.schema.columns), (column) => {
-//            return `    ${column.name} ${_.upperCase(column.type)},`;   
-//        });
-//        var last_column = _.last(def.schema.columns);
-//        col_sql.push(`    ${last_column.name} ${_.upperCase(last_column.type)}`);
-//        sql += _.join(col_sql, '\n')
-//        sql += '\n);';
-//		queries.push(db.run(sql));
-//    })
-//	await Promise.all(queries);
-//};
-//exports.initialize_db = initialize_db;
-
-
 function obj_rest_api (def, db) {
     // generate rest endpoints for an object
 	// TODO make sure primary keys are immutable
 	// TODO error response
+    // TODO refactor for sql injection at some point...
+    // TODO return objects for POST PUT and DELETE
     return {
         get_all: {
 			request_method: 'get',
@@ -50,7 +33,7 @@ function obj_rest_api (def, db) {
                 //console.log(sql);
 				var row = res.json(await db.get(sql));
                 row.obj_type = def.obj_type;
-				return res.json(rows);
+				return res.json(row);
             },
         },
         post: {
