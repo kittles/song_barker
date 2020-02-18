@@ -48,9 +48,9 @@ function obj_rest_api (def, db) {
 				return res.json(row);
             },
         },
-        put: {
-			request_method: 'put',
-            endpoint: `/${def.obj_type}`,
+        patch: {
+			request_method: 'patch',
+            endpoint: `/${def.obj_type}/:primary_key`,
             handler:  async (req, res) => {
                 var columns = _.keys(req.body);
                 var sql = `UPDATE ${def.table_name} SET\n`
@@ -59,9 +59,9 @@ function obj_rest_api (def, db) {
                 }), '');
                 sql += `    ${_.last(columns)} = $${_.last(columns)}\n`;
                 //${sql_obj.columns} VALUES ${sql_obj.placeholders};`
-                sql += `WHERE ${def.primary_key} = "${req.body[def.primary_key]}";`
+                sql += `WHERE ${def.primary_key} = "${req.params.primary_key}";`
 				var db_response = await db.run(sql, prefix_obj(req.body));
-				var row = await db.get(`SELECT * from ${def.table_name} where rowid = ${db_response.lastID};`);
+				var row = await db.get(`SELECT * from ${def.table_name} where ${def.primary_key} = "${req.params.primary_key}";`);
                 row.obj_type = def.obj_type;
 				return res.json(row);
             },
