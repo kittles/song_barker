@@ -43,7 +43,7 @@ function obj_rest_api (def, db) {
                 var sql_obj = obj_to_sql(req.body);
                 var sql = `INSERT INTO ${def.table_name} ${sql_obj.columns} VALUES ${sql_obj.placeholders};`
 				var db_response = await db.run(sql, prefix_obj(req.body));
-				var row = await db.get(`SELECT * from ${def.table_name} where rowid = ${db_response.lastID};`);
+				var row = await db.get(`SELECT * from ${def.table_name} where rowid = "${db_response.lastID}";`);
                 row.obj_type = def.obj_type;
 				return res.json(row);
             },
@@ -73,7 +73,7 @@ function obj_rest_api (def, db) {
                 var sql = `UPDATE ${def.table_name}\n`;
                 sql += `    set hidden = 1 where ${def.primary_key} = "${req.params.primary_key}";`;
 				var db_response = await db.run(sql);
-				var row = await db.get(`SELECT * from ${def.table_name} where rowid = ${db_response.lastID};`);
+				var row = await db.get(`SELECT * from ${def.table_name} where ${def.primary_key} = "${req.params.primary_key}";`);
                 row.obj_type = def.obj_type;
 				return res.json(row);
             },
