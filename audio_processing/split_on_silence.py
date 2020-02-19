@@ -15,6 +15,48 @@ warnings.filterwarnings('ignore')
 inspiration: https://walczak.org/2019/02/automatic-splitting-audio-files-silence-python/
 '''
 
+
+def get_crop_count (cur, user_id, raw_id):
+    # used to give crops a default name based on the pet
+    # select all crops for pet
+    # give crop the name <pet_name>_<len(crops)>
+    pet_sql = '''
+        SELECT pet_id, name from pets
+        WHERE
+            pet_id = (SELECT pet_id from raws where uuid = :raw_id)
+        ;
+    '''
+    cur.execute(pet_sql, {
+        'raw_id': raw_id,
+    })
+    try:
+        pet_id, pet_name = cur.fetchone()
+    except:
+        # what to do if no pet...
+        pet_id = None
+        pet_name = 'no name'
+    crop_count_sql = '''
+        SELECT count(*) from crops 
+        WHERE 
+            user_id = :user_id
+        AND
+            raw_id = :raw_id
+        ;
+    '''
+    cur.execute(crop_count_sql, {
+        'user_id': user_id,
+        'raw_id': raw_id,
+    })
+    try:
+        crop_count = int(cur.fetchone()[0])
+    except:
+        crop_count = 0
+    return {
+        'pet_name': pet_name,
+        'crop_count': crop_count,
+    }
+
+
 smoothing_window = 1.0
 weight = 0.3
 
@@ -41,7 +83,9 @@ if __name__ == '__main__':
                 filenames = []
                 conn = sqlite3.connect('../server/barker_database.db')
                 cur = conn.cursor()
+                crop_info = get_crop_count(cur, args.user_id, args.input_audio_uuid)
                 for i, s in enumerate(segmentLimits):
+                    crop_info['crop_count'] += 1
                     crop_uuid = uuid.uuid4()
                     crop_uuids.append(crop_uuid)
                     filename = '{}.wav'.format(crop_uuid)
@@ -70,7 +114,7 @@ if __name__ == '__main__':
                             'uuid': str(crop_uuid),
                             'raw_id': args.input_audio_uuid,
                             'user_id': args.user_id, 
-                            'name': None,
+                            'name': '{} {}'.format(crop_info['pet_name'], crop_info['crop_count']),
                             'bucket_url': os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename_aac),
                             'bucket_fp': os.path.join(args.input_audio_uuid, 'cropped', filename_aac),
                             'stream_url': None,

@@ -102,11 +102,6 @@ app.post('/split_audio', async function (req, res) {
 
 
 app.post('/sequence_audio', async function (req, res) {
-	// for a give cropped audio, generate a musical sequence from it
-	//
-	// post params:
-	//     crop_uuid: this is the uuid of the crop. you can get it from list_all_crops
-    //     user_id: the user id
 	exec(`
 		cd ../audio_processing && 
 		source .env/bin/activate &&
