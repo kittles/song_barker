@@ -39,6 +39,23 @@ parser.add_argument('--user-id', '-u', help='the user id', type=str)
 args = parser.parse_args()
 
 
+def get_sequence_count (cur, user_id):
+    sequence_count_sql = '''
+        SELECT count(*) from sequences 
+        WHERE 
+            user_id = :user_id
+        ;
+    '''
+    cur.execute(sequence_count_sql, {
+        'user_id': user_id,
+    })
+    try:
+        sequence_count = int(cur.fetchone()[0])
+    except:
+        sequence_count = 0
+    return sequence_count
+
+
 def aac_to_wav (aac_fp):
     with warnings.catch_warnings():
         wav_fp = aac_fp.replace('.aac', '.wav')
@@ -60,6 +77,7 @@ if __name__ == '__main__':
         with tempfile.TemporaryDirectory() as tmp_dir:
             conn = sqlite3.connect('../server/barker_database.db')
             cur = conn.cursor()
+            sequence_count = get_sequence_count(cur, args.user_id)
             cur.execute('select bucket_fp, uuid, raw_id from crops where uuid = ?', [args.crop_uuid])
             remote_fp, crop_fk, raw_fk = cur.fetchone()
             local_crop_fp = os.path.join(tmp_dir, 'crop.aac')
@@ -104,7 +122,7 @@ if __name__ == '__main__':
                         'uuid': str(sequence_uuid),
                         'crop_id': args.crop_uuid,
                         'user_id': args.user_id, 
-                        'name': None,
+                        'name': 'Happy Barkday {}'.format(sequence_count + 1),
                         'bucket_url': remote_sequence_url,
                         'bucket_fp': remote_sequence_fp,
                         'stream_url': None,
