@@ -133,6 +133,11 @@ exports.models = [
                     desc: 'the foreign key to the user object',
                 },
                 {
+                    name: 'pet_id',
+                    type: 'text',
+                    desc: 'the foreign key to the pet object the raw audio was recorded from',
+                },
+                {
                     name: 'name',
                     type: 'text',
                     desc: 'the user specified name displayed in the app',
@@ -180,6 +185,11 @@ exports.models = [
                     name: 'user_id',
                     type: 'text',
                     desc: 'the foreign key to the user object',
+                },
+                {
+                    name: 'pet_id',
+                    type: 'text',
+                    desc: 'the foreign key to the pet object the raw audio was recorded from',
                 },
                 {
                     name: 'name',

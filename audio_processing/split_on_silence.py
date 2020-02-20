@@ -63,6 +63,7 @@ weight = 0.3
 parser = argparse.ArgumentParser()
 parser.add_argument('--input-audio-uuid', '-i', help='audio file to be split')
 parser.add_argument('--user-id', '-u', help='user_id')
+parser.add_argument('--pet-id', '-p', help='pet_id')
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -103,6 +104,7 @@ if __name__ == '__main__':
                                 :uuid,
                                 :raw_id,
                                 :user_id,
+                                :pet_id,
                                 :name,
                                 :bucket_url,
                                 :bucket_fp,
@@ -114,6 +116,7 @@ if __name__ == '__main__':
                             'uuid': str(crop_uuid),
                             'raw_id': args.input_audio_uuid,
                             'user_id': args.user_id, 
+                            'user_id': args.pet_id, 
                             'name': '{} {}'.format(crop_info['pet_name'], crop_info['crop_count']),
                             'bucket_url': os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename_aac),
                             'bucket_fp': os.path.join(args.input_audio_uuid, 'cropped', filename_aac),

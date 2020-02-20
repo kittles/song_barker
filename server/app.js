@@ -7,6 +7,7 @@ const port = 3000;
 var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
+var to_signed_url = require('./signed_url.js').to_signed_url;
 
 app.use(express.json({
 	type: 'application/json',
@@ -31,6 +32,13 @@ app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
 })();
 
 
+// signed urls for uploads
+app.post('/upload_url', async (req, res) => {
+    var url = await to_signed_url(req.body.filename);
+    res.json({url: url});
+});
+
+
 app.get('/describe', (req, res) => {
 	res.json(models);
 });
@@ -42,6 +50,8 @@ app.get('/describe', (req, res) => {
 // directly into shell scripts...
 // should use user id and uuid to check database for objects
 // then use result from that to execute shell script.
+
+// TODO these routes get a pet_id now so simplify some sql
 
 app.post('/split_audio', async function (req, res) {
 	// call this when you have uploaded a new audio file and
@@ -58,7 +68,7 @@ app.post('/split_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python split_on_silence.py -i ${req.body.uuid} -u ${req.body.user_id}
+		python split_on_silence.py -i ${req.body.uuid} -u ${req.body.user_id} -p ${req.body.pet_id}
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {
@@ -106,7 +116,7 @@ app.post('/sequence_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python sequence_audio.py -c "${req.body.uuid}" -u "${req.body.user_id}"
+		python sequence_audio.py -c "${req.body.uuid}" -u "${req.body.user_id}" -p ${req.body.pet_id}
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {

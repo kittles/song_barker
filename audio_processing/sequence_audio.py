@@ -36,6 +36,7 @@ SEQUENCE = [(i[0], i[1]/(BPM/60)) for i in [
 parser = argparse.ArgumentParser()
 parser.add_argument('--crop-uuid', '-c', help='the uuid of the crop file to use', type=str)
 parser.add_argument('--user-id', '-u', help='the user id', type=str)
+parser.add_argument('--pet-id', '-p', help='the pet id', type=str)
 args = parser.parse_args()
 
 
@@ -111,6 +112,7 @@ if __name__ == '__main__':
                             :uuid,
                             :crop_id,
                             :user_id,
+                            :pet_id,
                             :name,
                             :bucket_url,
                             :bucket_fp,
@@ -127,6 +129,7 @@ if __name__ == '__main__':
                         'bucket_fp': remote_sequence_fp,
                         'stream_url': None,
                         'hidden': 0,
+                        'pet_id': args.pet_id,
                     }
                 )
                 bucket_client.upload_filename_to_bucket(combined_fp_aac, remote_sequence_fp)
