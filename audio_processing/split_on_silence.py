@@ -116,7 +116,7 @@ if __name__ == '__main__':
                             'uuid': str(crop_uuid),
                             'raw_id': args.input_audio_uuid,
                             'user_id': args.user_id, 
-                            'user_id': args.pet_id, 
+                            'pet_id': args.pet_id, 
                             'name': '{} {}'.format(crop_info['pet_name'], crop_info['crop_count']),
                             'bucket_url': os.path.join('gs://{}'.format(args.input_audio_uuid), 'cropped', filename_aac),
                             'bucket_fp': os.path.join(args.input_audio_uuid, 'cropped', filename_aac),

@@ -124,12 +124,12 @@ if __name__ == '__main__':
                         'uuid': str(sequence_uuid),
                         'crop_id': args.crop_uuid,
                         'user_id': args.user_id, 
+                        'pet_id': args.pet_id,
                         'name': 'Happy Barkday {}'.format(sequence_count + 1),
                         'bucket_url': remote_sequence_url,
                         'bucket_fp': remote_sequence_fp,
                         'stream_url': None,
                         'hidden': 0,
-                        'pet_id': args.pet_id,
                     }
                 )
                 bucket_client.upload_filename_to_bucket(combined_fp_aac, remote_sequence_fp)
