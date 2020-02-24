@@ -57,8 +57,9 @@ def get_crop_count (cur, user_id, raw_id):
     }
 
 
-smoothing_window = 1.0
-weight = 0.3
+# more aggressive
+smoothing_window = 0.05
+weight = 0.15
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input-audio-uuid', '-i', help='audio file to be split')
@@ -80,7 +81,7 @@ if __name__ == '__main__':
         with warnings.catch_warnings():
             try:
                 [fs, x] = audioBasicIO.readAudioFile(local_fp_wav)
-                segmentLimits = audio_seg.silenceRemoval(x, fs, 0.05, 0.05, smoothing_window, weight)
+                segmentLimits = audio_seg.silenceRemoval(x, fs, 0.025, 0.025, smoothing_window, weight)
                 filenames = []
                 conn = sqlite3.connect('../server/barker_database.db')
                 cur = conn.cursor()
