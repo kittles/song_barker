@@ -40,12 +40,12 @@ def get_crop_count (cur, user_id, raw_id):
         WHERE 
             user_id = :user_id
         AND
-            raw_id = :raw_id
+            pet_id = :pet_id
         ;
     '''
     cur.execute(crop_count_sql, {
         'user_id': user_id,
-        'raw_id': raw_id,
+        'pet_id': pet_id,
     })
     try:
         crop_count = int(cur.fetchone()[0])
