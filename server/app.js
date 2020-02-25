@@ -16,6 +16,28 @@ app.set('json spaces', 2);
 
 
 app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
+app.get('/sample_animation', (req, res) => {
+    res.send(`
+    <head>
+        <!--
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.2.1/pixi.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.3/pixi.js"></script>
+        -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.js"></script>
+        <style>
+        /**
+        html { overflow: hidden; }
+        canvas { display: block; }
+        **/
+        </style>
+    </head>
+    <body>
+
+        <script src="sample_animation.js"></script>
+    </body>
+    `);
+});
+app.use(express.static('./public'));
 
 
 // rest api
