@@ -12,7 +12,7 @@ var mouth_right = 0.63;
 var mouth_top = 0.41;
 var mouth_bottom = 0.37;
 
-var triangle_padding = 0.01
+var triangle_padding = 0.0001
 
 function generate_vertex_array () {
 	// perimeter
@@ -69,8 +69,8 @@ var face_idx_array = [
 	[ 6, 4, 7], 
 	[ 4, 8, 7], 
 	[ 4, 5, 8], 
-	[ 5, 9, 8], 
-	[ 5, 6, 9], 
+	//[ 5, 9, 8], 
+	//[ 5, 6, 9], 
 	[ 7, 8, 9], 
 ];
 
@@ -97,6 +97,8 @@ face_idx_array.forEach((vec) => {
 			new THREE.Vector2( vertex_array[vec[2]][0], vertex_array[vec[2]][1] ),
 		] )
 });
+
+
 geometry.computeBoundingSphere();
 geometry.computeFaceNormals();
 geometry.computeVertexNormals();
@@ -106,7 +108,8 @@ var texture = new THREE.TextureLoader().load( 'puppy.png' );
 var material = new THREE.MeshBasicMaterial( { map: texture } );
 //var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 var thing = new THREE.Mesh( geometry, material );
-thing.doubleSided = true;
+
+thing.material.side = THREE.DoubleSide;
 window.thing = thing;
 scene.add( thing );
 
@@ -133,6 +136,8 @@ camera.position.y = 0.35;
 camera.position.z = 5;
 
 function bark (duration, max_open) {
+	var bark_type = parseInt(Math.random() * 3) // left, right, both
+	console.log(bark_type);
 	var vertex_original_ys = [
 		geometry.vertices[7].y,
 		geometry.vertices[8].y,
@@ -149,16 +154,34 @@ function bark (duration, max_open) {
 	function animate () {
 		if (frame < (frame_count / 2)) {
 			// opening
-			geometry.vertices[7].y -= step;
-			geometry.vertices[8].y -= step;
-			geometry.vertices[9].y -= step;
-			//camera.position.z -= 0.01
+			switch (bark_type) {
+				case 0:
+					geometry.vertices[9].y -= step;
+					break;
+				case 1:
+					geometry.vertices[8].y -= step;
+					break;
+				case 2:
+					geometry.vertices[7].y -= step;
+					geometry.vertices[8].y -= step;
+					geometry.vertices[9].y -= step;
+					break;
+			}
 		} else {
-			//closing
-			geometry.vertices[7].y += step;
-			geometry.vertices[8].y += step;
-			geometry.vertices[9].y += step;
-			//camera.position.z += 0.01
+			// opening
+			switch (bark_type) {
+				case 0:
+					geometry.vertices[9].y += step;
+					break;
+				case 1:
+					geometry.vertices[8].y += step;
+					break;
+				case 2:
+					geometry.vertices[7].y += step;
+					geometry.vertices[8].y += step;
+					geometry.vertices[9].y += step;
+					break;
+			}
 		}
 		geometry.verticesNeedUpdate = true;
 		frame += 1;
@@ -170,6 +193,9 @@ function bark (duration, max_open) {
 	animate();
 }
 window.bark = bark;
+//setInterval(() => {
+//	bark(0.5, 0.04);
+//}, 800);
 
 
 //var c = 0;
