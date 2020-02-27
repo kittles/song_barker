@@ -33,7 +33,7 @@ app.get('/sample_animation', (req, res) => {
     </head>
     <body>
 
-        <script src="sample_animation.js"></script>
+        <script src="bark.js"></script>
     </body>
     `);
 });
