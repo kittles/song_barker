@@ -1,5 +1,6 @@
 var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 15, window.innerWidth / window.innerHeight, 0.1, 1000 );
+var camera = new THREE.PerspectiveCamera( 12, window.innerWidth / window.innerHeight, 0.1, 1000 );
+//var camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 100 )
 
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -38,6 +39,14 @@ function generate_vertex_array () {
 	return perimeter.concat(outer_triangle, inner_triangle);
 }
 var vertex_array = generate_vertex_array();
+var scale = 1;
+vertex_array = vertex_array.map((vec) => {
+	return [
+		vec[0] * scale,
+		vec[1] * scale,
+		vec[2] * scale,
+	];
+});
 
 //var vertex_array = [
 //	// perimeter
@@ -131,8 +140,8 @@ function show_edges (input_geometry) {
 	scene.add( line );
 }
 
-camera.position.x = 1.7;
-camera.position.y = 0.35;
+camera.position.x = 0.5
+camera.position.y = 0.5
 camera.position.z = 5;
 
 function bark (duration, max_open) {
