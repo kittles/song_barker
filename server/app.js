@@ -111,12 +111,9 @@ app.post('/split_audio', async function (req, res) {
 				return line.split(' ')[1];
 			});
 			// TODO make this like rest api response
-			// TODO pet_id comes back
 			// TODO brittle
-
 			const db = await _db.dbPromise;
 			var raw = await db.get('select * from raws where uuid = ?', req.body.uuid);
-			var pet = await db.get('select * from pets where pet_id = ?', raw.pet_id);
 			var crop_qs = _.join(_.map(crop_uuids, (uuid) => { return '?' }), ', ');
 			var all_crops_sql = `select * from crops 
 				where uuid in ( 
@@ -126,11 +123,7 @@ app.post('/split_audio', async function (req, res) {
 			_.map(crops, (crop) => {
 				crop.obj_type = 'crop';
 			});
-			pet.obj_type = 'pet';
-			res.json({
-				crops: crops,
-				pet: pet,
-			});
+			res.json(crops);
 		}
 	});
 });
@@ -141,7 +134,7 @@ app.post('/sequence_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python sequence_audio.py -c "${req.body.uuid}" -u "${req.body.user_id}" -p ${req.body.pet_id}
+		python sequence_audio.py -c "${req.body.uuid}" -u "${req.body.user_id}"
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {

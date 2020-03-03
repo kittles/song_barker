@@ -50,7 +50,7 @@ def get_crop_defaults (cur, user_id, raw_id):
         WHERE 
             user_id = :user_id
         AND
-            name = '{}%'
+            name like '{}%'
         ;
     '''.format(base_name)
     cur.execute(crop_count_sql, {

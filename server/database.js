@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var sqlite = require('sqlite');
+// TODO probably want to use dev db on server
 const dbPromise = sqlite.open('barker_database.db', { Promise });
 
 exports.dbPromise = dbPromise;

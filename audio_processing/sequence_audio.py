@@ -36,7 +36,6 @@ SEQUENCE = [(i[0], i[1]/(BPM/60)) for i in [
 parser = argparse.ArgumentParser()
 parser.add_argument('--crop-uuid', '-c', help='the uuid of the crop file to use', type=str)
 parser.add_argument('--user-id', '-u', help='the user id', type=str)
-parser.add_argument('--pet-id', '-p', help='the pet id', type=str)
 args = parser.parse_args()
 
 
@@ -87,6 +86,7 @@ if __name__ == '__main__':
             with tempfile.TemporaryDirectory() as tmp_output_dir:
                 c = 1
                 note_fps = []
+                # TODO scale duration so sequences have consistent length
                 for pitch, duration in SEQUENCE:
                     output_fp = os.path.join(tmp_output_dir, '{:03}.wav'.format(c))
                     note_fps.append(output_fp)
@@ -112,7 +112,6 @@ if __name__ == '__main__':
                             :uuid,
                             :crop_id,
                             :user_id,
-                            :pet_id,
                             :name,
                             :bucket_url,
                             :bucket_fp,
@@ -124,7 +123,6 @@ if __name__ == '__main__':
                         'uuid': str(sequence_uuid),
                         'crop_id': args.crop_uuid,
                         'user_id': args.user_id, 
-                        'pet_id': args.pet_id,
                         'name': 'Happy Barkday {}'.format(sequence_count + 1),
                         'bucket_url': remote_sequence_url,
                         'bucket_fp': remote_sequence_fp,
