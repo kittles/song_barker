@@ -146,7 +146,6 @@ camera.position.z = 5;
 
 function bark (duration, max_open) {
 	var bark_type = parseInt(Math.random() * 3) // left, right, both
-	console.log(bark_type);
 	var vertex_original_ys = [
 		geometry.vertices[7].y,
 		geometry.vertices[8].y,
@@ -194,28 +193,35 @@ function bark (duration, max_open) {
 		}
 		geometry.verticesNeedUpdate = true;
 		frame += 1;
+		console.info('frame', frame);
 		if (frame < frame_count) {
 			requestAnimationFrame(animate);	
+		} else {
+			console.info('finished');
 		}
 		renderer.render( scene, camera );
 	}
 	animate();
 }
 window.bark = bark;
-//setInterval(() => {
-//	bark(0.5, 0.04);
-//}, 800);
 
 
-//var c = 0;
-function animate () {
-	//c += 0.01;
-    //geometry.vertices[0].x = Math.sin(c);
-    //geometry.vertices[0].y = Math.cos(c);
-    //geometry.vertices[0].z = Math.sin(c * c);
-	//thing.rotation.x += 0.01;
-	//thing.rotation.y += 0.01;
-	requestAnimationFrame( animate );
+var paused = true;
+
+setTimeout(() => {
 	renderer.render( scene, camera );
-}
-animate();
+}, 1000);
+
+//function animate () {
+//	//c += 0.01;
+//    //geometry.vertices[0].x = Math.sin(c);
+//    //geometry.vertices[0].y = Math.cos(c);
+//    //geometry.vertices[0].z = Math.sin(c * c);
+//	//thing.rotation.x += 0.01;
+//	//thing.rotation.y += 0.01;
+//	if (paused) {
+//		return;
+//	}
+//	requestAnimationFrame( animate );
+//	renderer.render( scene, camera );
+//}
