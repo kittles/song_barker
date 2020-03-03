@@ -18,7 +18,6 @@ THRESHOLD = 300000 # min sum of abs value of all pcm samples
 parser = argparse.ArgumentParser()
 parser.add_argument('--input-audio-uuid', '-i', help='audio file to be split')
 parser.add_argument('--user-id', '-u', help='user_id')
-parser.add_argument('--pet-id', '-p', help='pet_id')
 parser.add_argument('--debug', '-d', action='store_true', help='playback audio crops', default=False)
 args = parser.parse_args()
 
@@ -26,51 +25,53 @@ if not args.debug:
     warnings.filterwarnings('ignore')
 
 
-def get_crop_count (cur, user_id, pet_id, raw_id):
-    # used to give crops a default name based on the pet
-    # select all crops for pet
-    # give crop the name <pet_name>_<len(crops)>
-    pet_sql = '''
-        SELECT pet_id, name from pets
+def get_crop_defaults (cur, user_id, raw_id):
+    # if raw has name, use that, otherwise use sound_
+
+    # get raw entry in db for base name
+    raw_sql = '''
+        SELECT uuid, name from raws
         WHERE
-        pet_id = :pet_id
+        uuid = :uuid
     '''
-    cur.execute(pet_sql, {
-        'pet_id': pet_id,
+    cur.execute(raw_sql, {
+        'uuid': raw_id,
     })
     try:
-        _, pet_name = cur.fetchone()
+        _, base_name = cur.fetchone()
     except:
-        # what to do if no pet...
-        pet_name = 'no name'
+        base_name = 'sound'
+    if base_name is None:
+        base_name = 'sound'
+
+    # get crop count
     crop_count_sql = '''
         SELECT count(*) from crops 
         WHERE 
             user_id = :user_id
         AND
-            pet_id = :pet_id
+            name = '{}%'
         ;
-    '''
+    '''.format(base_name)
     cur.execute(crop_count_sql, {
         'user_id': user_id,
-        'pet_id': pet_id,
     })
     try:
         crop_count = int(cur.fetchone()[0])
     except:
         crop_count = 0
+
     return {
-        'pet_name': pet_name,
+        'base_name': base_name,
         'crop_count': crop_count,
     }
 
 
 if __name__ == '__main__':
-    logger.log('{} STARTING with args: --input-audio-uuid {} --user-id {} --pet-id'.format(
+    logger.log('{} STARTING with args: --input-audio-uuid {} --user-id {}'.format(
         os.path.basename(__file__), 
         args.input_audio_uuid,
         args.user_id,
-        args.pet_id
     ))
 
     crop_uuids = []
@@ -128,7 +129,8 @@ if __name__ == '__main__':
         # TODO db path shouldn't be hardcoded
         conn = sqlite3.connect('../server/barker_database.db')
         cur = conn.cursor()
-        crop_info = get_crop_count(cur, args.user_id, args.pet_id, args.input_audio_uuid)
+        #crop_info = get_crop_count(cur, args.user_id, args.input_audio_uuid)
+        crop_info = get_crop_defaults(cur, args.user_id, args.input_audio_uuid)
 
         # upload good crops and log in db
         for crop_fp_wav in good_crops:
@@ -149,7 +151,7 @@ if __name__ == '__main__':
             bucket_client.upload_filename_to_bucket(crop_fp_aac, bucket_fp)
 
             # this is just a placeholder for the user based on existing count of crops from a specific pet_id
-            auto_name = '{} {}'.format(crop_info['pet_name'], crop_info['crop_count'])
+            auto_name = '{}_{}'.format(crop_info['base_name'], crop_info['crop_count'])
             if args.debug:
                 print('auto name', auto_name)
 
@@ -159,7 +161,6 @@ if __name__ == '__main__':
                         :uuid,
                         :raw_id,
                         :user_id,
-                        :pet_id,
                         :name,
                         :bucket_url,
                         :bucket_fp,
@@ -171,7 +172,6 @@ if __name__ == '__main__':
                     'uuid': str(crop_uuid),
                     'raw_id': args.input_audio_uuid,
                     'user_id': args.user_id, 
-                    'pet_id': args.pet_id, 
                     'name': auto_name,
                     'bucket_url': bucket_url,
                     'bucket_fp': bucket_fp,

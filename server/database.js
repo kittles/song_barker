@@ -6,10 +6,10 @@ const dbPromise = sqlite.open('barker_database.db', { Promise });
 exports.dbPromise = dbPromise;
 
 
-async function initialize_db (models) {
+async function initialize_db () {
+    const models = require('./models.js').models;
 	const db = await dbPromise;
-	var queries = [];
-    _.each(models, (def) => {
+    return Promise.all(_.map(models, (def) => {
         var sql = `CREATE TABLE ${def.table_name} (\n`;
         var col_sql = _.map(_.initial(def.schema.columns), (column) => {
             return `    ${column.name} ${_.upperCase(column.type)},`;   
@@ -18,8 +18,7 @@ async function initialize_db (models) {
         col_sql.push(`    ${last_column.name} ${_.upperCase(last_column.type)}`);
         sql += _.join(col_sql, '\n')
         sql += '\n);';
-		queries.push(db.run(sql));
-    })
-	return await Promise.all(queries);
+		return db.run(sql);
+    }));
 };
 exports.initialize_db = initialize_db;

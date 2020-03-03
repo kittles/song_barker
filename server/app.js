@@ -77,8 +77,6 @@ app.get('/describe', (req, res) => {
 // should use user id and uuid to check database for objects
 // then use result from that to execute shell script.
 
-// TODO these routes get a pet_id now so simplify some sql
-
 app.post('/split_audio', async function (req, res) {
 	// call this when you have uploaded a new audio file and
 	// want to crop it in to piece that can be candidates for
@@ -94,7 +92,7 @@ app.post('/split_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python split_sox.py -i ${req.body.uuid} -u ${req.body.user_id} -p ${req.body.pet_id}
+		python split_sox.py -i ${req.body.uuid} -u ${req.body.user_id}
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {
@@ -114,6 +112,7 @@ app.post('/split_audio', async function (req, res) {
 			});
 			// TODO make this like rest api response
 			// TODO pet_id comes back
+			// TODO brittle
 
 			const db = await _db.dbPromise;
 			var raw = await db.get('select * from raws where uuid = ?', req.body.uuid);
