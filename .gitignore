@@ -11,3 +11,15 @@ audio_processing/tune_split_params/audio_samples
 server/barker_database.db
 server/barker_database.db.bak
 server/public/node_modules
+
+audio_processing/tune_split_params/analysis.png
+audio_processing/tune_split_params/analysis/
+audio_processing/tune_split_params/crop_waveforms/
+audio_processing/tune_split_params/crops/
+audio_processing/tune_split_params/graphs/
+audio_processing/tune_split_params/sox_crops/
+audio_processing/tune_split_params/tmp/
+audio_processing/tune_split_params/trimmed_crops/
+audio_processing/tune_split_params/tune_samples/
+audio_processing/tune_split_params/wav_samples/
+

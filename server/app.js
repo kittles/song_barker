@@ -16,6 +16,8 @@ app.set('json spaces', 2);
 
 
 app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
+
+// send a dog puppet
 app.get('/sample_animation', (req, res) => {
     res.send(`
     <head>
@@ -55,16 +57,18 @@ app.use(express.static('./public'));
 
 
 // signed urls for uploads
+
 app.post('/upload_url', async (req, res) => {
     var url = await to_signed_url(req.body.filename);
     res.json({url: url});
 });
 
 
+// model descriptions
+
 app.get('/describe', (req, res) => {
 	res.json(models);
 });
-
 
 
 // audio processing apis
@@ -90,7 +94,7 @@ app.post('/split_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python split_on_silence.py -i ${req.body.uuid} -u ${req.body.user_id} -p ${req.body.pet_id}
+		python split_sox.py -i ${req.body.uuid} -u ${req.body.user_id} -p ${req.body.pet_id}
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {

@@ -1,7 +1,8 @@
 # python
 sudo apt-get install python-dev   # for python2.x installs
 sudo apt-get install python3-dev  # for python3.x installs
-sudp apt install rubberband
+sudo apt install rubberband
+sudo apt install sox
 
 # python env
 sudo apt install virtualenv
