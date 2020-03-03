@@ -22,7 +22,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 SAMPLERATE = 48000
-BPM = 120
+BPM = 250
 
 SEQUENCE = [(i[0], i[1]/(BPM/60)) for i in [
     (-5, 1),
@@ -36,6 +36,7 @@ SEQUENCE = [(i[0], i[1]/(BPM/60)) for i in [
 parser = argparse.ArgumentParser()
 parser.add_argument('--crop-uuid', '-c', help='the uuid of the crop file to use', type=str)
 parser.add_argument('--user-id', '-u', help='the user id', type=str)
+parser.add_argument('--debug', '-d', action='store_true', help='playback sequence', default=False)
 args = parser.parse_args()
 
 
@@ -86,11 +87,18 @@ if __name__ == '__main__':
             with tempfile.TemporaryDirectory() as tmp_output_dir:
                 c = 1
                 note_fps = []
-                # TODO scale duration so sequences have consistent length
-                for pitch, duration in SEQUENCE:
+
+                # need to know crop length for timing
+                samplerate, data = read(local_crop_fp_wav)
+                crop_duration = len(data)/float(samplerate)
+                # if crop is half a second, and we want a 1 second quarter note say...
+                # then the duration passed to rubberband needs to be 2
+                # 2 comes from note_duration / crop_duration 
+
+                for pitch, note_duration in SEQUENCE:
                     output_fp = os.path.join(tmp_output_dir, '{:03}.wav'.format(c))
                     note_fps.append(output_fp)
-                    sp.call('rubberband -p {} -t {} {} {}'.format(pitch, duration, local_crop_fp_wav, output_fp), shell=True)
+                    sp.call('rubberband -p {} -t {} {} {}'.format(pitch, note_duration/crop_duration, local_crop_fp_wav, output_fp), shell=True)
                     c += 1
 
                 combined_fp = os.path.join(tmp_output_dir, 'combined.wav')
@@ -103,10 +111,12 @@ if __name__ == '__main__':
                     else:
                         combined_sounds = combined_sounds + sound
                 combined_sounds.export(combined_fp, format='wav')
+                if args.debug:
+                    sp.call('play {}'.format(combined_fp), shell=True)
                 combined_fp_aac = wav_to_aac(combined_fp)
                 sequence_uuid = uuid.uuid4()
                 remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
-                remote_sequence_url = 'gs://{}'.format(remote_sequence_fp)
+                remote_sequence_url = 'gs://song_barker_sequences/{}'.format(remote_sequence_fp)
                 cur.execute('''
                         INSERT INTO sequences VALUES (
                             :uuid,
