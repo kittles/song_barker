@@ -145,7 +145,7 @@ if __name__ == '__main__':
             # upload to bucket
             bucket_filename = '{}.aac'.format(crop_uuid)
             bucket_fp = os.path.join(args.input_audio_uuid, 'cropped', bucket_filename)
-            bucket_url = os.path.join('gs://', bucket_fp)
+            bucket_url = os.path.join('gs://', 'song_barker_sequences', bucket_fp)
             bucket_client.upload_filename_to_bucket(crop_fp_aac, bucket_fp)
 
             # this is just a placeholder for the user based on existing count of crops from a specific pet_id
