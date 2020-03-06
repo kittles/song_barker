@@ -1,21 +1,122 @@
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 12, window.innerWidth / window.innerHeight, 0.1, 1000 );
-//var camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 100 )
+$('document').ready(init);
 
-var renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
+var scene;
+var camera;
+var renderer;
+var geometry;
+var mouth_left;
+var mouth_right;
+var mouth_top;
+var mouth_bottom;
+var triangle_padding;
+var vertex_array;
+var scale;
+var face_idx_array;
+var texture;
+var material;
+var thing;
+var dog;
+var paused;
+var texture_image;
 
-var geometry = new THREE.Geometry();
 
-var mouth_left = 0.452;
-var mouth_right = 0.631;
-var mouth_top = 0.415;
-var mouth_bottom = 0.334;
+function init () {
+	scene = new THREE.Scene();
 
-var triangle_padding = 0.0001
+	camera = new THREE.PerspectiveCamera( 12, window.innerWidth / window.innerHeight, 0.1, 1000 );
+	camera.position.x = 0.5
+	camera.position.y = 0.5
+	camera.position.z = 5;
 
-function generate_vertex_array () {
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	document.body.appendChild( renderer.domElement );
+
+	mouth_left = 0.452;
+	mouth_right = 0.631;
+	mouth_top = 0.415;
+	mouth_bottom = 0.334;
+	triangle_padding = 0.0001
+
+	vertex_array = generate_vertex_array(
+		mouth_left, mouth_right, mouth_top, mouth_bottom, triangle_padding,
+	);
+	scale = 1;
+	vertex_array = vertex_array.map((vec) => {
+		return [
+			vec[0] * scale,
+			vec[1] * scale,
+			vec[2] * scale,
+		];
+	});
+	face_idx_array = [
+		[ 0, 6, 3], 
+		[ 0, 4, 6], 
+		[ 0, 1, 4], 
+		[ 1, 5, 4], 
+		[ 1, 2, 5], 
+		[ 2, 6, 5], 
+		[ 2, 3, 6], 
+		[ 6, 7, 9], 
+		[ 6, 4, 7], 
+		[ 4, 8, 7], 
+		[ 4, 5, 8], 
+		[ 7, 8, 9], 
+	];
+	geometry = new THREE.Geometry();
+	vertex_array.forEach((vertex) => {
+		geometry.vertices.push(new THREE.Vector3( vertex[0], vertex[1], vertex[2] ));
+	});
+	face_idx_array.forEach((vec) => {
+		geometry.faces.push( new THREE.Face3( vec[0], vec[1], vec[2] ) );
+		geometry.faceVertexUvs[ 0 ].push( [
+			new THREE.Vector2( vertex_array[vec[0]][0], vertex_array[vec[0]][1] ),
+			new THREE.Vector2( vertex_array[vec[1]][0], vertex_array[vec[1]][1] ),
+			new THREE.Vector2( vertex_array[vec[2]][0], vertex_array[vec[2]][1] ),
+		] )
+	});
+	geometry.computeBoundingSphere();
+	geometry.computeFaceNormals();
+	geometry.computeVertexNormals();
+
+
+	// use an img to store the texture (so it can be changed dynamicall)
+	texture_image = document.createElement('img');
+	document.body.appendChild(texture_image);
+	create_dog();
+
+
+	function create_dog (img_url) {
+		var loader = new THREE.TextureLoader();
+		texture_image.src = 'dog.jpg';
+		return loader.load(texture_image.src, (texture) => {
+			console.log('loaded');
+			material = new THREE.MeshBasicMaterial({ 
+				map: texture,
+				side: THREE.DoubleSide,
+			});
+			dog =  new THREE.Mesh(geometry, material);
+			window.dog = dog;
+			scene.add(dog);
+			window.bark = bark;
+			paused = true;
+			renderer.render(scene, camera);
+			console.log('rendered');
+		});
+	}
+	function update_texture (img64) {
+		var loader = new THREE.TextureLoader();
+		texture_image.src = img64;
+		dog.material.map = loader.load(texture_image.src, () => {
+			dog.material.needsUpdate = true; 
+			renderer.render(scene, camera);
+		});
+	}
+	window.update_texture = update_texture;
+}
+
+
+function generate_vertex_array (mouth_left, mouth_right, mouth_top, mouth_bottom, triangle_padding) {
 	// perimeter
 	var perimeter = [
 		[ 0   , 0   , 0 ],
@@ -38,89 +139,7 @@ function generate_vertex_array () {
 	
 	return perimeter.concat(outer_triangle, inner_triangle);
 }
-var vertex_array = generate_vertex_array();
-var scale = 1;
-vertex_array = vertex_array.map((vec) => {
-	return [
-		vec[0] * scale,
-		vec[1] * scale,
-		vec[2] * scale,
-	];
-});
 
-//var vertex_array = [
-//	// perimeter
-//	[ 0   , 0   , 0 ],
-//	[ 1   , 0   , 0 ],
-//	[ 1   , 1   , 0 ],
-//	[ 0   , 1   , 0 ],
-//
-//	// outer triangle (bottom, right, left)
-//	[ 0.5 , 0.1 , 0 ],
-//	[ 0.8 , 0.9 , 0 ],
-//	[ 0.2 , 0.9 , 0 ],
-//
-//	// inner triangle (bottom, right, left)
-//	[ 0.5 , 0.2 , 0 ],
-//	[ 0.7 , 0.8 , 0 ],
-//	[ 0.3 , 0.8 , 0 ],
-//];
-
-var face_idx_array = [
-	[ 0, 6, 3], 
-	[ 0, 4, 6], 
-	[ 0, 1, 4], 
-	[ 1, 5, 4], 
-	[ 1, 2, 5], 
-	[ 2, 6, 5], 
-	[ 2, 3, 6], 
-	[ 6, 7, 9], 
-	[ 6, 4, 7], 
-	[ 4, 8, 7], 
-	[ 4, 5, 8], 
-	//[ 5, 9, 8], 
-	//[ 5, 6, 9], 
-	[ 7, 8, 9], 
-];
-
-//var face_idx_array = [
-//	[ 0, 4, 3], 
-//	[ 3, 4, 5], 
-//	[ 2, 3, 5], 
-//	[ 2, 5, 7], 
-//	[ 1, 2, 7], 
-//	[ 7, 6, 1], 
-//	[ 0, 1, 6], 
-//	[ 0, 6, 4], 
-//	[ 4, 6, 5], 
-//	[ 5, 6, 7], 
-//];
-vertex_array.forEach((vertex) => {
-	geometry.vertices.push(new THREE.Vector3( vertex[0], vertex[1], vertex[2] ));
-});
-face_idx_array.forEach((vec) => {
-	geometry.faces.push( new THREE.Face3( vec[0], vec[1], vec[2] ) );
-	geometry.faceVertexUvs[ 0 ].push( [
-			new THREE.Vector2( vertex_array[vec[0]][0], vertex_array[vec[0]][1] ),
-			new THREE.Vector2( vertex_array[vec[1]][0], vertex_array[vec[1]][1] ),
-			new THREE.Vector2( vertex_array[vec[2]][0], vertex_array[vec[2]][1] ),
-		] )
-});
-
-
-geometry.computeBoundingSphere();
-geometry.computeFaceNormals();
-geometry.computeVertexNormals();
-
-
-var texture = new THREE.TextureLoader().load( 'dog.jpg' );
-var material = new THREE.MeshBasicMaterial( { map: texture } );
-//var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-var thing = new THREE.Mesh( geometry, material );
-
-thing.material.side = THREE.DoubleSide;
-window.thing = thing;
-scene.add( thing );
 
 function show_vertices (input_geometry) {
 	var vertex_geometry = new THREE.Geometry();
@@ -134,15 +153,13 @@ function show_vertices (input_geometry) {
 	particles.sortParticles = true;
 	scene.add( particles );
 }
+
+
 function show_edges (input_geometry) {
 	var edges = new THREE.EdgesGeometry( input_geometry );
 	var line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
 	scene.add( line );
 }
-
-camera.position.x = 0.5
-camera.position.y = 0.5
-camera.position.z = 5;
 
 function bark (duration, max_open) {
 	var bark_type = parseInt(Math.random() * 3) // left, right, both
@@ -203,25 +220,3 @@ function bark (duration, max_open) {
 	}
 	animate();
 }
-window.bark = bark;
-
-
-var paused = true;
-
-setTimeout(() => {
-	renderer.render( scene, camera );
-}, 1000);
-
-//function animate () {
-//	//c += 0.01;
-//    //geometry.vertices[0].x = Math.sin(c);
-//    //geometry.vertices[0].y = Math.cos(c);
-//    //geometry.vertices[0].z = Math.sin(c * c);
-//	//thing.rotation.x += 0.01;
-//	//thing.rotation.y += 0.01;
-//	if (paused) {
-//		return;
-//	}
-//	requestAnimationFrame( animate );
-//	renderer.render( scene, camera );
-//}

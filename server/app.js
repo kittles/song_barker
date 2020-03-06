@@ -28,6 +28,10 @@ app.get('/sample_animation', (req, res) => {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.2.1/pixi.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.3/pixi.js"></script>
         -->
+        <script
+          src="https://code.jquery.com/jquery-3.4.1.min.js"
+          integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+          crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.js"></script>
         <style>
         /**
@@ -37,7 +41,6 @@ app.get('/sample_animation', (req, res) => {
         </style>
     </head>
     <body>
-
         <script src="bark.js"></script>
     </body>
     `);
