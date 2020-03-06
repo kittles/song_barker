@@ -8,10 +8,10 @@ document.body.appendChild( renderer.domElement );
 
 var geometry = new THREE.Geometry();
 
-var mouth_left = 0.55;
-var mouth_right = 0.63;
-var mouth_top = 0.41;
-var mouth_bottom = 0.37;
+var mouth_left = 0.452;
+var mouth_right = 0.631;
+var mouth_top = 0.415;
+var mouth_bottom = 0.334;
 
 var triangle_padding = 0.0001
 
@@ -113,7 +113,7 @@ geometry.computeFaceNormals();
 geometry.computeVertexNormals();
 
 
-var texture = new THREE.TextureLoader().load( 'puppy.png' );
+var texture = new THREE.TextureLoader().load( 'dog.jpg' );
 var material = new THREE.MeshBasicMaterial( { map: texture } );
 //var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 var thing = new THREE.Mesh( geometry, material );
