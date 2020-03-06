@@ -8,6 +8,8 @@ var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
 var signed = require('./signed_url.js');
+var ms = require('mediaserver');
+
 
 app.use(express.json({
 	type: 'application/json',
@@ -16,6 +18,7 @@ app.set('json spaces', 2);
 
 
 app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
+
 
 // send a dog puppet
 app.get('/sample_animation', (req, res) => {
@@ -42,23 +45,32 @@ app.get('/sample_animation', (req, res) => {
 app.use(express.static('./public'));
 
 
-// test signed url playback
-app.get('/test_playback', (req, res) => {
-    res.send(`
-    <head>
-		<script
-	  src="https://code.jquery.com/jquery-3.4.1.min.js"
-	  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-	  crossorigin="anonymous"></script>
-    </head>
-    <body>
-		<textarea id="filename"></textarea>
-		<button id="submit">submit</button>
-		<audio controls id="player"></audio>
-        <script src="playback.js"></script>
-    </body>
-    `);
+// media server
+
+app.get('/play/:sequence_uuid', async (req, res) => {
+    // download and convert a sequence audio
+    // put in a temp folder
+	console.log('downloading file');
+	exec(`
+		cd ../audio_processing && 
+		source .env/bin/activate &&
+		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
+		python for_streaming_playback.py -i ${req.params.sequence_uuid}
+	`, {
+		'shell': '/bin/bash',
+	}, async (error, stdout, stderr) => {
+		console.log('finished downloading');
+		if (error) {
+			console.error(`exec error: ${error}`);
+			res.json({
+				error: 'there was an error',
+			});
+		} else {
+		    ms.pipe(req, res, './public/sequence.wav');
+		}
+	});
 });
+
 
 // rest api
 

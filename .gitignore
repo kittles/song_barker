@@ -4,6 +4,7 @@ server/uploads
 server/renders
 audio_processing/.env
 audio_processing/output
+audio_processing/__pycache__
 credentials/*.json
 audio_processing/tmp
 audio_processing/log.txt
@@ -11,6 +12,8 @@ audio_processing/tune_split_params/audio_samples
 server/barker_database.db
 server/barker_database.db.bak
 server/public/node_modules
+server/public/sequence.aac
+server/public/sequence.wav
 
 audio_processing/tune_split_params/analysis.png
 audio_processing/tune_split_params/analysis/
