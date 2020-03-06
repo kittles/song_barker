@@ -7,7 +7,8 @@ const storage = new Storage({
 	keyFilename: '../credentials/bucket-credentials.json',
 });
 
-async function to_signed_url (filename) {
+
+async function to_signed_upload_url (filename) {
 	const options = {
 		version: 'v4',
 		action: 'write',
@@ -30,4 +31,22 @@ async function to_signed_url (filename) {
 	//);
 	return(url);
 }
-exports.to_signed_url = to_signed_url;
+exports.to_signed_upload_url = to_signed_upload_url;
+
+
+async function to_signed_playback_url (filename) {
+	const options = {
+		version: 'v4',
+		action: 'read',
+		expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+		contentType: content_type,
+	};
+
+	// Get a v4 signed URL for uploading file
+	const [url] = await storage
+	.bucket(bucketName)
+	.file(filename)
+	.getSignedUrl(options);
+	return(url);
+}
+exports.to_signed_playback_url = to_signed_playback_url;

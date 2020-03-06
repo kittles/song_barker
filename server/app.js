@@ -7,7 +7,7 @@ const port = 3000;
 var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
-var to_signed_url = require('./signed_url.js').to_signed_url;
+var signed = require('./signed_url.js');
 
 app.use(express.json({
 	type: 'application/json',
@@ -42,6 +42,24 @@ app.get('/sample_animation', (req, res) => {
 app.use(express.static('./public'));
 
 
+// test signed url playback
+app.get('/test_playback', (req, res) => {
+    res.send(`
+    <head>
+		<script
+	  src="https://code.jquery.com/jquery-3.4.1.min.js"
+	  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+	  crossorigin="anonymous"></script>
+    </head>
+    <body>
+		<textarea id="filename"></textarea>
+		<button id="submit">submit</button>
+		<audio controls id="player"></audio>
+        <script src="playback.js"></script>
+    </body>
+    `);
+});
+
 // rest api
 
 (async () => {
@@ -59,7 +77,13 @@ app.use(express.static('./public'));
 // signed urls for uploads
 
 app.post('/upload_url', async (req, res) => {
-    var url = await to_signed_url(req.body.filename);
+    var url = await signed.to_signed_upload_url(req.body.filename);
+    res.json({url: url});
+});
+
+
+app.post('/playback_url', async (req, res) => {
+    var url = await signed.to_signed_playback_url(req.body.filename);
     res.json({url: url});
 });
 
