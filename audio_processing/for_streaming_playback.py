@@ -51,7 +51,8 @@ if __name__ == '__main__':
     cur = conn.cursor()
     remote_fp = get_fp(cur, args.sequence_uuid)
     local_fp = '../server/public/sequence.aac'
-    bucket_client.download_filename_from_bucket(remote_fp, local_fp)
     sp.call('rm {}'.format(local_fp), shell=True)
+    bucket_client.download_filename_from_bucket(remote_fp, local_fp)
+    sp.call('rm {}'.format(local_fp.replace('.aac', '.wav')), shell=True)
     aac_to_wav(local_fp)
     logger.log('for streaming finished')

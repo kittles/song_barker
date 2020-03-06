@@ -1,3 +1,4 @@
+git stash
 git pull origin master
 cd server
 npm install
