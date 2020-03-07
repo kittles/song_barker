@@ -1,6 +1,8 @@
 const express = require('express');
 const _ = require('lodash');
 var exec = require('child_process').exec;
+var ms = require('mediaserver');
+var morgan = require('morgan');
 
 const app = express();
 const port = 3000;
@@ -8,19 +10,24 @@ var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
 var signed = require('./signed_url.js');
-var ms = require('mediaserver');
 
+
+// server config
 
 app.use(express.json({
 	type: 'application/json',
 }));
 app.set('json spaces', 2);
+app.use(morgan('combined')) // logging
 
+
+// index
 
 app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
 
 
 // send a dog puppet
+
 app.get('/sample_animation', (req, res) => {
     res.send(`
     <head>

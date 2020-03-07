@@ -21,6 +21,8 @@ import uuid
 import warnings
 warnings.filterwarnings('ignore')
 
+log = logger.log_fn(os.path.basename(__file__)) 
+
 SAMPLERATE = 48000
 BPM = 250
 
@@ -73,7 +75,7 @@ def wav_to_aac (wav_fp):
 
 
 if __name__ == '__main__':
-    logger.log('{} crop_uuid: {} started'.format(os.path.basename(__file__), args.crop_uuid))
+    log(args.crop_uuid, 'started...')
     with warnings.catch_warnings():
         with tempfile.TemporaryDirectory() as tmp_dir:
             conn = sqlite3.connect('../server/barker_database.db')
@@ -144,4 +146,4 @@ if __name__ == '__main__':
             conn.commit()
             conn.close()
     print(sequence_uuid, remote_sequence_url)
-    logger.log('{} crop_uuid: {} succeeded'.format(os.path.basename(__file__), args.crop_uuid))
+    log(args.crop_uuid, 'finished')

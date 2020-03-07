@@ -1,3 +1,4 @@
+# NOTE THIS IS DEPRECATED
 import os
 import logger
 import bucket_client

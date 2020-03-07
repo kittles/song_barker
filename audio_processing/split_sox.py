@@ -15,6 +15,9 @@ import time
 
 THRESHOLD = 300000 # min sum of abs value of all pcm samples
 
+log = logger.log_fn(os.path.basename(__file__)) 
+
+        
 parser = argparse.ArgumentParser()
 parser.add_argument('--input-audio-uuid', '-i', help='audio file to be split')
 parser.add_argument('--user-id', '-u', help='user_id')
@@ -68,11 +71,7 @@ def get_crop_defaults (cur, user_id, raw_id):
 
 
 if __name__ == '__main__':
-    logger.log('{} STARTING with args: --input-audio-uuid {} --user-id {}'.format(
-        os.path.basename(__file__), 
-        args.input_audio_uuid,
-        args.user_id,
-    ))
+    log(args.input_audio_uuid, 'starting...')
 
     crop_uuids = []
     bucket_crop_paths = []
@@ -99,9 +98,7 @@ if __name__ == '__main__':
         # log initial split count
         result = sp.run('ls {} | wc -l'.format(os.path.join(tmp_dir, 'crop_*.wav')), 
                 stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True, shell=True)
-        logger.log('{} {} initial split count {}'.format(
-            os.path.basename(__file__), 
-            args.input_audio_uuid,
+        log(args.input_audio_uuid, 'initial split count {}'.format(
             result.stdout
         ))
 
@@ -111,9 +108,7 @@ if __name__ == '__main__':
             samplerate, data = wavfile.read(crop_fp)
             if np.sum(abs(data)) > THRESHOLD:
                 good_crops.append(crop_fp)
-        logger.log('{} {} filtered split count {}'.format(
-            os.path.basename(__file__), 
-            args.input_audio_uuid,
+        log(args.input_audio_uuid, 'filtered split count {}'.format(
             len(good_crops)
         ))
         if args.debug:
@@ -188,5 +183,5 @@ if __name__ == '__main__':
     for cuuid, cpath in zip(crop_uuids, bucket_crop_paths):
         print(cuuid, cpath)
 
-    logger.log('{} {} SUCCEEDED'.format(os.path.basename(__file__), args.input_audio_uuid))
+    log(args.input_audio_uuid, 'finished')
 
