@@ -41,10 +41,12 @@ app.get('/sample_animation', (req, res) => {
           crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.js"></script>
         <style>
-        /**
         html { overflow: hidden; }
+		body {
+			margin: 0px;
+		}
         canvas { display: block; }
-        **/
+		img { visibility: hidden; }
         </style>
     </head>
     <body>
