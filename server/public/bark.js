@@ -101,8 +101,8 @@ function init () {
 			scene.add(dog);
 			window.bark = bark;
 			paused = true;
-			renderer.render(scene, camera);
             fit_to_camera();
+			renderer.render(scene, camera);
 			console.log('rendered');
 		});
 	}
@@ -227,86 +227,12 @@ window.set_z = function (z) {
     camera.position.z = z
     renderer.render( scene, camera );
 }
-//function fit_to_camera () {
-//
-//	offset = 1.25;
-//
-//	const boundingBox = new THREE.Box3();
-//
-//	// get bounding box of dog - this will be used to setup controls and camera
-//	boundingBox.setFromObject( dog );
-//
-//	const center = boundingBox.getCenter();
-//
-//	const size = boundingBox.getSize();
-//
-//	// get the max side of the bounding box (fits to width OR height as needed )
-//	const maxDim = Math.max( size.x, size.y, size.z );
-//	const fov = camera.fov * ( Math.PI / 180 );
-//    console.log(camera.fov, fov);
-//	let cameraZ = Math.abs( maxDim / 2 * Math.tan( fov * 2 ) ); //Applied fifonik correction
-//
-//	cameraZ *= offset; // zoom out a little so that dogs don't fill the screen
-//
-//	// <--- NEW CODE
-//	//Method 1 to get dog's world position
-//	scene.updateMatrixWorld(); //Update world positions
-//	var dogWorldPosition = new THREE.Vector3();
-//	dogWorldPosition.setFromMatrixPosition( dog.matrixWorld );
-//
-//	//Method 2 to get dog's world position
-//	//dogWorldPosition = dog.getWorldPosition();
-//
-//	const directionVector = camera.position.sub(dogWorldPosition); 	//Get vector from camera to dog
-//	const unitDirectionVector = directionVector.normalize(); // Convert to unit vector
-//	camera.position = unitDirectionVector.multiplyScalar(cameraZ); //Multiply unit vector times cameraZ distance
-//	camera.lookAt(dogWorldPosition); //Look at dog
-//	// --->
-//
-//	const minZ = boundingBox.min.z;
-//	const cameraToFarEdge = ( minZ < 0 ) ? -minZ + cameraZ : cameraZ - minZ;
-//
-//	camera.far = cameraToFarEdge * 3;
-//	camera.updateProjectionMatrix();
-//    camera.lookAt( center )
-//    renderer.render( scene, camera );
-//}
 function fit_to_camera () {
     var dist = camera.position.z;
     var height = 1;
     var fov = 2 * Math.atan( height / ( 2 * dist ) ) * ( 180 / Math.PI );
     camera.fov = fov;
     camera.updateProjectionMatrix();
-
-    //offset = 0;
-
-    //const boundingBox = new THREE.Box3();
-
-    //boundingBox.setFromObject( dog );
-
-    //const center = boundingBox.getCenter( new THREE.Vector3() );
-    //const size = boundingBox.getSize( new THREE.Vector3() );
-
-
-
-    //const startDistance = center.distanceTo(camera.position);
-    //console.log(startDistance);
-    //// here we must check if the screen is horizontal or vertical, because camera.fov is
-    //// based on the vertical direction.
-    //const endDistance = camera.aspect > 1 ?
-    //                    ((size.y/2)+offset) / Math.abs(Math.tan(camera.fov/2)) :
-    //                    ((size.y/2)+offset) / Math.abs(Math.tan(camera.fov/2)) / camera.aspect ;
-
-    //console.log(endDistance);
-
-
-    //camera.position.set(
-    //    camera.position.x * endDistance / startDistance,
-    //    camera.position.y * endDistance / startDistance,
-    //    camera.position.z * endDistance / startDistance,
-    //    );
-    //camera.lookAt(center);
-    renderer.render( scene, camera );
 }
 window.fit_to_camera = fit_to_camera;
 
