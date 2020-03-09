@@ -28,40 +28,6 @@ exports.models = [
             ],
         },
     },
-    //{
-    //    table_name:  'pets',
-    //    obj_type: 'pet',
-	//	primary_key: 'pet_id',
-    //    schema: {
-    //        columns: [
-    //            {
-    //                name: 'pet_id',
-    //                type: 'integer primary key autoincrement',
-    //                desc: 'primary key',
-    //            },
-    //            {
-    //                name: 'user_id',
-    //                type: 'text',
-    //                desc: 'the foreign key to the user object',
-    //            },
-    //            {
-    //                name: 'name',
-    //                type: 'text',
-    //                desc: 'the user specified name of the pet displayed in the app',
-    //            },
-    //            {
-    //                name: 'image_url',
-    //                type: 'text',
-    //                desc: 'the full url of the image file in the bucket',
-    //            },
-    //            {
-    //                name: 'hidden',
-    //                type: 'integer default 0',
-    //                desc: 'set to 1 if the user has "deleted" this object',
-    //            },
-    //        ],
-    //    },
-    //},
     {
         table_name:  'raws',
         obj_type: 'raw',
@@ -73,11 +39,6 @@ exports.models = [
                     type: 'text',
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
                 },
-                //{
-                //    name: 'pet_id',
-                //    type: 'text',
-                //    desc: 'the foreign key to the pet object the raw audio was recorded from',
-                //},
                 {
                     name: 'user_id',
                     type: 'text',
@@ -132,11 +93,6 @@ exports.models = [
                     type: 'text',
                     desc: 'the foreign key to the user object',
                 },
-                //{
-                //    name: 'pet_id',
-                //    type: 'text',
-                //    desc: 'the foreign key to the pet object the raw audio was recorded from',
-                //},
                 {
                     name: 'name',
                     type: 'text',
@@ -186,11 +142,6 @@ exports.models = [
                     type: 'text',
                     desc: 'the foreign key to the user object',
                 },
-                //{
-                //    name: 'pet_id',
-                //    type: 'text',
-                //    desc: 'the foreign key to the pet object the raw audio was recorded from',
-                //},
                 {
                     name: 'name',
                     type: 'text',

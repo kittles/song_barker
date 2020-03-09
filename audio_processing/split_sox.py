@@ -73,11 +73,22 @@ def get_crop_defaults (cur, user_id, raw_id):
 if __name__ == '__main__':
     log(args.input_audio_uuid, 'starting...')
 
+    # make a raw entry in the db
+    conn = sqlite3.connect('../server/barker_database.db')
+    cur = conn.cursor()
+    raw_insert_sql = 'INSERT INTO raws (uuid, user_id) VALUES (:uuid, :user_id)' 
+    cur.execute(raw_insert_sql, {
+        'uuid': args.input_audio_uuid,
+        'user_id': args.user_id,
+    })
+    conn.commit()
+
     crop_uuids = []
     bucket_crop_paths = []
     crop_info = {} # comes from fn
 
     with tempfile.TemporaryDirectory() as tmp_dir:
+
         # get the raw input file
         remote_fp = os.path.join(args.input_audio_uuid, 'raw.aac')
         local_fp_aac = os.path.join(tmp_dir, 'raw.aac')
@@ -120,10 +131,6 @@ if __name__ == '__main__':
                 else:
                     break
 
-        # connect to db for info and inserts
-        # TODO db path shouldn't be hardcoded
-        conn = sqlite3.connect('../server/barker_database.db')
-        cur = conn.cursor()
         #crop_info = get_crop_count(cur, args.user_id, args.input_audio_uuid)
         crop_info = get_crop_defaults(cur, args.user_id, args.input_audio_uuid)
 

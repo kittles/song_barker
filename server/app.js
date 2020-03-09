@@ -43,7 +43,8 @@ app.get('/sample_animation', (req, res) => {
         <style>
         html { overflow: hidden; }
 		body {
-			margin: 0px;
+			margin: 0px auto;
+			overflow: hidden;
 		}
         canvas { display: block; }
 		img { visibility: hidden; }
