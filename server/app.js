@@ -183,7 +183,7 @@ app.post('/sequence_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python sequence_audio.py -c "${req.body.uuid}" -u "${req.body.user_id}"
+		python sequence_audio.py -c "${req.body.uuid}" -u "${req.body.user_id}" -s "${req.body.song_id}"
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {
