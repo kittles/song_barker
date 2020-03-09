@@ -26,18 +26,10 @@ log = logger.log_fn(os.path.basename(__file__))
 SAMPLERATE = 48000
 BPM = 250
 
-SEQUENCE = [(i[0], i[1]/(BPM/60)) for i in [
-    (-5, 1),
-    (-5, 1),
-    (-3, 2),
-    (-5, 2),
-    (0, 2),
-    (-1, 4),
-]]
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--crop-uuid', '-c', help='the uuid of the crop file to use', type=str)
 parser.add_argument('--user-id', '-u', help='the user id', type=str)
+parser.add_argument('--song-id', '-s', help='the song id', type=str, default=1)
 parser.add_argument('--debug', '-d', action='store_true', help='playback sequence', default=False)
 args = parser.parse_args()
 
@@ -76,10 +68,22 @@ def wav_to_aac (wav_fp):
 
 if __name__ == '__main__':
     log(args.crop_uuid, 'started...')
+
+    # load the song from the db
+    conn = sqlite3.connect('../server/barker_database.db')
+    cur = conn.cursor()
+    cur.execute('SELECT name, data FROM songs where id = :song_id', {
+        'song_id': args.song_id,
+    })
+    song_name, song_data = cur.fetchone()
+    song_data = eval(song_data)
+    if args.debug:
+        print('song data', song_data)
+
+    sequence = [(i[0], i[1]/(BPM/60)) for i in song_data]
+
     with warnings.catch_warnings():
         with tempfile.TemporaryDirectory() as tmp_dir:
-            conn = sqlite3.connect('../server/barker_database.db')
-            cur = conn.cursor()
             sequence_count = get_sequence_count(cur, args.user_id)
             cur.execute('select bucket_fp, uuid, raw_id from crops where uuid = ?', [args.crop_uuid])
             remote_fp, crop_fk, raw_fk = cur.fetchone()
@@ -97,7 +101,7 @@ if __name__ == '__main__':
                 # then the duration passed to rubberband needs to be 2
                 # 2 comes from note_duration / crop_duration 
 
-                for pitch, note_duration in SEQUENCE:
+                for pitch, note_duration in sequence:
                     output_fp = os.path.join(tmp_output_dir, '{:03}.wav'.format(c))
                     note_fps.append(output_fp)
                     sp.call('rubberband -p {} -t {} {} {}'.format(pitch, note_duration/crop_duration, local_crop_fp_wav, output_fp), shell=True)
@@ -122,6 +126,7 @@ if __name__ == '__main__':
                 cur.execute('''
                         INSERT INTO sequences VALUES (
                             :uuid,
+                            :song_id,
                             :crop_id,
                             :user_id,
                             :name,
@@ -133,6 +138,7 @@ if __name__ == '__main__':
                     ''', 
                     {
                         'uuid': str(sequence_uuid),
+                        'song_id': args.song_id,
                         'crop_id': args.crop_uuid,
                         'user_id': args.user_id, 
                         'name': 'Happy Barkday {}'.format(sequence_count + 1),

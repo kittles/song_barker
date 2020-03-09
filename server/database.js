@@ -23,3 +23,39 @@ async function initialize_db () {
     }));
 };
 exports.initialize_db = initialize_db;
+
+async function fixtures () {
+	const db = await dbPromise;
+	var users = [
+		{
+			user_id: "999",
+			name: "tovi",
+			email: "deartovi@gmail.com",
+			hidden: 0,
+		},
+	];
+	var songs = [
+		{
+			id: "1",
+			name: "Happy Birthday",
+			data: "[(-5, 1),(-5, 1),(-3, 2),(-5, 2),(0, 2),(-1, 4),]",
+		},
+		{
+			id: "2",
+			name: "Darth Vader",
+			data: "[(0, 2),(0, 2),(0, 2),(-4, 1.33),(3, 0.66),(0, 2),]",
+		},
+	];
+	var ins = _.concat(
+		_.map(users, (user) => {
+			db.run(`INSERT INTO users (user_id, name, email, hidden)
+				VALUES ("${user.user_id}", "${user.name}", "${user.email}", "${user.hidden}")`);
+		}),
+		_.each(songs, (song) => {
+			db.run(`INSERT INTO songs (id, name, data)
+				VALUES ("${song.id}", "${song.name}", "${song.data}")`);
+		}),
+	);
+	return await Promise.all(ins);
+}
+exports.fixtures = fixtures;

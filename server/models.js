@@ -73,6 +73,64 @@ exports.models = [
         },
     },
     {
+        table_name:  'songs',
+        obj_type: 'song',
+		primary_key: 'id',
+        schema: {
+            columns: [
+                {
+                    name: 'id',
+                    type: 'integer primary key',
+                    desc: 'the primary key',
+                },
+                {
+                    name: 'name',
+                    type: 'text',
+                    desc: 'the name of the song (like "Happy Birthday" or "Sweet Child O\' Mine")',
+                },
+                {
+                    name: 'data',
+                    type: 'text',
+                    desc: 'maybe this should actually be a file path, but for now its just a string repr or some data',
+                },
+            ],
+        },
+    },
+    {
+        table_name:  'images',
+        obj_type: 'image',
+		primary_key: 'uuid',
+        schema: {
+            columns: [
+                {
+                    name: 'uuid',
+                    type: 'text',
+                    desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
+                },
+                {
+                    name: 'user_id',
+                    type: 'text',
+                    desc: 'the foreign key to the user object',
+                },
+                {
+                    name: 'name',
+                    type: 'text',
+                    desc: 'the user specified name of the image',
+                },
+                {
+                    name: 'mouth_coordinates',
+                    type: 'text',
+                    desc: 'a string like [(x1, y1), (x2, y2), ...] storing the coordinates of landmarks on the image',
+                },
+                {
+                    name: 'hidden',
+                    type: 'integer default 0',
+                    desc: 'whether the account is active',
+                },
+            ],
+        },
+    },
+    {
         table_name:  'crops',
         obj_type: 'crop',
 		primary_key: 'uuid',
@@ -131,6 +189,11 @@ exports.models = [
                     name: 'uuid',
                     type: 'text',
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
+                },
+                {
+                    name: 'song_id',
+                    type: 'text',
+                    desc: 'the foreign key to the song object the sequence was generated from',
                 },
                 {
                     name: 'crop_id',
