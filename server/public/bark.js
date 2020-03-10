@@ -22,6 +22,7 @@ var texture_image;
 
 function init () {
 	scene = new THREE.Scene();
+	scene.background = new THREE.Color( 0x2E2E46 );
 
 	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.01, 1000 );
 	//camera = new THREE.OrthographicCamera();

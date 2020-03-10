@@ -34,20 +34,25 @@ parser.add_argument('--debug', '-d', action='store_true', help='playback sequenc
 args = parser.parse_args()
 
 
-def get_sequence_count (cur, user_id):
+def get_sequence_count (cur, user_id, song_name):
     sequence_count_sql = '''
         SELECT count(*) from sequences 
         WHERE 
             user_id = :user_id
+        AND
+            name like :song_name
         ;
     '''
     cur.execute(sequence_count_sql, {
         'user_id': user_id,
+        'song_name': '%{}%'.format(song_name),
     })
     try:
         sequence_count = int(cur.fetchone()[0])
     except:
         sequence_count = 0
+        if args.debug:
+            print('got exception when trying to get sequence count')
     return sequence_count
 
 
@@ -72,19 +77,21 @@ if __name__ == '__main__':
     # load the song from the db
     conn = sqlite3.connect('../server/barker_database.db')
     cur = conn.cursor()
+    if args.debug:
+        conn.set_trace_callback(print)
     cur.execute('SELECT name, data FROM songs where id = :song_id', {
         'song_id': args.song_id,
     })
     song_name, song_data = cur.fetchone()
     song_data = eval(song_data)
     if args.debug:
-        print('song data', song_data)
+        print('song name', song_name, 'song data', song_data)
 
     sequence = [(i[0], i[1]/(BPM/60)) for i in song_data]
 
     with warnings.catch_warnings():
         with tempfile.TemporaryDirectory() as tmp_dir:
-            sequence_count = get_sequence_count(cur, args.user_id)
+            sequence_count = get_sequence_count(cur, args.user_id, song_name)
             cur.execute('select bucket_fp, uuid, raw_id from crops where uuid = ?', [args.crop_uuid])
             remote_fp, crop_fk, raw_fk = cur.fetchone()
             local_crop_fp = os.path.join(tmp_dir, 'crop.aac')
@@ -104,7 +111,7 @@ if __name__ == '__main__':
                 for pitch, note_duration in sequence:
                     output_fp = os.path.join(tmp_output_dir, '{:03}.wav'.format(c))
                     note_fps.append(output_fp)
-                    sp.call('rubberband -p {} -t {} {} {}'.format(pitch, note_duration/crop_duration, local_crop_fp_wav, output_fp), shell=True)
+                    sp.call('rubberband -q -p {} -t {} {} {}'.format(pitch, note_duration/crop_duration, local_crop_fp_wav, output_fp), shell=True)
                     c += 1
 
                 combined_fp = os.path.join(tmp_output_dir, 'combined.wav')
@@ -117,8 +124,8 @@ if __name__ == '__main__':
                     else:
                         combined_sounds = combined_sounds + sound
                 combined_sounds.export(combined_fp, format='wav')
-                if args.debug:
-                    sp.call('play {}'.format(combined_fp), shell=True)
+                #if args.debug:
+                #    sp.call('play {}'.format(combined_fp), shell=True)
                 combined_fp_aac = wav_to_aac(combined_fp)
                 sequence_uuid = uuid.uuid4()
                 remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
@@ -141,7 +148,7 @@ if __name__ == '__main__':
                         'song_id': args.song_id,
                         'crop_id': args.crop_uuid,
                         'user_id': args.user_id, 
-                        'name': 'Happy Barkday {}'.format(sequence_count + 1),
+                        'name': '{} {}'.format(song_name, sequence_count + 1),
                         'bucket_url': remote_sequence_url,
                         'bucket_fp': remote_sequence_fp,
                         'stream_url': None,
@@ -151,5 +158,7 @@ if __name__ == '__main__':
                 bucket_client.upload_filename_to_bucket(combined_fp_aac, remote_sequence_fp)
             conn.commit()
             conn.close()
+    if args.debug:
+        print('DEBUG: {} {}'.format(song_name, sequence_count + 1))
     print(sequence_uuid, remote_sequence_url)
     log(args.crop_uuid, 'finished')
