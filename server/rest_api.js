@@ -15,13 +15,22 @@ function obj_rest_api (def, db) {
 			request_method: 'get',
             endpoint: `/all/${def.obj_type}/:user_id`,
             handler: async (req, res) => {
-                var sql = `SELECT * from ${def.table_name}\n`;
-                sql += `    where user_id = "${req.params.user_id}";`;
-				var rows = await db.all(sql);
-                _.each(rows, (row) => {
-                    row.obj_type = def.obj_type;
-                });
-				return res.json(rows);
+                if (req.params.user_id !== '-1') {
+                    var sql = `SELECT * from ${def.table_name}\n`;
+                    sql += `    where user_id = "${req.params.user_id}";`;
+                    var rows = await db.all(sql);
+                    _.each(rows, (row) => {
+                        row.obj_type = def.obj_type;
+                    });
+                    return res.json(rows);
+                } else {
+                    var sql = `SELECT * from ${def.table_name}`;
+                    var rows = await db.all(sql);
+                    _.each(rows, (row) => {
+                        row.obj_type = def.obj_type;
+                    });
+                    return res.json(rows);
+                }
             },
         },
         get: {
