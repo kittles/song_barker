@@ -46,6 +46,14 @@ async function fixtures () {
 			data: "[(0, 2),(0, 2),(0, 2),(-4, 1.33),(3, 0.66),(0, 2),]",
 		},
 	];
+	var images = [
+		{
+			uuid: "default_dog",
+            user_id: "999",
+			name: "Default Dog",
+            mouth_coordinates: "[(0.452, 0.415), (0.631, 0.334)]",
+		},
+	];
 	var ins = _.concat(
 		_.map(users, (user) => {
 			db.run(`INSERT INTO users (user_id, name, email, hidden)
@@ -54,6 +62,10 @@ async function fixtures () {
 		_.each(songs, (song) => {
 			db.run(`INSERT INTO songs (id, name, data)
 				VALUES ("${song.id}", "${song.name}", "${song.data}")`);
+		}),
+		_.each(images, (image) => {
+			db.run(`INSERT INTO images (uuid, user_id, name, mouth_coordinates)
+				VALUES ("${image.uuid}", "${image.user_id}", "${image.name}", "${image.mouth_coordinates}")`);
 		}),
 	);
 	return await Promise.all(ins);

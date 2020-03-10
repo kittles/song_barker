@@ -21,6 +21,7 @@ log = logger.log_fn(os.path.basename(__file__))
 parser = argparse.ArgumentParser()
 parser.add_argument('--input-audio-uuid', '-i', help='audio file to be split')
 parser.add_argument('--user-id', '-u', help='user_id')
+parser.add_argument('--image-id', '-m', help='image_id')
 parser.add_argument('--debug', '-d', action='store_true', help='playback audio crops', default=False)
 args = parser.parse_args()
 
@@ -28,20 +29,20 @@ if not args.debug:
     warnings.filterwarnings('ignore')
 
 
-def get_crop_defaults (cur, user_id, raw_id):
+def get_crop_defaults (cur, user_id, image_id):
     # if raw has name, use that, otherwise use sound_
 
     # get raw entry in db for base name
     raw_sql = '''
-        SELECT uuid, name from raws
+        SELECT name from images
         WHERE
-        uuid = :uuid
+        uuid = :image_id
     '''
     cur.execute(raw_sql, {
-        'uuid': raw_id,
+        'image_id': image_id,
     })
     try:
-        _, base_name = cur.fetchone()
+        base_name = cur.fetchone()[0]
     except:
         base_name = 'sound'
     if base_name is None:
@@ -132,7 +133,7 @@ if __name__ == '__main__':
                     break
 
         #crop_info = get_crop_count(cur, args.user_id, args.input_audio_uuid)
-        crop_info = get_crop_defaults(cur, args.user_id, args.input_audio_uuid)
+        crop_info = get_crop_defaults(cur, args.user_id, args.image_id)
 
         # upload good crops and log in db
         for crop_fp_wav in good_crops:
@@ -153,7 +154,7 @@ if __name__ == '__main__':
             bucket_client.upload_filename_to_bucket(crop_fp_aac, bucket_fp)
 
             # this is just a placeholder for the user based on existing count of crops from a specific pet_id
-            auto_name = '{}_{}'.format(crop_info['base_name'], crop_info['crop_count'])
+            auto_name = '{} {}'.format(crop_info['base_name'], crop_info['crop_count'])
             if args.debug:
                 print('auto name', auto_name)
 

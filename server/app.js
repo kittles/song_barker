@@ -141,7 +141,7 @@ app.post('/split_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python split_sox.py -i ${req.body.uuid} -u ${req.body.user_id}
+		python split_sox.py -i ${req.body.uuid} -u ${req.body.user_id} -m ${req.body.image_id}
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {

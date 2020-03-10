@@ -18,6 +18,8 @@ var thing;
 var dog;
 var paused;
 var texture_image;
+var ready = 0;
+window.ready = ready;
 
 
 function init () {
@@ -34,52 +36,56 @@ function init () {
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
 
+    // default coordinates
 	mouth_left = 0.452;
 	mouth_right = 0.631;
 	mouth_top = 0.415;
 	mouth_bottom = 0.334;
 	triangle_padding = 0.0001
 
-	vertex_array = generate_vertex_array(
-		mouth_left, mouth_right, mouth_top, mouth_bottom, triangle_padding,
-	);
-	scale = 1;
-	vertex_array = vertex_array.map((vec) => {
-		return [
-			vec[0] * scale,
-			vec[1] * scale,
-			vec[2] * scale,
-		];
-	});
-	face_idx_array = [
-		[ 0, 6, 3], 
-		[ 0, 4, 6], 
-		[ 0, 1, 4], 
-		[ 1, 5, 4], 
-		[ 1, 2, 5], 
-		[ 2, 6, 5], 
-		[ 2, 3, 6], 
-		[ 6, 7, 9], 
-		[ 6, 4, 7], 
-		[ 4, 8, 7], 
-		[ 4, 5, 8], 
-		[ 7, 8, 9], 
-	];
-	geometry = new THREE.Geometry();
-	vertex_array.forEach((vertex) => {
-		geometry.vertices.push(new THREE.Vector3( vertex[0], vertex[1], vertex[2] ));
-	});
-	face_idx_array.forEach((vec) => {
-		geometry.faces.push( new THREE.Face3( vec[0], vec[1], vec[2] ) );
-		geometry.faceVertexUvs[ 0 ].push( [
-			new THREE.Vector2( vertex_array[vec[0]][0], vertex_array[vec[0]][1] ),
-			new THREE.Vector2( vertex_array[vec[1]][0], vertex_array[vec[1]][1] ),
-			new THREE.Vector2( vertex_array[vec[2]][0], vertex_array[vec[2]][1] ),
-		] )
-	});
-	geometry.computeBoundingSphere();
-	geometry.computeFaceNormals();
-	geometry.computeVertexNormals();
+    function generate_geometry () {
+        vertex_array = generate_vertex_array(
+            mouth_left, mouth_right, mouth_top, mouth_bottom, triangle_padding,
+        );
+        scale = 1;
+        vertex_array = vertex_array.map((vec) => {
+            return [
+                vec[0] * scale,
+                vec[1] * scale,
+                vec[2] * scale,
+            ];
+        });
+        face_idx_array = [
+            [ 0, 6, 3], 
+            [ 0, 4, 6], 
+            [ 0, 1, 4], 
+            [ 1, 5, 4], 
+            [ 1, 2, 5], 
+            [ 2, 6, 5], 
+            [ 2, 3, 6], 
+            [ 6, 7, 9], 
+            [ 6, 4, 7], 
+            [ 4, 8, 7], 
+            [ 4, 5, 8], 
+            [ 7, 8, 9], 
+        ];
+        geometry = new THREE.Geometry();
+        vertex_array.forEach((vertex) => {
+            geometry.vertices.push(new THREE.Vector3( vertex[0], vertex[1], vertex[2] ));
+        });
+        face_idx_array.forEach((vec) => {
+            geometry.faces.push( new THREE.Face3( vec[0], vec[1], vec[2] ) );
+            geometry.faceVertexUvs[ 0 ].push( [
+                new THREE.Vector2( vertex_array[vec[0]][0], vertex_array[vec[0]][1] ),
+                new THREE.Vector2( vertex_array[vec[1]][0], vertex_array[vec[1]][1] ),
+                new THREE.Vector2( vertex_array[vec[2]][0], vertex_array[vec[2]][1] ),
+            ] )
+        });
+        geometry.computeBoundingSphere();
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+        return geometry;
+    }
 
 
 	// use an img to store the texture (so it can be changed dynamicall)
@@ -92,19 +98,22 @@ function init () {
 		var loader = new THREE.TextureLoader();
 		texture_image.src = 'dog.jpg';
 		return loader.load(texture_image.src, (texture) => {
-			console.log('loaded');
+            // clear scene
+            while(scene.children.length > 0){
+                scene.remove(scene.children[0]);
+            }
 			material = new THREE.MeshBasicMaterial({ 
 				map: texture,
 				side: THREE.DoubleSide,
 			});
-			dog =  new THREE.Mesh(geometry, material);
+            geometry = generate_geometry();
+			dog = new THREE.Mesh(geometry, material);
 			window.dog = dog;
 			scene.add(dog);
 			window.bark = bark;
 			paused = true;
             fit_to_camera();
 			renderer.render(scene, camera);
-			console.log('rendered');
 		});
 	}
 	function update_texture (img64) {
@@ -116,6 +125,17 @@ function init () {
 		});
 	}
 	window.update_texture = update_texture;
+
+    function set_mouth_coordinates (top_left, bottom_right) {
+        mouth_left = top_left[0];
+        mouth_right = bottom_right[0];
+        mouth_top = top_left[1];
+        mouth_bottom = bottom_right[1];
+        create_dog();
+    }
+    window.set_mouth_coordinates = set_mouth_coordinates;
+
+    ready = 1;
 }
 
 
@@ -213,11 +233,12 @@ function bark (duration, max_open) {
 		}
 		geometry.verticesNeedUpdate = true;
 		frame += 1;
-		console.info('frame', frame);
+		//console.info('frame', frame);
 		if (frame < frame_count) {
 			requestAnimationFrame(animate);	
 		} else {
-			console.info('finished');
+			//console.info('finished');
+
 		}
 		renderer.render( scene, camera );
 	}
