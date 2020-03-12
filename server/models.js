@@ -36,7 +36,7 @@ exports.models = [
             columns: [
                 {
                     name: 'uuid',
-                    type: 'text',
+                    type: 'text primary key',
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
                 },
                 {
@@ -104,7 +104,7 @@ exports.models = [
             columns: [
                 {
                     name: 'uuid',
-                    type: 'text',
+                    type: 'text primary key',
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
                 },
                 {
@@ -148,7 +148,7 @@ exports.models = [
             columns: [
                 {
                     name: 'uuid',
-                    type: 'text',
+                    type: 'text primart key',
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
                 },
                 {
@@ -197,7 +197,7 @@ exports.models = [
             columns: [
                 {
                     name: 'uuid',
-                    type: 'text',
+                    type: 'text primary key',
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
                 },
                 {
