@@ -77,12 +77,15 @@ if __name__ == '__main__':
     # make a raw entry in the db
     conn = sqlite3.connect('../server/barker_database.db')
     cur = conn.cursor()
-    raw_insert_sql = 'INSERT INTO raws (uuid, user_id) VALUES (:uuid, :user_id)' 
-    cur.execute(raw_insert_sql, {
-        'uuid': args.input_audio_uuid,
-        'user_id': args.user_id,
-    })
-    conn.commit()
+    try:
+        raw_insert_sql = 'INSERT INTO raws (uuid, user_id) VALUES (:uuid, :user_id)' 
+        cur.execute(raw_insert_sql, {
+            'uuid': args.input_audio_uuid,
+            'user_id': args.user_id,
+        })
+        conn.commit()
+    except:
+        pass
 
     crop_uuids = []
     bucket_crop_paths = []
