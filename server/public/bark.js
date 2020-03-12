@@ -43,6 +43,7 @@ function init () {
 	mouth_bottom = 0.334;
 	triangle_padding = 0.0001
 
+
     function generate_geometry () {
         vertex_array = generate_vertex_array(
             mouth_left, mouth_right, mouth_top, mouth_bottom, triangle_padding,
@@ -74,18 +75,37 @@ function init () {
             geometry.vertices.push(new THREE.Vector3( vertex[0], vertex[1], vertex[2] ));
         });
         face_idx_array.forEach((vec) => {
-            geometry.faces.push( new THREE.Face3( vec[0], vec[1], vec[2] ) );
-            geometry.faceVertexUvs[ 0 ].push( [
+            geometry.faces.push(new THREE.Face3(vec[0], vec[1], vec[2]));
+            geometry.faceVertexUvs[0].push([
                 new THREE.Vector2( vertex_array[vec[0]][0], vertex_array[vec[0]][1] ),
                 new THREE.Vector2( vertex_array[vec[1]][0], vertex_array[vec[1]][1] ),
                 new THREE.Vector2( vertex_array[vec[2]][0], vertex_array[vec[2]][1] ),
-            ] )
+            ]);
         });
         geometry.computeBoundingSphere();
         geometry.computeFaceNormals();
         geometry.computeVertexNormals();
         return geometry;
     }
+
+
+	function generate_mouth_background () {
+		var geometry = new THREE.PlaneGeometry(
+			mouth_right - mouth_left,
+			mouth_top - mouth_bottom
+		);
+		var material = new THREE.MeshBasicMaterial({
+			color: 0x6D281A,
+			side: THREE.DoubleSide
+		});
+		var plane = new THREE.Mesh(geometry, material);
+		plane.position.set(
+			(mouth_left + mouth_right) / 2,
+			(mouth_top + mouth_bottom) / 2,
+			-0.0001,
+		);
+		scene.add(plane);
+	}
 
 
 	// use an img to store the texture (so it can be changed dynamicall)
@@ -102,6 +122,7 @@ function init () {
             while(scene.children.length > 0){
                 scene.remove(scene.children[0]);
             }
+			generate_mouth_background();
 			material = new THREE.MeshBasicMaterial({ 
 				map: texture,
 				side: THREE.DoubleSide,
@@ -116,6 +137,8 @@ function init () {
 			renderer.render(scene, camera);
 		});
 	}
+
+
 	function update_texture (img64) {
 		var loader = new THREE.TextureLoader();
 		texture_image.src = img64;
@@ -126,6 +149,7 @@ function init () {
 	}
 	window.update_texture = update_texture;
 
+
     function set_mouth_coordinates (top_left, bottom_right) {
         mouth_left = top_left[0];
         mouth_right = bottom_right[0];
@@ -134,6 +158,7 @@ function init () {
         create_dog();
     }
     window.set_mouth_coordinates = set_mouth_coordinates;
+
 
     ready = 1;
 }
@@ -183,6 +208,7 @@ function show_edges (input_geometry) {
 	var line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
 	scene.add( line );
 }
+
 
 function bark (duration, max_open) {
 	var bark_type = parseInt(Math.random() * 3) // left, right, both
@@ -245,10 +271,13 @@ function bark (duration, max_open) {
 	animate();
 }
 
+
 window.set_z = function (z) {
     camera.position.z = z
     renderer.render( scene, camera );
 }
+
+
 function fit_to_camera () {
     var dist = camera.position.z;
     var height = 1;
