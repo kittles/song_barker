@@ -108,6 +108,16 @@ exports.models = [
                     desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
                 },
                 {
+                    name: 'bucket_url',
+                    type: 'text',
+                    desc: 'the full url of the audio file in the bucket',
+                },
+                {
+                    name: 'bucket_fp',
+                    type: 'text',
+                    desc: 'the relative path (to bucket root) of the audio file in the bucket',
+                },
+                {
                     name: 'user_id',
                     type: 'text',
                     desc: 'the foreign key to the user object',
