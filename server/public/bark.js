@@ -19,6 +19,7 @@ var dog;
 var paused;
 var texture_image;
 var ready = 0;
+var vertex_original_ys;
 window.ready = ready;
 
 
@@ -85,6 +86,11 @@ function init () {
         geometry.computeBoundingSphere();
         geometry.computeFaceNormals();
         geometry.computeVertexNormals();
+		vertex_original_ys = [
+			geometry.vertices[7].y,
+			geometry.vertices[8].y,
+			geometry.vertices[9].y,
+		];
         return geometry;
     }
 
@@ -209,6 +215,23 @@ function show_edges (input_geometry) {
 	scene.add( line );
 }
 
+
+function set_mouth (amount) {
+	console.log(vertex_original_ys);
+	var max_open = 0.1;
+	var ys = [
+		-(max_open * amount) + vertex_original_ys[0],
+		-(max_open * amount) + vertex_original_ys[1],
+		-(max_open * amount) + vertex_original_ys[2],
+	];
+	console.log(ys);
+	geometry.vertices[7].y = ys[0];
+	geometry.vertices[8].y = ys[1];
+	geometry.vertices[9].y = ys[2];
+	geometry.verticesNeedUpdate = true;
+	renderer.render(scene, camera);
+}
+window.set_mouth = set_mouth;
 
 function bark (duration, max_open) {
 	var bark_type = parseInt(Math.random() * 3) // left, right, both
