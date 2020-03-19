@@ -89,9 +89,19 @@ exports.models = [
                     desc: 'the name of the song (like "Happy Birthday" or "Sweet Child O\' Mine")',
                 },
                 {
-                    name: 'data',
+                    name: 'bucket_url',
                     type: 'text',
-                    desc: 'maybe this should actually be a file path, but for now its just a string repr or some data',
+                    desc: 'the full url of the midi file in the bucket',
+                },
+                {
+                    name: 'bucket_fp',
+                    type: 'text',
+                    desc: 'the relative path (to bucket root) of the midi file in the bucket',
+                },
+                {
+                    name: 'track_count',
+                    type: 'integer',
+                    desc: 'number of tracks on the midi file, which means you need that many crops to generate a sequence',
                 },
             ],
         },
