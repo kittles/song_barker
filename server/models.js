@@ -103,6 +103,11 @@ exports.models = [
                     type: 'integer',
                     desc: 'number of tracks on the midi file, which means you need that many crops to generate a sequence',
                 },
+                {
+                    name: 'price',
+                    type: 'real',
+                    desc: 'in app purchase price for song',
+                },
             ],
         },
     },

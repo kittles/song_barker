@@ -206,4 +206,33 @@ app.post('/sequence_audio', async function (req, res) {
 });
 
 
+app.post('/midi_to_audio', async function (req, res) {
+	var uuids_string = _.join(req.body.uuids, ' ');
+	exec(`
+		cd ../audio_processing && 
+		source .env/bin/activate &&
+		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
+		python midi_to_audio.py -c "${uuids_string}" -u "${req.body.user_id}" -s "${req.body.song_id}"
+	`, {
+		'shell': '/bin/bash',
+	}, async (error, stdout, stderr) => {
+		if (error) {
+			console.error(`exec error: ${error}`);
+			res.json({
+				error: 'there was an error',
+			});
+		} else {
+			var output = stdout.split(/\r?\n/);
+			var line = output.shift();
+			var sequence_uuid = line.split(' ')[0];
+			var sequence_url = line.split(' ')[1];
+			const db = await _db.dbPromise;
+			var sequence = await db.get('select * from sequences where uuid = ?', sequence_uuid);
+			sequence.obj_type = 'sequence';
+			res.json(sequence);
+		}
+	});
+});
+
+
 app.listen(port, () => console.log(`listening on port ${port}!`));

@@ -120,13 +120,12 @@ if __name__ == '__main__':
     if args.debug:
         conn.set_trace_callback(print)
 
-    #cur.execute('SELECT name, data FROM songs where id = :song_id', {
-    #    'song_id': args.song_id,
-    #})
-    #song_name, song_data = cur.fetchone()
-    #song_data = eval(song_data)
-    #if args.debug:
-    #    print('song name', song_name, 'song data', song_data)
+    cur.execute('SELECT name, data FROM songs where id = :song_id', {
+        'song_id': args.song_id,
+    })
+    song_name, song_data = cur.fetchone()
+    if args.debug:
+        print('song name', song_name);
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # download all crops and convert to wav
@@ -141,6 +140,7 @@ if __name__ == '__main__':
 
 
         # TODO different crops need to be in tune!
+        # TODO determine crop onset point for things being rhythmically tight
         # find what pitch each crop is closest to (ignore octave)
         # calculate adjustment needed to get other pitches within the 12 tone scale
         # determine root that minimizes shifting
@@ -154,8 +154,8 @@ if __name__ == '__main__':
 
         # each track corresponds to a crop
         # TODO handle mismatch in count
-        # TODO smarter way to omit non sequence tracks
-        for crop, track in zip(args.crops, mid.tracks[1:]):
+        # TODO way to omit non sequence tracks
+        for crop, track in zip(args.crops, mid.tracks):
             msg_to_dict = midi_message_to_dict()
             msgs = [msg for msg in track if msg.type in ['note_on', 'note_off']]
             notes = []
@@ -207,52 +207,58 @@ if __name__ == '__main__':
             
 
             # initialize an array with zeros that is the length of the track
-            sequence = np.zeros((track_samples,))
+            track_sequence = np.zeros((track_samples,))
 
             # pop audio in by sample index
             for note in notes:
                 rest_samples = ticks_to_samples(samplerate, mid, note['time'])
                 audio = crop_map[to_pd(note)]
-                sequence[rest_samples:rest_samples + len(audio)] += audio
+                track_sequence[rest_samples:rest_samples + len(audio)] += audio
 
-            # normalize and write
-            sequence /= sequence.max()
-            wavfile.write(track_render_fp, samplerate, sequence)
-            track_datas.append(sequence)
+            track_sequence /= track_sequence.max()
+            track_datas.append(track_sequence)
 
         # combine tracks into single array
-        # save as wav
-        # convert to aac
+        sequence_uuid = uuid.uuid4()
+        sequence_fp = os.path.join(tmp_dir, '{}.wav'.format(sequence_uuid))
+        sequence_length = max([len(track) for track in tracks])
+        sequence = np.zeros((sequence_length,))
+        for track in tracks:
+            sequence[0:len(track)] += track
+        sequence /= sequence.max()
+        wavfile.write(sequence_fp, samplerate, sequence)
+        sequence_fp_aac = wav_to_aac(sequence_fp)
+
+
         # name and save to db
         # upload to bucket
 
-        #combined_fp_aac = wav_to_aac(combined_fp)
-        #sequence_uuid = uuid.uuid4()
-        #remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
-        #remote_sequence_url = 'gs://song_barker_sequences/{}'.format(remote_sequence_fp)
-        #cur.execute('''
-        #        INSERT INTO sequences VALUES (
-        #            :uuid,
-        #            :song_id,
-        #            :crop_id,
-        #            :user_id,
-        #            :name,
-        #            :bucket_url,
-        #            :bucket_fp,
-        #            :stream_url,
-        #            :hidden
-        #        )
-        #    ''', 
-        #    {
-        #        'uuid': str(sequence_uuid),
-        #        'song_id': args.song_id,
-        #        'crop_id': args.crop_uuid,
-        #        'user_id': args.user_id, 
-        #        'name': '{} {}'.format(song_name, sequence_count + 1),
-        #        'bucket_url': remote_sequence_url,
-        #        'bucket_fp': remote_sequence_fp,
-        #        'stream_url': None,
-        #        'hidden': 0,
-        #    }
-        #)
-        #bc.upload_filename_to_bucket(combined_fp_aac, remote_sequence_fp)
+        combined_fp_aac = wav_to_aac(combined_fp)
+        remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
+        remote_sequence_url = 'gs://song_barker_sequences/{}'.format(remote_sequence_fp)
+        cur.execute('''
+                INSERT INTO sequences VALUES (
+                    :uuid,
+                    :song_id,
+                    :crop_id,
+                    :user_id,
+                    :name,
+                    :bucket_url,
+                    :bucket_fp,
+                    :stream_url,
+                    :hidden
+                )
+            ''', 
+            {
+                'uuid': str(sequence_uuid),
+                'song_id': args.song_id,
+                'crop_id': args.crop_uuid,
+                'user_id': args.user_id, 
+                'name': '{} {}'.format(song_name, sequence_count + 1),
+                'bucket_url': remote_sequence_url,
+                'bucket_fp': remote_sequence_fp,
+                'stream_url': None,
+                'hidden': 0,
+            }
+        )
+        bc.upload_filename_to_bucket(sequence_fp_aac, remote_sequence_fp)
