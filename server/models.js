@@ -108,6 +108,11 @@ exports.models = [
                     type: 'real',
                     desc: 'in app purchase price for song',
                 },
+                {
+                    name: 'category',
+                    type: 'text',
+                    desc: 'genre / type of song',
+                },
             ],
         },
     },

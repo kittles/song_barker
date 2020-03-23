@@ -2,6 +2,7 @@ var fs = require('fs');
 var _ = require('lodash');
 var Promise = require('bluebird');
 var sqlite = require('sqlite');
+var exec = require('child_process').exec;
 var midi_parser = require('midi-parser-js');
 // TODO probably want to use dev db on server
 const dbPromise = sqlite.open('barker_database.db', { Promise });
@@ -26,19 +27,38 @@ async function initialize_db () {
 };
 exports.initialize_db = initialize_db;
 
+
 async function fixtures () {
 	var bucket = 'song_barker_sequences';
 	const db = await dbPromise;
+	var user_id = '999';
 	var users = [
 		{
-			user_id: "999",
-			name: "tovi",
-			email: "deartovi@gmail.com",
+			user_id: user_id,
+			name: 'tovi',
+			email: 'deartovi@gmail.com',
 			hidden: 0,
 		},
 	];
-    // go through midi_files dir
-    // for each song, get title and such...
+    var raws = [];
+	var raw_dir = '../audio_processing/raw_fixtures';
+    var dir = fs.opendirSync(raw_dir);
+    var dirent;
+	var c = 0;
+    while ((dirent = dir.readSync()) !== null) {
+        var filename = dirent.name;
+		var fp = `${raw_dir}/${filename}`
+        var uuid = filename.replace('.aac', '');
+		c++;
+		raws.push({
+			uuid: uuid,
+			user_id: user_id,
+			name: `raw fixture ${c}`,
+			bucket_url: `gs://${bucket}/${uuid}/${filename}`,
+			bucket_fp: `${uuid}/${filename}`,
+		});
+    }
+    dir.closeSync();
     var songs = [];
 	var midi_dir = '../audio_processing/midi_files';
     var dir = fs.opendirSync(midi_dir);
@@ -54,7 +74,7 @@ async function fixtures () {
 			fp: fp,
 			name: name,
 			bucket_url: `gs://${bucket}/midi_files/${filename}`,
-			bucket_fp: `/midi_files/${filename}`,
+			bucket_fp: `midi_files/${filename}`,
 			tracks: midi_parser.parse(fs.readFileSync(fp, 'base64')).tracks,
 			price: 0.99,
 		});
@@ -73,6 +93,10 @@ async function fixtures () {
 			return db.run(`INSERT INTO users (user_id, name, email, hidden)
 				VALUES ("${user.user_id}", "${user.name}", "${user.email}", "${user.hidden}")`);
 		}),
+        _.map(raws, (raw) => {
+			return db.run(`INSERT INTO raws (uuid, user_id, name, bucket_url, bucket_fp)
+				VALUES ("${raw.uuid}", "${raw.user_id}", "${raw.name}", "${raw.bucket_url}", "${raw.bucket_fp}")`);
+        }),
         _.map(songs, (song) => {
 			return db.run(`INSERT INTO songs (name, bucket_url, bucket_fp, track_count, price)
 				VALUES ("${song.name}", "${song.bucket_url}", "${song.bucket_fp}", "${song.tracks}", "${song.price}")`);
@@ -82,7 +106,22 @@ async function fixtures () {
 				VALUES ("${image.uuid}", "${image.user_id}", "${image.name}", "${image.mouth_coordinates}")`);
 		}),
 	);
-	return await Promise.all(ins);
+	await Promise.all(ins);
+
+    // call cropping script for all raw files
+    var ps = _.map(raws, async (raw) => {
+        exec(`
+                cd ../audio_processing && 
+                source .env/bin/activate &&
+                export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
+                python split_sox.py -i ${raw.uuid} -u ${raw.user_id} -m 1
+            `, {
+                'shell': '/bin/bash',
+            }, async (error, stdout, stderr) => {
+                console.log(`cropped ${raw.uuid}`);
+            }
+        );
+    });
 }
 exports.fixtures = fixtures;
 

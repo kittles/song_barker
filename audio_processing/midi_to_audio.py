@@ -11,6 +11,9 @@ import numpy as np
 import tempfile
 import subprocess as sp
 import warnings
+import parselmouth
+import wave
+import contextlib
 
 warnings.filterwarnings('ignore')
 log = logger.log_fn(os.path.basename(__file__)) 
@@ -73,18 +76,21 @@ def midi_message_to_dict ():
         nonlocal _notes
         nonlocal _time
         _time += msg.time
-        if msg.type == 'note_on':
-            _notes[msg.note] = {
-                'pitch': msg.note,
-                'velocity': msg.velocity,
-                'time': _time,
-                'duration': 0,
-            }
-        if msg.type == 'note_off':
-            note = _notes[msg.note]
-            note['duration'] = _time - note['time']
-            del _notes[msg.note]
-            return note
+        try:
+            if msg.type == 'note_on':
+                _notes[msg.note] = {
+                    'pitch': msg.note,
+                    'velocity': msg.velocity,
+                    'time': _time,
+                    'duration': 0,
+                }
+            if msg.type == 'note_off':
+                note = _notes[msg.note]
+                note['duration'] = _time - note['time']
+                del _notes[msg.note]
+                return note
+        except:
+            print(msg, _notes)
 
     return handle_message
 
@@ -106,7 +112,60 @@ def ticks_to_samples (samplerate, mid, ticks):
 
 
 def to_pd (note):
-    return note['pitch'], note['duration']
+    try:
+        return note['pitch'], note['duration']
+    except:
+        return None, None
+       
+
+def estimate_peak (wav_fp):
+    snd = parselmouth.Sound(wav_fp)
+    intensity = snd.to_intensity()
+    xs = intensity.xs()
+    ivs = intensity.values[0]
+    chunks = [np.sum(ivs[i:i+3]) for i in range(len(ivs) - 5)]
+    peak = np.max(chunks)
+    peak_idx = chunks.index(peak)
+    return {
+        'peak': peak,
+        'peak_time': xs[peak_idx],
+    }
+       
+
+def estimate_pitch (wav_fp):
+    snd = parselmouth.Sound(wav_fp)
+    pitch = snd.to_pitch()
+    pitch_values = pitch.selected_array['frequency']
+    pitch_values = [pv for pv in pitch_values if pv != 0]
+    return np.average(pitch_values)
+
+
+f0 = 440
+a = np.power(2, 1.0/12)
+pitch_table = [f0 * np.power((a), n) for n in np.arange(-120, 120)]
+
+
+def to_nearest_pitch_class (pitch):
+    '''
+    The basic formula for the frequencies of the notes of the equal tempered scale is given by
+    fn = f0 * (a)n
+    where
+    f0 = the frequency of one fixed note which must be defined. A common choice is setting the A above middle C (A4) at f0 = 440 Hz.
+    n = the number of half steps away from the fixed note you are. If you are at a higher note, n is positive. If you are on a lower note, n is negative.
+    fn = the frequency of the note n half steps away.
+    a = (2)1/12 = the twelth root of 2 = the number which when multiplied by itself 12 times equals 2 = 1.059463094359...
+
+    The wavelength of the sound for the notes is found from
+    Wn = c/fn
+    where W is the wavelength and c is the speed of sound. The speed of sound depends on temperature, but is approximately 345 m/s at "room temperature."
+    '''
+    abs_diffs = [abs(p - pitch) for p in pitch_table]
+    nearest_pitch = pitch_table[abs_diffs.index(min(abs_diffs))]
+    return {
+        'nearest_pitch': nearest_pitch,
+        'pitch_adjustment': nearest_pitch - pitch, 
+    }
+
 
 
 if __name__ == '__main__':
@@ -120,33 +179,69 @@ if __name__ == '__main__':
     if args.debug:
         conn.set_trace_callback(print)
 
-    cur.execute('SELECT name, data FROM songs where id = :song_id', {
+    cur.execute('SELECT name, bucket_fp FROM songs where id = :song_id', {
         'song_id': args.song_id,
     })
-    song_name, song_data = cur.fetchone()
+    song_name, song_fp = cur.fetchone()
     if args.debug:
         print('song name', song_name);
 
+    sequence_count = get_sequence_count(cur, args.user_id, song_name)
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         # download all crops and convert to wav
+        crop_objs = {}
         crop_wavs = {}
+        crop_pitches = []
+        crop_peaks = []
         for crop in args.crops:
             cur.execute('select bucket_fp, uuid, raw_id from crops where uuid = ?', [crop])
             remote_fp, crop_fk, raw_fk = cur.fetchone()
             crop_aac = os.path.join(tmp_dir, '{}.aac'.format(crop))
+            if args.debug:
+                print(remote_fp, crop_aac)
             bc.download_filename_from_bucket(remote_fp, crop_aac)
             # convert aac to wav and store the wav fp in the crop dict
-            crop_wav[crop] = aac_to_wav(crop_aac)
+            wav_fp = aac_to_wav(crop_aac)
+            crop_objs[crop] = {
+                'wav': wav_fp
+            }
+            fname = '/tmp/test.wav'
+            with contextlib.closing(wave.open(wav_fp, 'r')) as f:
+                frames = f.getnframes()
+                rate = f.getframerate()
+                duration = frames / float(rate)
+            crop_objs[crop]['duration'] = duration
+            pitch = estimate_pitch(wav_fp)
+            crop_objs[crop]['pitch'] = to_nearest_pitch_class(pitch)
+            crop_objs[crop]['peak'] = estimate_peak(wav_fp)
+
+        if args.debug:
+            print('CROP OBJS:', crop_objs)
 
 
         # TODO different crops need to be in tune!
+
         # TODO determine crop onset point for things being rhythmically tight
+        # for now, just find the peak
+        # each crop must have 
+        #     - a beat center (where the peak is)
+        #     - a nearest pitch class (ignore octave)
+        #     - a tuning offset (to get to that pitch class)
+        # those attributes should be used to determine final params for rubberband
+
+        
+
         # find what pitch each crop is closest to (ignore octave)
         # calculate adjustment needed to get other pitches within the 12 tone scale
         # determine root that minimizes shifting
 
+        # download the midi file
+        song_local_fp = os.path.join(tmp_dir, 'song.mid')
+        bc.download_filename_from_bucket(song_fp, song_local_fp)
+
         # load the song midi file
-        mid = mido.MidiFile(filename=args.midi_file)
+        mid = mido.MidiFile(filename=song_local_fp)
 
         # store rendered audio for each track here
         # in prep for joining together in final sequence
@@ -158,6 +253,7 @@ if __name__ == '__main__':
         for crop, track in zip(args.crops, mid.tracks):
             msg_to_dict = midi_message_to_dict()
             msgs = [msg for msg in track if msg.type in ['note_on', 'note_off']]
+
             notes = []
             # parse into convenient format
             for msg in msgs:
@@ -169,9 +265,11 @@ if __name__ == '__main__':
 
             if len(notes) < 1:
                 continue
+            notes = [n for n in notes if n is not None]
 
             # figure out unique pitch-duration combos
             pitch_durations = list(set([to_pd(note) for note in notes]))
+            pitch_durations = [pd for pd in pitch_durations if pd[0] is not None]
 
             # TODO this will be replaced when handling multi crop tuning
             pitch_midpoint = int(np.average([pd[0] for pd in pitch_durations]))
@@ -183,12 +281,12 @@ if __name__ == '__main__':
                 duration = ticks_to_seconds(mid, duration_ticks)
                 out_fp = os.path.join(tmp_dir, 'out.wav')
                 # need note and crop duration
-                rate, audio_data = wavfile.read(crop_wavs[crop])
+                rate, audio_data = wavfile.read(crop_objs[crop]['wav'])
                 crop_duration = len(audio_data) / rate
                 rubberband_args = {
                     'pitch': pitch - pitch_midpoint,
                     'duration': duration / crop_duration, 
-                    'crop_fp': crop_wavs[crop], 
+                    'crop_fp': crop_objs[crop]['wav'], 
                     'out_fp': out_fp,
                 }
                 sp.call('rubberband -q -p {pitch} -t {duration} {crop_fp} {out_fp}'.format(
@@ -206,13 +304,25 @@ if __name__ == '__main__':
             track_samples = int(track_seconds * samplerate) + 1
             
 
+            # need audio padding for crop offset timing
+            audio_padding = samplerate * 2
+
             # initialize an array with zeros that is the length of the track
-            track_sequence = np.zeros((track_samples,))
+            track_sequence = np.zeros((track_samples + audio_padding,))
 
             # pop audio in by sample index
             for note in notes:
                 rest_samples = ticks_to_samples(samplerate, mid, note['time'])
+                rest_samples += audio_padding
                 audio = crop_map[to_pd(note)]
+                # calculate sample offset so peak intesity falls on beat
+                peak_time = crop_objs[crop]['peak']['peak_time']
+                duration = crop_objs[crop]['duration']
+                peak_pct = peak_time / duration
+                peak_offset = int(len(audio) * peak_pct)
+                # duration influences peak time
+                rest_samples -= peak_offset
+                print(rest_samples)
                 track_sequence[rest_samples:rest_samples + len(audio)] += audio
 
             track_sequence /= track_sequence.max()
@@ -221,9 +331,9 @@ if __name__ == '__main__':
         # combine tracks into single array
         sequence_uuid = uuid.uuid4()
         sequence_fp = os.path.join(tmp_dir, '{}.wav'.format(sequence_uuid))
-        sequence_length = max([len(track) for track in tracks])
+        sequence_length = max([len(track) for track in track_datas])
         sequence = np.zeros((sequence_length,))
-        for track in tracks:
+        for track in track_datas:
             sequence[0:len(track)] += track
         sequence /= sequence.max()
         wavfile.write(sequence_fp, samplerate, sequence)
@@ -233,7 +343,6 @@ if __name__ == '__main__':
         # name and save to db
         # upload to bucket
 
-        combined_fp_aac = wav_to_aac(combined_fp)
         remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
         remote_sequence_url = 'gs://song_barker_sequences/{}'.format(remote_sequence_fp)
         cur.execute('''
@@ -252,7 +361,7 @@ if __name__ == '__main__':
             {
                 'uuid': str(sequence_uuid),
                 'song_id': args.song_id,
-                'crop_id': args.crop_uuid,
+                'crop_id': ' '.join(args.crops),
                 'user_id': args.user_id, 
                 'name': '{} {}'.format(song_name, sequence_count + 1),
                 'bucket_url': remote_sequence_url,
@@ -262,3 +371,7 @@ if __name__ == '__main__':
             }
         )
         bc.upload_filename_to_bucket(sequence_fp_aac, remote_sequence_fp)
+
+        if args.debug:
+            sp.call('play {}'.format(sequence_fp), shell=True)
+            

@@ -207,6 +207,12 @@ app.post('/sequence_audio', async function (req, res) {
 
 
 app.post('/midi_to_audio', async function (req, res) {
+	/*
+	* args:
+	*	- uuids: array or crop uuids, in order of the midi tracks
+	*	- user_id
+	*	- song_id
+	*/
 	var uuids_string = _.join(req.body.uuids, ' ');
 	exec(`
 		cd ../audio_processing && 
