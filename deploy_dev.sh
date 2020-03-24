@@ -7,5 +7,5 @@ deactivate
 cd ../server
 npm install
 pm2 restart app.js
-discord_webhook_url="https://discordapp.com/api/webhooks/677265855716786196/Gp3WPXSRtR4UivRy6H3_3FXyRNjUvWPceAC0M5mhRJ2DJuHGlerEK2PO9RI7hojpG-sM"
+discord_webhook_url="https://discordapp.com/api/webhooks/692090733842268221/xVUsUktputk7B7ePZsC3jx9ltlk3ffZ8OwVmSxZagczK0c1htUu-IweCS1JmAsdb3ZXn"
 curl -H "Content-Type: application/json" -X POST -d '{"username": "dev server bot", "content": "\n ********** \n 😎 dEv SeRveR dEPlOyEd 😎 \n ********** \n"}' $discord_webhook_url
