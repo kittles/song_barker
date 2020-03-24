@@ -63,6 +63,12 @@ async function fixtures () {
 	var midi_dir = '../audio_processing/midi_files';
     var dir = fs.opendirSync(midi_dir);
     var dirent;
+	var categories = [
+		'Jazz', 
+		'Rock',
+		'Kids', 
+		'Holiday',
+	];
     while ((dirent = dir.readSync()) !== null) {
         var filename = dirent.name;
 		var fp = `${midi_dir}/${filename}`
@@ -77,6 +83,7 @@ async function fixtures () {
 			bucket_fp: `midi_files/${filename}`,
 			tracks: midi_parser.parse(fs.readFileSync(fp, 'base64')).tracks,
 			price: 0.99,
+			category: categories[Math.floor(Math.random() * categories.length)],
 		});
     }
     dir.closeSync();
