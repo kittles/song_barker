@@ -63,18 +63,18 @@ async function fixtures () {
 	var midi_dir = '../audio_processing/midi_files';
     var dir = fs.opendirSync(midi_dir);
     var dirent;
-	var categories = [
-		'Jazz', 
-		'Rock',
-		'Kids', 
-		'Holiday',
-	];
     while ((dirent = dir.readSync()) !== null) {
         var filename = dirent.name;
 		var fp = `${midi_dir}/${filename}`
         var name = filename.replace('.mid', '');
         name = name.replace(/\_/gi, ' ');
         name = title_case(name);
+		var category = [
+			'Jazz', 
+			'Rock',
+			'Kids', 
+			'Holiday',
+		][Math.floor(Math.random() * 4)];
 		songs.push({
 			filename: filename,
 			fp: fp,
@@ -83,7 +83,7 @@ async function fixtures () {
 			bucket_fp: `midi_files/${filename}`,
 			tracks: midi_parser.parse(fs.readFileSync(fp, 'base64')).tracks,
 			price: 0.99,
-			category: categories[Math.floor(Math.random() * categories.length)],
+			category: category,
 		});
     }
     dir.closeSync();
@@ -105,8 +105,8 @@ async function fixtures () {
 				VALUES ("${raw.uuid}", "${raw.user_id}", "${raw.name}", "${raw.bucket_url}", "${raw.bucket_fp}")`);
         }),
         _.map(songs, (song) => {
-			return db.run(`INSERT INTO songs (name, bucket_url, bucket_fp, track_count, price)
-				VALUES ("${song.name}", "${song.bucket_url}", "${song.bucket_fp}", "${song.tracks}", "${song.price}")`);
+			return db.run(`INSERT INTO songs (name, bucket_url, bucket_fp, track_count, price, category)
+				VALUES ("${song.name}", "${song.bucket_url}", "${song.bucket_fp}", "${song.tracks}", "${song.price}", "${song.category}")`);
         }),
 		_.map(images, (image) => {
 			return db.run(`INSERT INTO images (uuid, user_id, name, mouth_coordinates)
