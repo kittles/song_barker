@@ -42,10 +42,10 @@ async function fixtures () {
 	];
     var raws = [];
 	var raw_dir = '../audio_processing/raw_fixtures';
-    var dir = fs.openSync(raw_dir);
+    var dir = fs.opendirSync(raw_dir);
     var dirent;
 	var c = 0;
-    while ((dirent = dir.opendirSync()) !== null) {
+    while ((dirent = dir.readSync()) !== null) {
         var filename = dirent.name;
 		var fp = `${raw_dir}/${filename}`
         var uuid = filename.replace('.aac', '');
@@ -61,9 +61,9 @@ async function fixtures () {
     dir.closeSync();
     var songs = [];
 	var midi_dir = '../audio_processing/midi_files';
-    var dir = fs.openSync(midi_dir);
+    var dir = fs.opendirSync(midi_dir);
     var dirent;
-    while ((dirent = dir.opendirSync()) !== null) {
+    while ((dirent = dir.readSync()) !== null) {
         var filename = dirent.name;
 		var fp = `${midi_dir}/${filename}`
         var name = filename.replace('.mid', '');
