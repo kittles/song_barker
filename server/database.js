@@ -42,7 +42,7 @@ async function fixtures () {
 	];
     var raws = [];
 	var raw_dir = '../audio_processing/raw_fixtures';
-    var dir = fs.opendirSync(raw_dir);
+    var dir = fs.openSync(raw_dir);
     var dirent;
 	var c = 0;
     while ((dirent = dir.readSync()) !== null) {
@@ -61,7 +61,7 @@ async function fixtures () {
     dir.closeSync();
     var songs = [];
 	var midi_dir = '../audio_processing/midi_files';
-    var dir = fs.opendirSync(midi_dir);
+    var dir = fs.openSync(midi_dir);
     var dirent;
     while ((dirent = dir.readSync()) !== null) {
         var filename = dirent.name;
