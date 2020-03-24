@@ -30,43 +30,6 @@ parser.add_argument('--debug', '-d', action='store_true', help='playback audio c
 args = parser.parse_args()
 
 
-class memoize (object):
-    '''cache the return value of a method
-
-    This class is meant to be used as a decorator of methods. The return value
-    from a given method invocation will be cached on the instance whose method
-    was invoked. All arguments passed to a method decorated with memoize must
-    be hashable.
-
-    If a memoized method is invoked directly on its class the result will not
-    be cached. Instead the method will be invoked like a static method:
-    class Obj(object):
-        @memoize
-        def add_to(self, arg):
-            return self + arg
-    Obj.add_to(1) # not enough arguments
-    Obj.add_to(1, 2) # returns 3, result is not cached
-    '''
-    def __init__(self, func):
-        self.func = func
-    def __get__(self, obj, objtype=None):
-        if obj is None:
-            return self.func
-        return partial(self, obj)
-    def __call__(self, *args, **kw):
-        obj = args[0]
-        try:
-            cache = obj.__cache
-        except AttributeError:
-            cache = obj.__cache = {}
-        key = (self.func, args[1:], frozenset(kw.items()))
-        try:
-            res = cache[key]
-        except KeyError:
-            res = cache[key] = self.func(*args, **kw)
-        return res
-
-
 def get_sequence_count (cur, user_id, song_name):
     sequence_count_sql = '''
         SELECT count(*) from sequences 
@@ -155,70 +118,32 @@ def to_pd (note):
         return note['pitch'], note['duration']
     except:
         return None, None
-       
-
-def estimate_peak (wav_fp):
-    snd = parselmouth.Sound(wav_fp)
-    intensity = snd.to_intensity()
-    xs = intensity.xs()
-    ivs = intensity.values[0]
-    chunks = [np.sum(ivs[i:i+3]) for i in range(len(ivs) - 5)]
-    peak = np.max(chunks)
-    peak_idx = chunks.index(peak)
-    return {
-        'peak': peak,
-        'peak_time': xs[peak_idx],
-    }
-       
-
-def estimate_pitch (wav_fp):
-    snd = parselmouth.Sound(wav_fp)
-    pitch = snd.to_pitch()
-    pitch_values = pitch.selected_array['frequency']
-    pitch_values = [pv for pv in pitch_values if pv != 0]
-    return np.average(pitch_values)
 
 
-f0 = 440
-a = np.power(2, 1.0/12)
-pitch_table = [f0 * np.power((a), n) for n in np.arange(-120, 120)]
+class memoize (object):
+
+    def __init__ (self, func):
+        self.func = func
 
 
-def to_nearest_pitch_class (pitch):
-    '''
-    from: https://pages.mtu.edu/~suits/NoteFreqCalcs.html
-        The basic formula for the frequencies of the notes of the equal tempered scale is given by
-        fn = f0 * (a)n
-        where
-        f0 = the frequency of one fixed note which must be defined. A common choice is setting the A above middle C (A4) at f0 = 440 Hz.
-        n = the number of half steps away from the fixed note you are. If you are at a higher note, n is positive. If you are on a lower note, n is negative.
-        fn = the frequency of the note n half steps away.
-        a = (2)1/12 = the twelth root of 2 = the number which when multiplied by itself 12 times equals 2 = 1.059463094359...
-        The wavelength of the sound for the notes is found from
-        Wn = c/fn
-        where W is the wavelength and c is the speed of sound. The speed of sound depends on temperature, but is approximately 345 m/s at "room temperature."
+    def __get__ (self, obj, objtype=None):
+        if obj is None:
+            return self.func
+        return partial(self, obj)
 
-    from: https://www.johndcook.com/blog/2013/06/22/how-to-convert-frequency-to-pitch/
-        I saw somewhere that James Earl Jones’ speaking voice is around 85 Hz. What musical pitch is that?
-        Let P be the frequency of some pitch you’re interested in and let C = 261.626 be the frequency of middle C. If h is the number of half steps from C to P then
-        P / C = 2**h/12.
-        Taking logs,
-        h = 12 log(P / C) / log 2.
-        If P = 85, then h = -19.46. That is, James Earl Jones’ voice is about 19 half-steps below middle C, around the F an octave and a half below middle C.
-    '''
-    abs_diffs = [abs(p - pitch) for p in pitch_table]
-    nearest_pitch = pitch_table[abs_diffs.index(min(abs_diffs))]
-    # get half steps away
-    half_steps = 12 * np.log(nearest_pitch / pitch) / np.log(2)
-    half_steps_from_a440 = 12 * np.log(nearest_pitch / f0) / np.log(2)
 
-    return {
-        'nearest_pitch': nearest_pitch,
-        'pitchclass': (69 + half_steps_from_a440) % 12, # a440 is 69
-        'pitch_adjustment': nearest_pitch - pitch, 
-        'half_steps': half_steps,
-    }
-    # how to take a Hz difference and turn it in to a half-steps difference
+    def __call__ (self, *args, **kw):
+        obj = args[0]
+        try:
+            cache = obj.__cache
+        except AttributeError:
+            cache = obj.__cache = {}
+        key = (self.func, args[1:], frozenset(kw.items()))
+        try:
+            res = cache[key]
+        except KeyError:
+            res = cache[key] = self.func(*args, **kw)
+        return res
 
 
 class Crop (object):
@@ -237,10 +162,10 @@ class Crop (object):
         self.nearest_hz = self.nearest_concert_freq()
         self.nearest_pitch = self.freq_to_midi_number(self.nearest_hz)
         self.tuning_offset = self.steps_between_freqs(self.original_hz, self.nearest_hz)
-        self._memo = {}
 
 
     def duration (self):
+        # TODO handle bad samples
         # seconds
         with contextlib.closing(wave.open(self.wav_fp, 'r')) as f:
             frames = f.getnframes()
@@ -250,6 +175,7 @@ class Crop (object):
 
     @memoize
     def peak (self):
+        # TODO handle bad samples
         # seconds
         snd = parselmouth.Sound(self.wav_fp)
         intensity = snd.to_intensity()
@@ -262,6 +188,7 @@ class Crop (object):
 
 
     def get_freq (self):
+        # TODO handle bad samples
         snd = parselmouth.Sound(self.wav_fp)
         pitch = snd.to_pitch()
         pitch_values = pitch.selected_array['frequency']
@@ -302,13 +229,11 @@ class Crop (object):
         nearest_pitch = self.freq_to_midi_number(self.nearest_hz)
         pitch_offset = pitch - nearest_pitch
         
+        # TODO this needs to be smarter
         while pitch_offset < -24:
             pitch_offset += 12
         while pitch_offset > 24:
             pitch_offset -= 12
-
-        #if pitch_offset < 0:
-        #    pitch_offset += 1
 
         rubberband_args = {
             'pitch': pitch_offset + self.tuning_offset,
@@ -319,6 +244,7 @@ class Crop (object):
         sp.call('rubberband -p {pitch} -t {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
             **rubberband_args
         ), shell=True)
+        # TODO handle bad renders
         rate, audio_data = wavfile.read(out_fp)
         return audio_data
 
@@ -375,20 +301,16 @@ if __name__ == '__main__':
             crop = Crop(wav_fp)
             crop_objs.append(crop)
 
-        # download the midi file
+        # download the midi file and load into memory
         song_local_fp = os.path.join(tmp_dir, 'song.mid')
         bc.download_filename_from_bucket(song_fp, song_local_fp)
-
-        # load the song midi file
         mid = mido.MidiFile(filename=song_local_fp)
 
-        # store rendered audio for each track here
-        # in prep for joining together in final sequence
+        # turn midi events into note dicts for ease of use
         track_notes = []
         for crop, track in zip(crop_objs, mid.tracks):
             msg_to_dict = midi_message_to_dict()
             msgs = [msg for msg in track if msg.type in ['note_on', 'note_off']]
-
             notes = []
             # parse into convenient format
             for msg in msgs:
@@ -401,10 +323,8 @@ if __name__ == '__main__':
             notes = [n for n in notes if n is not None]
             pitch_durations = list(set([to_pd(note) for note in notes]))
             track_notes.append(notes)
-            #crop_obj.notes = notes
-            #pitch_durations = [pd for pd in pitch_durations if pd[0] is not None]
-            #pitch_midpoint = int(np.average([pd[0] for pd in pitch_durations]))
 
+        # generate the actual audio for each track
         track_sequences = []
         for crop, track in zip(crop_objs, track_notes):
             # stitch renders together based on track events
@@ -454,13 +374,11 @@ if __name__ == '__main__':
                 break
         sequence = sequence[start_idx:]
 
+        # write to file
         wavfile.write(sequence_fp, samplerate, sequence)
         sequence_fp_aac = wav_to_aac(sequence_fp)
 
-
-        # name and save to db
-        # upload to bucket
-
+        # persistence
         remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
         remote_sequence_url = 'gs://song_barker_sequences/{}'.format(remote_sequence_fp)
         cur.execute('''
@@ -496,6 +414,7 @@ if __name__ == '__main__':
                 print(crop)
             sp.call('play {}'.format(sequence_fp), shell=True)
 
+        # return some data for api response
         print(sequence_uuid, remote_sequence_url)
         log(' '.join(args.crops), 'finished')
            
