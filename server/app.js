@@ -190,7 +190,7 @@ app.post('/midi_to_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python midi_to_audio.py -c "${uuids_string}" -u "${req.body.user_id}" -s "${req.body.song_id}"
+		python midi_to_audio.py -c ${uuids_string} -u "${req.body.user_id}" -s "${req.body.song_id}"
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {
@@ -204,6 +204,7 @@ app.post('/midi_to_audio', async function (req, res) {
 			var line = output.shift();
 			var sequence_uuid = line.split(' ')[0];
 			var sequence_url = line.split(' ')[1];
+			console.log(sequence_uuid, sequence_url);
 			const db = await _db.dbPromise;
 			var sequence = await db.get('select * from sequences where uuid = ?', sequence_uuid);
 			sequence.obj_type = 'sequence';

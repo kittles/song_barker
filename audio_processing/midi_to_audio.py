@@ -489,6 +489,7 @@ if __name__ == '__main__':
             }
         )
         bc.upload_filename_to_bucket(sequence_fp_aac, remote_sequence_fp)
+        conn.commit()
 
         if args.debug:
             for crop in crop_objs:
