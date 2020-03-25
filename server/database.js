@@ -39,6 +39,18 @@ async function fixtures () {
 			email: 'deartovi@gmail.com',
 			hidden: 0,
 		},
+		{
+			user_id: 'Graig',
+			name: 'Graig',
+			email: 'graig@songbarker.com',
+			hidden: 0,
+		},
+		{
+			user_id: 'Jeremy',
+			name: 'Jeremy',
+			email: 'jeremy@songbarker.com',
+			hidden: 0,
+		},
 	];
     var raws = [];
 	var raw_dir = '../audio_processing/raw_fixtures';
