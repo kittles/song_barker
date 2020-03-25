@@ -147,12 +147,12 @@ class memoize (object):
 
 
 class Crop (object):
-    f0 = 440
-    a = np.power(2, 1.0/12)
-    frequency_table = [f0 * np.power((a), n) for n in np.arange(-120, 120)]
 
 
     def __init__ (self, wav_fp):
+        self.f0 = 440
+        self.a = np.power(2, 1.0/12)
+        self.frequency_table = [self.f0 * np.power((self.a), n) for n in np.arange(-120, 120)]
         self.wav_fp = wav_fp
         rate, audio_data = wavfile.read(self.wav_fp)
         self.rate = rate
@@ -209,7 +209,7 @@ class Crop (object):
 
 
     def freq_to_midi_number (self, freq):
-        half_steps_from_a440 = 12 * np.log(freq / f0) / np.log(2)
+        half_steps_from_a440 = 12 * np.log(freq / self.f0) / np.log(2)
         return round(69 + half_steps_from_a440) # a440 is midi pitch 69
 
 
@@ -222,9 +222,9 @@ class Crop (object):
 
     @memoize
     def to_pitch_duration (self, pitch, duration):
-        key = self.pd_key(pitch, duration)
-        if self._memo.get(key, None) is not None:
-            return self._memo[key]
+        #key = self.pd_key(pitch, duration)
+        #if self._memo.get(key, None) is not None:
+        #    return self._memo[key]
         out_fp = os.path.join(tmp_dir, 'out.wav')
         nearest_pitch = self.freq_to_midi_number(self.nearest_hz)
         pitch_offset = pitch - nearest_pitch
