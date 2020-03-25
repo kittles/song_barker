@@ -103,7 +103,7 @@ def ticks_to_seconds (mid, ticks):
     Where BPM is the tempo of the track (Beats Per Minute).
     (i.e. a 120 BPM track would have a MIDI time of (60000 / (120 * 192)) or 2.604 ms for 1 tick.
     '''
-    tick_duration = (60000 / (120 * mid.ticks_per_beat)) # in milliseconds
+    tick_duration = (60000 / (100 * mid.ticks_per_beat)) # in milliseconds
     return (tick_duration * ticks) / 1000
 
 
@@ -230,9 +230,9 @@ class Crop (object):
         pitch_offset = pitch - nearest_pitch
         
         # TODO this needs to be smarter
-        while pitch_offset < -24:
+        while pitch_offset < -10:
             pitch_offset += 12
-        while pitch_offset > 24:
+        while pitch_offset > 12:
             pitch_offset -= 12
 
         rubberband_args = {
