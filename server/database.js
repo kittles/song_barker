@@ -28,6 +28,9 @@ async function initialize_db () {
 exports.initialize_db = initialize_db;
 
 
+// TODO need to have the same uuids every time for raws and crops
+// TODO backing tracks
+
 async function fixtures () {
 	var bucket = 'song_barker_sequences';
 	const db = await dbPromise;

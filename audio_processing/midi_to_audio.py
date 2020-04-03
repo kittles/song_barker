@@ -15,6 +15,13 @@ import parselmouth
 import wave
 import contextlib
 from functools import partial
+'''
+TODO
+break out into 3 pieces for testability
+    - crop object
+    - midi object?    
+    - api handler 
+'''
 
 
 warnings.filterwarnings('ignore')
@@ -241,6 +248,11 @@ class Crop (object):
             'crop_fp': self.wav_fp,
             'out_fp': out_fp,
         }
+
+        # NOTE using pitch = 0 as stand in for "dont change the pitch of the crop"
+        if pitch == 0:
+            rubberband_args['pitch'] = 0
+
         sp.call('rubberband -p {pitch} -t {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
             **rubberband_args
         ), shell=True)
@@ -308,7 +320,7 @@ if __name__ == '__main__':
 
         # turn midi events into note dicts for ease of use
         track_notes = []
-        for crop, track in zip(crop_objs, mid.tracks):
+        for track in mid.tracks:
             msg_to_dict = midi_message_to_dict()
             msgs = [msg for msg in track if msg.type in ['note_on', 'note_off']]
             notes = []
@@ -323,6 +335,9 @@ if __name__ == '__main__':
             notes = [n for n in notes if n is not None]
             pitch_durations = list(set([to_pd(note) for note in notes]))
             track_notes.append(notes)
+
+        # omit tracks with no notes
+        track_notes = [tn for tn in track_notes if len(tn)]
 
         # generate the actual audio for each track
         track_sequences = []
