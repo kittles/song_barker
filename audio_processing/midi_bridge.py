@@ -1,3 +1,4 @@
+import glob
 import os
 import bucket_client as bc
 import mido
@@ -94,9 +95,24 @@ class MidiBridge (object):
         # omit tracks with no notes
         self.track_notes = [tn for tn in track_notes if len(tn)]
 
+    
+    def ticks_to_seconds (self, ticks):
+        return (ticks * self.tick_duration_ms) / 1000
+
+
+    def total_ticks (self):
+        # return total number of ticks in midi file
+        pass
+
+
+    def total_samples (self, samplerate):
+        # return total number of samples midi track would be at samplerate
+        pass
+
 
 if __name__ == '__main__':
     import tempfile
     with tempfile.TemporaryDirectory() as tmp_dir:
-        mb = MidiBridge('./midi_files/for_unit_testing.mid', tmp_dir, False)
+        for midi_fp in glob.glob('./midi_files/*.mid'):
+            mb = MidiBridge(midi_fp, tmp_dir, False)
 

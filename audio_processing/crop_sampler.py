@@ -33,7 +33,7 @@ repr_string = '''
 class CropSampler (object):
 
 
-    def __init__ (self, wav_fp):
+    def __init__ (self, wav_fp, tmp_dir=None):
         self.f0 = 440
         self.a = np.power(2, 1.0/12)
         self.frequency_table = [self.f0 * np.power((self.a), n) for n in np.arange(-120, 120)]
@@ -50,6 +50,8 @@ class CropSampler (object):
             self.tuning_offset = 0
         else:
             self.tuning_offset = self.steps_between_freqs(self.original_hz, self.nearest_hz)
+        # TODO check to see how long these things stick around...
+        self.tmp_dir = tmp_dir
 
 
     @memoize
@@ -119,8 +121,9 @@ class CropSampler (object):
 
 
     @memoize
-    def to_pitch_duration (self, pitch, duration, tmp_dir):
-        out_fp = os.path.join(tmp_dir, 'out.wav')
+    def to_pitch_duration (self, pitch, duration):
+        print(self.tmp_dir)
+        out_fp = os.path.join(self.tmp_dir, 'out.wav')
         if self.nearest_pitch is not None:
             pitch_offset = pitch - self.nearest_pitch
         else:
@@ -150,6 +153,7 @@ class CropSampler (object):
             ), shell=True)
             # TODO handle bad renders
             rate, audio_data = wavfile.read(out_fp)
+            # TODO should also return duration and peak info for rendered sample
             return audio_data
         except Exception as e:
             # log error
@@ -158,10 +162,9 @@ class CropSampler (object):
 
 
     def play (self, data):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_fp = os.path.join(tmp_dir, 'out.wav')
-            wavfile.write(tmp_fp, self.rate, data)
-            sp.call('play -q {} -t alsa'.format(tmp_fp), shell=True)
+        tmp_fp = os.path.join(self.tmp_dir, 'out.wav')
+        wavfile.write(tmp_fp, self.rate, data)
+        sp.call('play -q {} -t alsa'.format(tmp_fp), shell=True)
 
 
     def __repr__ (self):
@@ -179,10 +182,14 @@ class CropSampler (object):
 if __name__ == '__main__':
     with tempfile.TemporaryDirectory() as tmp_dir:
         for fp in glob.glob('./crop_fixtures/*.wav'):
-            cs = CropSampler(fp)
-            print(cs)
-            start = dt.datetime.now()
-            data = cs.to_pitch_duration(cs.nearest_pitch, cs.duration(), tmp_dir)
-            print('data len', len(data))
-            #cs.play(data)
-            #print('took {} s'.format(dt.datetime.now() - start))
+            try:
+                cs = CropSampler(fp, tmp_dir)
+                print(cs)
+                start = dt.datetime.now()
+                data = cs.to_pitch_duration(cs.nearest_pitch, cs.duration())
+                print('data len', len(data))
+                #cs.play(data)
+                #print('took {} s'.format(dt.datetime.now() - start))
+            except Exception as e:
+                print('\n*** \n\n !!!! FAILED {} \n\n***'.format(fp))
+                print(e)
