@@ -126,7 +126,7 @@ app.get('/describe', (req, res) => {
 // should use user id and uuid to check database for objects
 // then use result from that to execute shell script.
 
-app.post('/split_audio', async function (req, res) {
+app.post('/to_crops', async function (req, res) {
 	// call this when you have uploaded a new audio file and
 	// want to crop it in to piece that can be candidates for
 	// the individual sounds
@@ -141,7 +141,7 @@ app.post('/split_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python split_sox.py -i ${req.body.uuid} -u ${req.body.user_id} -m ${req.body.image_id}
+		python to_crops.py -i ${req.body.uuid} -u ${req.body.user_id} -m ${req.body.image_id}
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {
@@ -178,7 +178,7 @@ app.post('/split_audio', async function (req, res) {
 });
 
 
-app.post('/midi_to_audio', async function (req, res) {
+app.post('/to_sequence', async function (req, res) {
 	/*
 	* args:
 	*	- uuids: array or crop uuids, in order of the midi tracks
@@ -190,7 +190,7 @@ app.post('/midi_to_audio', async function (req, res) {
 		cd ../audio_processing && 
 		source .env/bin/activate &&
 		export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-		python midi_to_audio.py -c ${uuids_string} -u "${req.body.user_id}" -s "${req.body.song_id}"
+		python to_sequence.py -c ${uuids_string} -u "${req.body.user_id}" -s "${req.body.song_id}"
 	`, {
 		'shell': '/bin/bash',
 	}, async (error, stdout, stderr) => {

@@ -152,6 +152,10 @@ def to_sequence (user_id, song_id, crops, debug=False):
         remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
         remote_sequence_url = 'gs://song_barker_sequences/{}'.format(remote_sequence_fp)
         song_name = dbq.get_song_name(song_id)
+        if backing_fp:
+            backing_url = 'gs://song_barker_sequences/' + backing_fp
+        else:
+            backing_url = None
         dbq.db_insert('sequences', **{
             'uuid': str(sequence_uuid),
             'song_id': song_id,
@@ -160,6 +164,7 @@ def to_sequence (user_id, song_id, crops, debug=False):
             'name': '{} {}'.format(song_name, sequence_count + 1),
             'bucket_url': remote_sequence_url,
             'bucket_fp': remote_sequence_fp,
+            'backing_track_url': backing_url,
             'stream_url': None,
             'hidden': 0,
         })
