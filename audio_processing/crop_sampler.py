@@ -122,7 +122,6 @@ class CropSampler (object):
 
     @memoize
     def to_pitch_duration (self, pitch, duration):
-        print(self.tmp_dir)
         out_fp = os.path.join(self.tmp_dir, 'out.wav')
         if self.nearest_pitch is not None:
             pitch_offset = pitch - self.nearest_pitch
@@ -165,6 +164,15 @@ class CropSampler (object):
         tmp_fp = os.path.join(self.tmp_dir, 'out.wav')
         wavfile.write(tmp_fp, self.rate, data)
         sp.call('play -q {} -t alsa'.format(tmp_fp), shell=True)
+
+
+    def play_original (self):
+        tmp_fp = os.path.join(self.tmp_dir, 'out.wav')
+        wavfile.write(tmp_fp, self.rate, self.audio_data)
+        print(self)
+        print('playing original sound...')
+        sp.call('play -q {} -t alsa'.format(tmp_fp), shell=True)
+        print('done')
 
 
     def __repr__ (self):

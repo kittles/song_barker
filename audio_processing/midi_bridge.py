@@ -51,7 +51,7 @@ class MidiBridge (object):
         self.midi_fp = midi_fp
         if is_remote:
             song_local_fp = os.path.join(tmp_dir, 'song.mid')
-            bc.download_filename_from_bucket(song_fp, song_local_fp)
+            bc.download_filename_from_bucket(midi_fp, song_local_fp)
             self.midi_file = mido.MidiFile(filename=song_local_fp)
         else:
             self.midi_file = mido.MidiFile(filename=midi_fp)
@@ -94,6 +94,20 @@ class MidiBridge (object):
 
         # omit tracks with no notes
         self.track_notes = [tn for tn in track_notes if len(tn)]
+        self.melody_track = self.track_notes[0]
+
+
+    def melody_range (self):
+        pitches = [note['pitch'] for note in self.melody_track]
+        return min(pitches), max(pitches)
+
+
+    def track_count (self):
+        return len(self.track_notes)
+
+    
+    def ticks_to_samples (self, ticks, samplerate):
+        return int(samplerate * (ticks * self.tick_duration_ms) / 1000)
 
     
     def ticks_to_seconds (self, ticks):
@@ -101,13 +115,17 @@ class MidiBridge (object):
 
 
     def total_ticks (self):
-        # return total number of ticks in midi file
-        pass
+        return max([
+            max([
+                note['duration'] + note['time'] for note in track  
+            ])
+            for track in self.track_notes
+        ])
 
 
     def total_samples (self, samplerate):
         # return total number of samples midi track would be at samplerate
-        pass
+        return int(self.ticks_to_seconds(self.total_ticks()) * samplerate)
 
 
 if __name__ == '__main__':
