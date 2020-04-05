@@ -75,6 +75,8 @@ class MidiBridge (object):
         self.tick_duration_ms = (60000 / (self.bpm * self.midi_file.ticks_per_beat)) # in milliseconds
 
         # turn midi events into note dicts for ease of use
+        # TODO make this create track objects
+        # include notes, name, track type (melody, unpitched)
         track_notes = []
         for track in self.midi_file.tracks:
             msg_to_dict = midi_message_to_dict()
