@@ -7,6 +7,7 @@ audio_processing/output
 audio_processing/__pycache__
 credentials/*.json
 audio_processing/tmp
+audio_processing/*.pyc
 audio_processing/log.txt
 audio_processing/tune_split_params/audio_samples
 server/barker_database.db
