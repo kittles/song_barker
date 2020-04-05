@@ -20,7 +20,7 @@ import db_queries as dbq
 import audio_conversion as ac
 from crop_sampler import CropSampler
 
-
+samplerate = 44100
 log = logger.log_fn(os.path.basename(__file__)) 
 
 
@@ -69,10 +69,14 @@ def to_sequence (user_id, song_id, crops, debug=False):
 
         # generate the actual audio for each track
         track_sequences = []
-        for crop, track in zip(crop_objs, mb.track_notes):
+        # TODO this is horrible
+        track_types = ['rhythm' for _ in range(len(mb.track_notes))]
+        track_types[0] = 'melody'
+        for crop, track, track_type in zip(crop_objs, mb.track_notes, track_types):
+            if track_type == 'rhythm':
+                min_shift = 0
             # start with the length of the song in samples, for initializing
             # empty audio tracks
-            samplerate = crop.samplerate()
             total_samples = mb.total_samples(samplerate)
 
             # need audio padding for crop offset timing
@@ -88,6 +92,7 @@ def to_sequence (user_id, song_id, crops, debug=False):
                 # rendered with the crop's original duration (this logic is in the CropSampler)
 
                 # get the crop sampler's rendering of the crop at specified pitch and duration
+                # dont shift non melody tracks
                 audio_data = crop.to_pitch_duration(
                     note['pitch'] + min_shift,
                     mb.ticks_to_seconds(note['duration'])

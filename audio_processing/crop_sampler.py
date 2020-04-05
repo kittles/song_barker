@@ -3,6 +3,7 @@ import glob
 import datetime as dt
 import os
 from scipy.io import wavfile
+from scipy import signal
 import numpy as np
 import tempfile
 import subprocess as sp
@@ -39,8 +40,9 @@ class CropSampler (object):
         self.frequency_table = [self.f0 * np.power((self.a), n) for n in np.arange(-120, 120)]
         self.wav_fp = wav_fp
         rate, audio_data = wavfile.read(self.wav_fp)
-        self.rate = rate
-        self.audio_data = audio_data
+        if rate != 44100:
+            audio_data = signal.resample(audio_data, 44100)
+        self.samplerate = 44100
         self.pitch_durations = {}
         self.original_hz = self.get_freq()
         self.nearest_hz = self.nearest_concert_freq()
@@ -52,14 +54,6 @@ class CropSampler (object):
             self.tuning_offset = self.steps_between_freqs(self.original_hz, self.nearest_hz)
         # TODO check to see how long these things stick around...
         self.tmp_dir = tmp_dir
-
-
-    @memoize
-    def samplerate (self):
-        # TODO handle bad samples
-        # seconds
-        with contextlib.closing(wave.open(self.wav_fp, 'r')) as f:
-            return f.getframerate()
 
 
     @memoize
@@ -157,7 +151,7 @@ class CropSampler (object):
         except Exception as e:
             # log error
             log('rubberband failed with {}'.format(e))
-            return np.zeros((int(duration * self.samplerate()), ))
+            return np.zeros((int(duration * self.samplerate), ))
 
 
     def play (self, data):
@@ -178,7 +172,7 @@ class CropSampler (object):
     def __repr__ (self):
         return repr_string.format(
             self.wav_fp.split('/')[-1],
-            self.samplerate(),
+            self.samplerate,
             self.duration(),
             self.peak(),
             self.original_hz,
