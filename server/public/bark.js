@@ -116,12 +116,12 @@ function init () {
 
 	// use an img to store the texture (so it can be changed dynamicall)
 	texture_image = document.createElement('img');
-	texture_image.src = 'dog.jpg';
 	document.body.appendChild(texture_image);
-	create_dog();
 
-
-	function create_dog (img_url) {
+	function create_dog () {
+		if (texture_image.src == undefined) {
+			texture_image.src = 'dog.jpg';
+		}
 		var loader = new THREE.TextureLoader();
 		return loader.load(texture_image.src, (texture) => {
             // clear scene
@@ -143,6 +143,7 @@ function init () {
 			renderer.render(scene, camera);
 		});
 	}
+	window.create_dog = create_dog;
 
 
 	function update_texture (img64) {

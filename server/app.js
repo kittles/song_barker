@@ -5,7 +5,7 @@ var ms = require('mediaserver');
 var morgan = require('morgan');
 
 const app = express();
-const port = 3000;
+var port = process.env.PORT || 3000;
 var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
