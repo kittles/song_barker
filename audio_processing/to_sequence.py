@@ -43,7 +43,6 @@ def to_sequence (user_id, song_id, crops, debug=False):
 
         # try to determine the ideal key
         if mb.melody_track is not None:
-            print(mb.melody_track)
             pitches = np.array([note['pitch'] for note in mb.melody_track['notes']])
             shifts = np.arange(-100, 100)
             pitch_shifts = np.array([
