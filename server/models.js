@@ -266,6 +266,11 @@ exports.models = [
                     desc: 'the full url of the backing track audio file in the bucket',
                 },
                 {
+                    name: 'backing_track_fp',
+                    type: 'text',
+					desc: 'the relative path (to bucket root) of the audio file in the bucket',
+                },
+                {
                     name: 'bucket_url',
                     type: 'text',
                     desc: 'the full url of the audio file in the bucket',

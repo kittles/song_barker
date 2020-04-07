@@ -164,6 +164,7 @@ def to_sequence (user_id, song_id, crops, debug=False):
             'name': '{} {}'.format(song_name, sequence_count + 1),
             'bucket_url': remote_sequence_url,
             'bucket_fp': remote_sequence_fp,
+            'backing_track_fp': backing_fp,
             'backing_track_url': backing_url,
             'stream_url': None,
             'hidden': 0,
