@@ -1,4 +1,5 @@
 from memoize import memoize
+import audio_conversion as ac
 import glob
 import datetime as dt
 import os
@@ -42,6 +43,7 @@ class CropSampler (object):
         rate, audio_data = wavfile.read(self.wav_fp)
         if rate != 44100:
             audio_data = signal.resample(audio_data, 44100)
+        self.rate = 44100
         self.samplerate = 44100
         self.pitch_durations = {}
         self.original_hz = self.get_freq()
@@ -115,6 +117,31 @@ class CropSampler (object):
 
 
     @memoize
+    def to_duration (self, duration):
+        out_fp = os.path.join(self.tmp_dir, 'out.wav')
+        duration = min(duration, self.duration())
+
+        rubberband_args = {
+            'duration': duration,
+            'crop_fp': self.wav_fp,
+            'out_fp': out_fp,
+        }
+
+        try:
+            sp.call('rubberband -F -D {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
+                **rubberband_args
+            ), shell=True)
+            # TODO handle bad renders
+            rate, audio_data = wavfile.read(out_fp)
+            # TODO should also return duration and peak info for rendered sample
+            return audio_data
+        except Exception as e:
+            # log error
+            log('rubberband failed with {}'.format(e))
+            return np.zeros((int(duration * self.samplerate), ))
+
+
+    @memoize
     def to_pitch_duration (self, pitch, duration):
         out_fp = os.path.join(self.tmp_dir, 'out.wav')
         if self.nearest_pitch is not None:
@@ -135,10 +162,6 @@ class CropSampler (object):
             'crop_fp': self.wav_fp,
             'out_fp': out_fp,
         }
-
-        # NOTE using pitch <= 12 as stand in for "dont change the pitch of the crop"
-        if pitch is None or pitch <= 12 :
-            rubberband_args['pitch'] = 0
 
         try:
             sp.call('rubberband -F -p {pitch} -D {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
@@ -182,15 +205,23 @@ class CropSampler (object):
 
 
 if __name__ == '__main__':
+    import shutil
+    import uuid
     with tempfile.TemporaryDirectory() as tmp_dir:
-        for fp in glob.glob('./crop_fixtures/*.wav'):
+        for fp in glob.glob('./fixture_assets/crops/*.aac'):
             try:
+                tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
+                shutil.copyfile(fp, tmp_fp)
+                fp = ac.aac_to_wav(tmp_fp)
                 cs = CropSampler(fp, tmp_dir)
                 print(cs)
                 start = dt.datetime.now()
-                data = cs.to_pitch_duration(cs.nearest_pitch, cs.duration())
+                data = cs.to_pitch_duration(cs.nearest_pitch + 2, cs.duration())
                 print('data len', len(data))
-                #cs.play(data)
+                cs.play(data)
+                data = cs.to_duration(cs.duration() / 2)
+                print('data len', len(data))
+                cs.play(data)
                 #print('took {} s'.format(dt.datetime.now() - start))
             except Exception as e:
                 print('\n*** \n\n !!!! FAILED {} \n\n***'.format(fp))

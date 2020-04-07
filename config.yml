@@ -1,0 +1,14 @@
+fixtures_dir: "fixtures"
+python_env:
+    dev: ".env/bin/python"
+    test: "test/tmp/.env/bin/python"
+node_env: 
+    dev: "./"
+    test: "test/tmp"
+database_fp:
+    dev: "server/barker_database.db"
+    test: "test/barker_database.db"
+credentials_fp: 
+    dev: "credentials/bucket-credentials.json"
+    test: "credentials/test-bucket-credentials.json"
+    

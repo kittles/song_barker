@@ -42,18 +42,23 @@ def to_sequence (user_id, song_id, crops, debug=False):
         song = dbq.get_song(song_id)
 
         # try to determine the ideal key
-        pitches = np.array([note['pitch'] for note in mb.melody_track])
-        shifts = np.arange(-100, 100)
-        pitch_shifts = np.array([
-            pitches + np.full(pitches.shape, shift)
-            for shift in shifts
-        ])
-        crop_pitch = np.full(pitch_shifts.shape, crop_objs[0].nearest_pitch)
-        pitch_diffs = np.absolute(pitch_shifts - crop_pitch)
-        min_idx = np.argmin(np.sum(pitch_diffs, axis=1))
+        if mb.melody_track is not None:
+            print(mb.melody_track)
+            pitches = np.array([note['pitch'] for note in mb.melody_track['notes']])
+            shifts = np.arange(-100, 100)
+            pitch_shifts = np.array([
+                pitches + np.full(pitches.shape, shift)
+                for shift in shifts
+            ])
+            crop_pitch = np.full(pitch_shifts.shape, crop_objs[0].nearest_pitch)
+            pitch_diffs = np.absolute(pitch_shifts - crop_pitch)
+            min_idx = np.argmin(np.sum(pitch_diffs, axis=1))
 
-        # the absolute transposition that we think is the "best"
-        min_shift = shifts[min_idx]
+            # the absolute transposition that we think is the "best"
+            min_shift = shifts[min_idx]
+        else:
+            # no melody track so dont shift anything
+            min_shift = 0
 
         # put the song in the key that this shift implies
         backing_fp = None
@@ -69,12 +74,7 @@ def to_sequence (user_id, song_id, crops, debug=False):
 
         # generate the actual audio for each track
         track_sequences = []
-        # TODO this is horrible
-        track_types = ['rhythm' for _ in range(len(mb.track_notes))]
-        track_types[0] = 'melody'
-        for crop, track, track_type in zip(crop_objs, mb.track_notes, track_types):
-            if track_type == 'rhythm':
-                min_shift = 0
+        for crop, track in zip(crop_objs, mb.tracks):
             # start with the length of the song in samples, for initializing
             # empty audio tracks
             total_samples = mb.total_samples(samplerate)
@@ -86,17 +86,21 @@ def to_sequence (user_id, song_id, crops, debug=False):
             track_sequence = np.zeros((total_samples + audio_padding,))
 
             # splice in audio data for each crop sample by sample index
-            for note in track:
-                # notes with pitch <= 12 are considered rhythm notes, so the pitch is unchanged
+            for note in track['notes']:
                 # notes with duration longer than the original crop are
                 # rendered with the crop's original duration (this logic is in the CropSampler)
 
                 # get the crop sampler's rendering of the crop at specified pitch and duration
                 # dont shift non melody tracks
-                audio_data = crop.to_pitch_duration(
-                    note['pitch'] + min_shift,
-                    mb.ticks_to_seconds(note['duration'])
-                )
+                if track['nopitch']:
+                    audio_data = crop.to_duration(
+                        mb.ticks_to_seconds(note['duration'])
+                    )
+                else:
+                    audio_data = crop.to_pitch_duration(
+                        note['pitch'] + min_shift,
+                        mb.ticks_to_seconds(note['duration'])
+                    )
 
                 # calculate sample offset so peak intesity falls on beat
                 # start with initial crop's peak

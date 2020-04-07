@@ -15,6 +15,7 @@ def dict_factory(cursor, row):
     return d
 
 
+# TODO use config.yml for db path
 conn = sqlite3.connect('../server/barker_database.db')
 conn.row_factory = dict_factory
 #conn.set_trace_callback(print)

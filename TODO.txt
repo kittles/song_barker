@@ -1,0 +1,4 @@
+move all scripts to scripts/ dir
+parameterize the db stuff so you can have a test db
+tests/
+move audio_processing to within server/

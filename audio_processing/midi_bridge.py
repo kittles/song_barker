@@ -42,6 +42,10 @@ def midi_message_to_dict ():
     return handle_message
 
 
+def is_nopitch (name):
+    return name[:8] == 'nopitch_'
+
+
 class MidiBridge (object):
     '''
     takes midi files and prepares them for use with sequencing
@@ -77,8 +81,13 @@ class MidiBridge (object):
         # turn midi events into note dicts for ease of use
         # TODO make this create track objects
         # include notes, name, track type (melody, unpitched)
-        track_notes = []
+        self.tracks = []
         for track in self.midi_file.tracks:
+            tdict = {
+                'notes': None,
+                'name': track.name,
+                'nopitch': is_nopitch(track.name),
+            }
             msg_to_dict = midi_message_to_dict()
             msgs = [msg for msg in track if msg.type in ['note_on', 'note_off']]
             notes = []
@@ -92,20 +101,25 @@ class MidiBridge (object):
 
             notes = [n for n in notes if n is not None]
             pitch_durations = list(set([to_pd(note) for note in notes]))
-            track_notes.append(notes)
+            if len(notes) > 0:
+                tdict['notes'] = notes
+                self.tracks.append(tdict)
 
-        # omit tracks with no notes
-        self.track_notes = [tn for tn in track_notes if len(tn)]
-        self.melody_track = self.track_notes[0]
+        # set the first track that isnt noptiched to melody
+        self.melody_track = None
+        for track in self.tracks:
+            if not track['nopitch']:
+                self.melody_track = track
+                break
 
 
     def melody_range (self):
-        pitches = [note['pitch'] for note in self.melody_track]
+        pitches = [note['pitch'] for note in self.melody_track['notes']]
         return min(pitches), max(pitches)
 
 
     def track_count (self):
-        return len(self.track_notes)
+        return len(self.tracks)
 
     
     def ticks_to_samples (self, ticks, samplerate):
@@ -119,9 +133,9 @@ class MidiBridge (object):
     def total_ticks (self):
         return max([
             max([
-                note['duration'] + note['time'] for note in track  
+                note['duration'] + note['time'] for note in track['notes']  
             ])
-            for track in self.track_notes
+            for track in self.tracks
         ])
 
 
@@ -133,6 +147,8 @@ class MidiBridge (object):
 if __name__ == '__main__':
     import tempfile
     with tempfile.TemporaryDirectory() as tmp_dir:
-        for midi_fp in glob.glob('./midi_files/*.mid'):
+        for midi_fp in glob.glob('./fixture_assets/songs/happy_birthday_graig_1.mid'):
             mb = MidiBridge(midi_fp, tmp_dir, False)
+            for track in mb.tracks:
+                print(track['nopitch'], track['name'])
 
