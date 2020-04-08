@@ -37,13 +37,15 @@ def midi_message_to_dict ():
                 del _notes[msg.note]
                 return note
         except:
-            print(msg, _notes)
+            #print(msg, _notes)
+            # TODO log
+            pass
 
     return handle_message
 
 
-def is_nopitch (name):
-    return name[:8] == 'nopitch_'
+def check_marker (marker, name):
+    return name[:len(marker)] == marker
 
 
 class MidiBridge (object):
@@ -86,18 +88,20 @@ class MidiBridge (object):
             tdict = {
                 'notes': None,
                 'name': track.name,
-                'nopitch': is_nopitch(track.name),
+                'nopitch': check_marker('nopitch_', track.name),
+                'relativepitch': check_marker('relativepitch_', track.name),
             }
             msg_to_dict = midi_message_to_dict()
-            msgs = [msg for msg in track if msg.type in ['note_on', 'note_off']]
             notes = []
             # parse into convenient format
-            for msg in msgs:
+            for msg in track:
                 if msg.type == 'note_on':
                     msg_to_dict(msg)
-                if msg.type == 'note_off':
+                elif msg.type == 'note_off':
                     note = msg_to_dict(msg)
                     notes.append(note)
+                else:
+                    msg_to_dict(msg)
 
             notes = [n for n in notes if n is not None]
             pitch_durations = list(set([to_pd(note) for note in notes]))
@@ -147,8 +151,9 @@ class MidiBridge (object):
 if __name__ == '__main__':
     import tempfile
     with tempfile.TemporaryDirectory() as tmp_dir:
-        for midi_fp in glob.glob('./fixture_assets/songs/happy_birthday_graig_1.mid'):
-            mb = MidiBridge(midi_fp, tmp_dir, False)
-            for track in mb.tracks:
-                print(track['nopitch'], track['name'])
+        midi_fp = './fixture_assets/songs/happy_birthday_tovi.mid'
+        mb = MidiBridge(midi_fp, tmp_dir, False)
+        for track in mb.tracks:
+            print(track['name'])
+            print([mb.ticks_to_seconds(note['time']) for note in track['notes']])
 

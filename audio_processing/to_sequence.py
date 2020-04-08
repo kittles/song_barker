@@ -24,7 +24,7 @@ samplerate = 44100
 log = logger.log_fn(os.path.basename(__file__)) 
 
 
-def to_sequence (user_id, song_id, crops, debug=False):
+def to_sequence (user_id, song_id, crops, debug=False, output=None):
     log(' '.join(crops), 'started')
 
     sequence_count = dbq.get_sequence_count(user_id, song_id)
@@ -42,8 +42,10 @@ def to_sequence (user_id, song_id, crops, debug=False):
         song = dbq.get_song(song_id)
 
         # try to determine the ideal key
+        median_pitch = 0 # for relatively pitched tracks
         if mb.melody_track is not None:
             pitches = np.array([note['pitch'] for note in mb.melody_track['notes']])
+            median_pitch = int(np.median(pitches))
             shifts = np.arange(-100, 100)
             pitch_shifts = np.array([
                 pitches + np.full(pitches.shape, shift)
@@ -60,15 +62,24 @@ def to_sequence (user_id, song_id, crops, debug=False):
             min_shift = 0
 
         # put the song in the key that this shift implies
+        # dont do anything if its a relatively pitched track
         backing_fp = None
-        backing_shift = min_shift % 12
-        if backing_shift < 0:
-            backing_shift += 12
         if song.get('backing_track'):
-            backing_fp = 'backing_tracks/{}/{}.aac'.format(
-                song.get('backing_track'),
-                (song.get('key') + backing_shift) % 12
-            )
+            if not mb.melody_track or mb.melody_track['relativepitch']:
+                # dont tune
+                backing_fp = 'backing_tracks/{}/{}.aac'.format(
+                    song.get('backing_track'),
+                    song.get('key')
+                )
+            else:
+                # tune backing track if the melody is absolutely pitched
+                backing_shift = min_shift % 12
+                if backing_shift < 0:
+                    backing_shift += 12
+                backing_fp = 'backing_tracks/{}/{}.aac'.format(
+                    song.get('backing_track'),
+                    (song.get('key') + backing_shift) % 12
+                )
             
 
         # generate the actual audio for each track
@@ -95,6 +106,11 @@ def to_sequence (user_id, song_id, crops, debug=False):
                     audio_data = crop.to_duration(
                         mb.ticks_to_seconds(note['duration'])
                     )
+                elif track['relativepitch']:
+                    audio_data = crop.to_relative_pitch_duration(
+                        note['pitch'] - median_pitch,
+                        mb.ticks_to_seconds(note['duration'])
+                    )
                 else:
                     audio_data = crop.to_pitch_duration(
                         note['pitch'] + min_shift,
@@ -104,7 +120,7 @@ def to_sequence (user_id, song_id, crops, debug=False):
                 # calculate sample offset so peak intesity falls on beat
                 # start with initial crop's peak
                 peak_time = crop.peak()
-                duration = crop.duration()
+                duration = crop.duration
 
                 # scale it by the duration of the sample
                 peak_pct = peak_time / duration
@@ -188,6 +204,15 @@ def to_sequence (user_id, song_id, crops, debug=False):
             else:
                 sp.call('play {}'.format(sequence_fp), shell=True)
 
+            if output:
+                cmd = 'ffmpeg -i {} -i {} -filter_complex amix=inputs=2:duration=longest {}'.format(
+                    sequence_fp,
+                    local_backing,
+                    output
+                )
+                sp.call(cmd, shell=True)
+                
+
         # return some data for api response
         print(sequence_uuid, remote_sequence_url)
         log(' '.join(crops), 'finished')
@@ -201,10 +226,11 @@ if __name__ == '__main__':
     parser.add_argument('--song-id', '-s', help='the song id', type=str, default=1)
     parser.add_argument('--crops', '-c', nargs='+', help='crops used for each instrument, in track order')
     parser.add_argument('--debug', '-d', action='store_true', help='playback audio crops', default=False)
+    parser.add_argument('--output', '-o', help='output locally', type=str)
     args = parser.parse_args()
 
     if not args.debug:
         warnings.filterwarnings('ignore')
 
     # TODO maybe lint args?
-    to_sequence(args.user_id, args.song_id, args.crops, args.debug)
+    to_sequence(args.user_id, args.song_id, args.crops, args.debug, args.output)
