@@ -10,6 +10,17 @@ log = logger.log_fn(os.path.basename(__file__))
 storage_client = storage.Client()
 
 
+def create_bucket (bucket_name):
+    bucket = storage_client.create_bucket(bucket_name)
+    print("Bucket {} created".format(bucket.name))
+
+
+def delete_bucket (bucket_name):
+    bucket = storage_client.get_bucket(bucket_name)
+    bucket.delete()
+    print("Bucket {} deleted".format(bucket.name))
+
+
 def download_filename_from_bucket (remote_fp, fp):
     # remote_fp format is just the filename and subdir within the gs://bucket-name
     bucket = storage_client.bucket(BUCKET_NAME)

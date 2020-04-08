@@ -4,6 +4,22 @@ import yaml
 config = yaml.load(open('config.yml', 'r'), Loader=yaml.FullLoader)
 
 
+def make_bucket ():
+    pass
+
+
+def destroy_bucket ():
+    pass
+
+
+def make_db ():
+    pass
+
+
+def destroy_db ():
+    pass
+
+
 def run (cmd):
     sp.call(cmd, shell=True)
     # TODO put stdout somewhere referenceable

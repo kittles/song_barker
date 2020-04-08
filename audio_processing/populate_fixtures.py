@@ -99,12 +99,18 @@ backing_track_map = {
     'happy_birthday_tovi.mid':             'happy_birthday',
     'happy_birthday_graig_1_semitone.mid': 'happy_birthday',
     'happy_birthday_graig_3_semitone.mid': 'happy_birthday',
+    'no_pitch.mid':                        'happy_birthday',
+    'pitched.mid':                         'happy_birthday',
+    'semi_pitched.mid':                    'happy_birthday',
 }
 key_map = {
-    'happy_birthday.mid':     4,
+    'happy_birthday.mid':                  4,
     'happy_birthday_tovi.mid':             4,
     'happy_birthday_graig_1_semitone.mid': 4,
     'happy_birthday_graig_3_semitone.mid': 4,
+    'no_pitch.mid':                        4,
+    'pitched.mid':                         4,
+    'semi_pitched.mid':                    4,
 }
 with tempfile.TemporaryDirectory() as tmp_dir:
     for midi_fp in glob.glob(os.path.join(root_dir, 'fixture_assets', 'songs', '*.mid')):
