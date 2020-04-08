@@ -40,20 +40,21 @@ class CropSampler (object):
         self.a = np.power(2, 1.0/12)
         self.frequency_table = [self.f0 * np.power((self.a), n) for n in np.arange(-120, 120)]
         self.wav_fp = wav_fp
-        # check sample rate and resample if necessary
-        rate, audio_data = wavfile.read(self.wav_fp)
+        rate, self.audio_data = wavfile.read(self.wav_fp)
+        # handle stereo
+        if self.audio_data.ndim == 2:
+            self.audio_data = self.audio_data.sum(axis=1) / 2
+        # resample
         if rate != self.samplerate:
             duration = len(audio_data) / rate
-            audio_data = signal.resample(audio_data, int(self.samplerate * duration))
-            audio_data = audio_data.astype(np.float32)
-            audio_data = audio_data / np.max(audio_data)
-        self.audio_data = audio_data
+            self.audio_data = signal.resample(self.audio_data, int(self.samplerate * duration))
+        # convert to 32 bit float
+        self.audio_data = self.audio_data.astype(np.float32)
+        # normalize
+        self.audio_data = self.audio_data / np.max(self.audio_data)
         # overwrite the file with one at the correct sample rate
         wavfile.write(wav_fp, self.samplerate, self.audio_data)
         self.duration = len(self.audio_data) / self.samplerate
-
-        #self.audio_data = audio_data / max(audio_data)
-        self.pitch_durations = {}
         self.original_hz = self.get_freq()
         self.nearest_hz = self.nearest_concert_freq()
         self.nearest_pitch = self.freq_to_midi_number(self.nearest_hz)
@@ -237,9 +238,10 @@ if __name__ == '__main__':
         #    except Exception as e:
         #        print('\n*** \n\n !!!! FAILED {} \n\n***'.format(fp))
         #        print(e)
-        fp = './fixture_assets/crops/graig_dog_1.aac'
+        fp = './fixture_assets/crops/fart1.aac'
         tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
         shutil.copyfile(fp, tmp_fp)
         fp = ac.aac_to_wav(tmp_fp)
         cs = CropSampler(fp, tmp_dir)
         cs.play_original()
+        print(cs.nearest_concert_freq())

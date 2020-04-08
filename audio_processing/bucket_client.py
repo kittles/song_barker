@@ -62,5 +62,4 @@ def upload_to_bucket (bytestream, dest_fp):
 
 
 if __name__ == '__main__':
-    bytestream = download_from_bucket('input_audio/sample_woof.wav')
-    upload_to_bucket(bytestream, 'input_audio/test_upload_io.wav')
+    pass

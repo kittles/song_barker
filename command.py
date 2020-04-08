@@ -1,20 +1,13 @@
 import subprocess as sp
 import yaml
+import shutil
 
 config = yaml.load(open('config.yml', 'r'), Loader=yaml.FullLoader)
 
 
-def make_bucket ():
-    pass
-
-
-def destroy_bucket ():
-    pass
-
-
-def make_db ():
-    pass
-
+def make_db (db_fp):
+    # TODO database.js should accept db_fp
+    # call initialize db with db_fp
 
 def destroy_db ():
     pass

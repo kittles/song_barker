@@ -44,15 +44,25 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
         # try to determine the ideal key
         median_pitch = 0 # for relatively pitched tracks
         if mb.melody_track is not None:
+            melody_crop = crop_objs[0]
+            crop_pitch = melody_crop.nearest_pitch
+
+            # if we cant get a pitch on the input sound, do relative pitch
+            if not mb.melody_track['nopitch']:
+                if crop_pitch is None:
+                    mb.melody_track['relativepitch'] = True
+                    crop_pitch = 60
+
             pitches = np.array([note['pitch'] for note in mb.melody_track['notes']])
             median_pitch = int(np.median(pitches))
+
             shifts = np.arange(-100, 100)
             pitch_shifts = np.array([
                 pitches + np.full(pitches.shape, shift)
                 for shift in shifts
             ])
-            crop_pitch = np.full(pitch_shifts.shape, crop_objs[0].nearest_pitch)
-            pitch_diffs = np.absolute(pitch_shifts - crop_pitch)
+            crop_pitch_arr = np.full(pitch_shifts.shape, crop_pitch)
+            pitch_diffs = np.absolute(pitch_shifts - crop_pitch_arr)
             min_idx = np.argmin(np.sum(pitch_diffs, axis=1))
 
             # the absolute transposition that we think is the "best"
