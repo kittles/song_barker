@@ -121,9 +121,7 @@ function init () {
 	function create_dog (src) {
 		texture_image.src = src ? src : 'dog.jpg';
 		var loader = new THREE.TextureLoader();
-		console.log('loading', texture_image.src);
 		return loader.load(texture_image.src, (texture) => {
-			console.log('start');
             // clear scene
             while(scene.children.length > 0){
                 scene.remove(scene.children[0]);
@@ -141,7 +139,6 @@ function init () {
 			paused = true;
             fit_to_camera();
 			renderer.render(scene, camera);
-			console.log('rendered');
 		});
 	}
 	window.create_dog = create_dog;
@@ -152,7 +149,26 @@ function init () {
         mouth_right = bottom_right[0];
         mouth_top = top_left[1];
         mouth_bottom = bottom_right[1];
-        create_dog();
+		// clear scene
+		var loader = new THREE.TextureLoader();
+		return loader.load(texture_image.src, (texture) => {
+			while(scene.children.length > 0){
+				scene.remove(scene.children[0]);
+			}
+			generate_mouth_background();
+			material = new THREE.MeshBasicMaterial({ 
+				map: texture,
+				side: THREE.DoubleSide,
+			});
+			geometry = generate_geometry();
+			dog = new THREE.Mesh(geometry, material);
+			window.dog = dog;
+			scene.add(dog);
+			window.bark = bark;
+			paused = true;
+			fit_to_camera();
+			renderer.render(scene, camera);
+		});
     }
     window.set_mouth_coordinates = set_mouth_coordinates;
 
