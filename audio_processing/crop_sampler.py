@@ -46,7 +46,7 @@ class CropSampler (object):
             self.audio_data = self.audio_data.sum(axis=1) / 2
         # resample
         if rate != self.samplerate:
-            duration = len(audio_data) / rate
+            duration = len(self.audio_data) / rate
             self.audio_data = signal.resample(self.audio_data, int(self.samplerate * duration))
         # convert to 32 bit float
         self.audio_data = self.audio_data.astype(np.float32)
