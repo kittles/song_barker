@@ -4,13 +4,23 @@ var sqlite = require('sqlite');
 const dbPromise = require('./database.js').dbPromise;
 
 
+function error_wrapper (fn) {
+    return async (req, res) => {
+        try {
+            return await fn(req, res);
+        } catch (err) {
+            return res.status(500).send(`[rest api error] ${err}`)
+        }
+    };
+}
+
+
 function obj_rest_api (def, db) {
     // generate rest endpoints for an object
 	// TODO make sure primary keys are immutable
-	// TODO error response
     // TODO refactor for sql injection at some point...
     // TODO return objects for POST PUT and DELETE
-    return {
+    var rest_api = {
         get_all: {
 			request_method: 'get',
             endpoint: `/all/${def.obj_type}/:user_id`,
@@ -40,7 +50,7 @@ function obj_rest_api (def, db) {
                 var sql = `SELECT * from ${def.table_name}\n`;
                 sql += `    where ${def.primary_key} = "${req.params.primary_key}";`;
                 //console.log(sql);
-				var row = res.json(await db.get(sql));
+				var row = await db.get(sql);
                 row.obj_type = def.obj_type;
 				return res.json(row);
             },
@@ -88,6 +98,10 @@ function obj_rest_api (def, db) {
             },
         },
     };
+    _.each(rest_api, (api) => {
+        api.handler = error_wrapper(api.handler);
+    });
+    return rest_api;
 }
 exports.obj_rest_api = obj_rest_api;
 
