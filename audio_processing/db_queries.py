@@ -32,8 +32,11 @@ def get_crop_defaults (user_id, image_id):
     cur.execute(raw_sql, {
         'image_id': image_id,
     })
-    row = cur.fetchone()
-    base_name = row.get('name', 'sound')
+    try:
+        row = cur.fetchone()
+        base_name = row.get('name', 'sound')
+    except:
+        base_name = 'sound'
 
     # get crop count
     crop_count_sql = '''
@@ -47,8 +50,11 @@ def get_crop_defaults (user_id, image_id):
     cur.execute(crop_count_sql, {
         'user_id': user_id,
     })
-    row = cur.fetchone()
-    crop_count = int(row.get('count(*)', 0))
+    try:
+        row = cur.fetchone()
+        crop_count = int(row.get('count(*)', 0))
+    except:
+        crop_count = 0
 
     return {
         'base_name': base_name,
@@ -74,8 +80,11 @@ def get_sequence_count (user_id, song_id):
         'user_id': user_id,
         'song_name': '%{}%'.format(row['name']),
     })
-    row = cur.fetchone()
-    sequence_count = int(row.get('count(*)', 0))
+    try:
+        row = cur.fetchone()
+        sequence_count = int(row.get('count(*)', 0))
+    except:
+        sequence_count = 0
     return sequence_count
 
 

@@ -118,12 +118,12 @@ function init () {
 	texture_image = document.createElement('img');
 	document.body.appendChild(texture_image);
 
-	function create_dog () {
-		if (texture_image.src == undefined) {
-			texture_image.src = 'dog.jpg';
-		}
+	function create_dog (src) {
+		texture_image.src = src ? src : 'dog.jpg';
 		var loader = new THREE.TextureLoader();
+		console.log('loading', texture_image.src);
 		return loader.load(texture_image.src, (texture) => {
+			console.log('start');
             // clear scene
             while(scene.children.length > 0){
                 scene.remove(scene.children[0]);
@@ -141,20 +141,10 @@ function init () {
 			paused = true;
             fit_to_camera();
 			renderer.render(scene, camera);
+			console.log('rendered');
 		});
 	}
 	window.create_dog = create_dog;
-
-
-	function update_texture (img64) {
-		var loader = new THREE.TextureLoader();
-		texture_image.src = img64;
-		dog.material.map = loader.load(texture_image.src, () => {
-			dog.material.needsUpdate = true; 
-			renderer.render(scene, camera);
-		});
-	}
-	window.update_texture = update_texture;
 
 
     function set_mouth_coordinates (top_left, bottom_right) {
