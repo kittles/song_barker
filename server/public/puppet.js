@@ -62,8 +62,9 @@ function init () {
 
 
     async function create_puppet (img_url) {
+		img_url = (img_url === undefined ? await to_b64('dog.jpg') : img_url);
+
         // if this is being called more than once, the scene needs to be cleared
-        console.log(scene.children);
         while (scene.children.length > 0) {
             scene.remove(scene.children[0]);
         }
