@@ -1,4 +1,3 @@
-move all scripts to scripts/ dir
-parameterize the db stuff so you can have a test db
-tests/
-move audio_processing to within server/
+created attribute on some stuff (include something in models.js for default sort ordering)
+mix audio levels with backing track
+include song_family in fixtures

@@ -4,6 +4,10 @@ if test -f "$db_file"; then
 	rm $db_file
 fi
 node -e "require('./database.js').initialize_db();"
+
+# set credentials for bucket
+export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json"
+
 # call python fixtures script
 cd ../audio_processing
 source .env/bin/activate

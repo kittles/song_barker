@@ -20,12 +20,13 @@ async function initialize_db () {
     return Promise.all(_.map(models, (def) => {
         var sql = `CREATE TABLE ${def.table_name} (\n`;
         var col_sql = _.map(_.initial(def.schema.columns), (column) => {
-            return `    ${column.name} ${_.upperCase(column.type)},`;   
+            return `    ${column.name} ${_.toUpper(column.type)},`;   
         });
         var last_column = _.last(def.schema.columns);
-        col_sql.push(`    ${last_column.name} ${_.upperCase(last_column.type)}`);
+        col_sql.push(`    ${last_column.name} ${_.toUpper(last_column.type)}`);
         sql += _.join(col_sql, '\n')
         sql += '\n);';
+        console.log(sql);
 		return db.run(sql);
     }));
 };

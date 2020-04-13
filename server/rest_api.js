@@ -23,24 +23,21 @@ function obj_rest_api (def, db) {
     var rest_api = {
         get_all: {
 			request_method: 'get',
-            endpoint: `/all/${def.obj_type}/:user_id`,
+            endpoint: `/all/${def.obj_type}` + (def.user_owned ? `/:user_id` : ''),
             handler: async (req, res) => {
-                if (req.params.user_id !== '-1') {
-                    var sql = `SELECT * from ${def.table_name}\n`;
-                    sql += `    where user_id = "${req.params.user_id}";`;
-                    var rows = await db.all(sql);
-                    _.each(rows, (row) => {
-                        row.obj_type = def.obj_type;
-                    });
-                    return res.json(rows);
-                } else {
-                    var sql = `SELECT * from ${def.table_name}`;
-                    var rows = await db.all(sql);
-                    _.each(rows, (row) => {
-                        row.obj_type = def.obj_type;
-                    });
-                    return res.json(rows);
+                var sql = `SELECT * from ${def.table_name}\n`;
+                if (def.user_owned) {
+                    sql += `    where user_id = "${req.params.user_id}"\n`;
                 }
+                if (def.order_by) {
+                    sql += `    order by ${def.order_by} ASC\n`;
+                }
+                sql += ';'
+                var rows = await db.all(sql);
+                _.each(rows, (row) => {
+                    row.obj_type = def.obj_type;
+                });
+                return res.json(rows);
             },
         },
         get: {
