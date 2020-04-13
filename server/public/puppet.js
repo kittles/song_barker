@@ -13,23 +13,13 @@ var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
 
 var debugFaceMesh = false;
+// NOTE coordinate system is [-0.5 to 0.5, -0.5 to 0.5]
+// TODO remove
 var features = {
     leftEyePosition:  new THREE.Vector2(-0.094, 0.261),
     rightEyePosition: new THREE.Vector2(0.165, 0.267),
     mouthPosition:    new THREE.Vector2(0.040, -0.089),
 };
-// dog2 features
-// var features = {
-//     leftEyePosition: new THREE.Vector2(-0.048, 0.217), 
-//     rightEyePosition: new THREE.Vector2(0.091, 0.131), 
-//     mouthPosition: new THREE.Vector2(-0.109, -0.027)
-// };
-// dog3 features
-// var features = {
-//     leftEyePosition: new THREE.Vector2(-0.126, 0.308), 
-//     rightEyePosition: new THREE.Vector2(0.007, 0.314), 
-//     mouthPosition: new THREE.Vector2(-0.058, 0.163)
-// };    
 // Segments for the deformation mesh
 var segments = 200;
 var startTime = Date.now();
@@ -40,7 +30,15 @@ $('document').ready(init);
 
 function init () {
 
-    // public animation methods
+    // public methods
+
+
+    function set_eye (eye, pos) {
+        FaceAnimationShader.uniforms[`${eye}EyePosition`].value = new THREE.Vector2(pos);
+    }
+    window.set_eye = set_eye;
+
+
     function blinkLeft (val) {
         FaceAnimationShader.uniforms.blinkLeft.value = val;
         render();
@@ -61,20 +59,6 @@ function init () {
         render();
     }
     window.blink = blink;
-
-
-    /*
-        Uncomment this function to find the inputs for the features array below
-        Testing only.
-    */
-    // window.addEventListener('mousemove', function(e) {
-    //     var normalized_x = e.clientX / window.innerWidth;
-    //     var normalized_y = e.clientY / window.innerHeight;
-    //     var worldPos = screenToWorldPosition(new THREE.Vector2(normalized_x, normalized_y));
-    //     console.log("worldPos: " + worldPos.x + ", " + worldPos.y);
-    // });
-    
-    // dog1 features
 
 
     async function create_puppet (img_url) {
@@ -118,9 +102,11 @@ function init () {
         renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
         container.appendChild(renderer.domElement);
         renderer.setSize(window.innerWidth, window.innerHeight);
-        puppet_ready = true;
-        console.log('puppet is now ready');
         render();
+
+        puppet_ready = true;
+		$('document').trigger('puppet_ready');
+        console.log('puppet is now ready');
         return puppet_ready;
     }
     window.create_puppet = create_puppet;
@@ -134,6 +120,8 @@ function init () {
         renderer.render(scene, camera);
     }
     window.render = render;
+
+	// scene building
 
     
     function screenToWorldPosition (screenPos) {
@@ -153,12 +141,6 @@ function init () {
         FaceAnimationShader.uniforms.mouthPosition.value = features.mouthPosition;
         console.log('InitFaceShader finished');
     }
-
-
-    function set_eye (eye, pos) {
-        FaceAnimationShader.uniforms[`${eye}EyePosition`].value = new THREE.Vector2(pos);
-    }
-    window.set_eye = set_eye;
 
 
     function CreateBackgroundPlane (scene) {
@@ -210,6 +192,16 @@ function init () {
         scene.add(faceMesh);
         console.log('CreateFaceMesh finished');
     }
+
+
+	// Uncomment this function to find the inputs for the features array below
+	// Testing only.
+    //window.addEventListener('mousemove', function(e) {
+    //    var normalized_x = e.clientX / window.innerWidth;
+    //    var normalized_y = e.clientY / window.innerHeight;
+    //    var worldPos = screenToWorldPosition(new THREE.Vector2(normalized_x, normalized_y));
+    //    console.log("worldPos: " + worldPos.x + ", " + worldPos.y);
+    //});
 }
 
 
