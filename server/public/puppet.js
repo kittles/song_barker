@@ -194,6 +194,20 @@ function init () {
     }
 
 
+	// testing 
+	//function blink_forever () {
+	//	var blink_amount = 0;
+	//	function animate () {
+	//		requestAnimationFrame(animate);
+	//		blink_amount = (blink_amount + (1 / 60)) % 1;
+	//		blink(blink_amount);
+	//		console.log(blink_amount);
+	//	}
+	//	animate();
+	//}
+	//window.blink_forever = blink_forever;
+
+
 	// Uncomment this function to find the inputs for the features array below
 	// Testing only.
     //window.addEventListener('mousemove', function(e) {
