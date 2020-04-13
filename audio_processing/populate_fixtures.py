@@ -112,6 +112,15 @@ key_map = {
     'pitched.mid':                         4,
     'semi_pitched.mid':                    4,
 }
+family_map = {
+    'happy_birthday.mid':                  'Happy Birthday',
+    'happy_birthday_tovi.mid':             'Happy Birthday',
+    'happy_birthday_graig_1_semitone.mid': 'Happy Birthday',
+    'happy_birthday_graig_3_semitone.mid': 'Happy Birthday',
+    'no_pitch.mid':                        'Test',
+    'pitched.mid':                         'Test',
+    'semi_pitched.mid':                    'Test',
+}
 with tempfile.TemporaryDirectory() as tmp_dir:
     for midi_fp in glob.glob(os.path.join(root_dir, 'fixture_assets', 'songs', '*.mid')):
         filename = midi_fp.split('/')[-1]
@@ -132,6 +141,7 @@ with tempfile.TemporaryDirectory() as tmp_dir:
             'price': 0.99,
             'key': key_map.get(filename),
             'category': category_map.get(filename),
+            'song_family': family_map.get(filename),
             'backing_track': backing_track_map.get(filename),
         })
 
