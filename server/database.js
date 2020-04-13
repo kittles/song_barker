@@ -4,8 +4,12 @@ var Promise = require('bluebird');
 var sqlite = require('sqlite');
 var exec = require('child_process').exec;
 var midi_parser = require('midi-parser-js');
+
+
+const DB_FILE = process.env.DB_FILE || 'barker_database.db';
+
 // TODO probably want to use dev db on server
-const dbPromise = sqlite.open('barker_database.db', { Promise });
+const dbPromise = sqlite.open(DB_FILE, { Promise });
 
 exports.dbPromise = dbPromise;
 

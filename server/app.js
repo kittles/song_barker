@@ -3,6 +3,7 @@ const _ = require('lodash');
 var exec = require('child_process').exec;
 var ms = require('mediaserver');
 var morgan = require('morgan');
+var path = require('path');
 
 const app = express();
 var port = process.env.PORT || 3000;
@@ -19,11 +20,19 @@ app.use(express.json({
 }));
 app.set('json spaces', 2);
 app.use(morgan('combined')) // logging
+app.use(express.static('./public'));
 
 
 // index
 
 app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
+
+
+// puppet
+
+app.get('/puppet', (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/puppet.html'));
+});
 
 
 // send a dog puppet
@@ -55,7 +64,6 @@ app.get('/sample_animation', (req, res) => {
     </body>
     `);
 });
-app.use(express.static('./public'));
 
 
 // media server

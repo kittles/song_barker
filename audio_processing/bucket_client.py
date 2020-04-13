@@ -3,7 +3,7 @@ from google.cloud import storage
 import logger
 from io import BytesIO
 
-BUCKET_NAME = 'song_barker_sequences'
+BUCKET_NAME = os.environ.get('BUCKET_NAME', 'song_barker_sequences')
 
 log = logger.log_fn(os.path.basename(__file__)) 
 
@@ -15,9 +15,9 @@ def create_bucket (bucket_name):
     print("Bucket {} created".format(bucket.name))
 
 
-def delete_bucket (bucket_name):
+def delete_bucket (bucket_name, force=False):
     bucket = storage_client.get_bucket(bucket_name)
-    bucket.delete()
+    bucket.delete(force)
     print("Bucket {} deleted".format(bucket.name))
 
 
