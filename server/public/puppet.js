@@ -1,5 +1,5 @@
-var init_ready = false; // poll on this to know when you can start doing stuff
-var puppet_ready = false; // poll on this to know when you can start doing stuff
+var init_ready = 0; // poll on this to know when you can start doing stuff
+var puppet_ready = 0; // poll on this to know when you can start doing stuff
 var canvas = document.getElementById('image-canvas');
 var ctx = canvas.getContext('2d');
 var container = document.getElementById('container');
@@ -106,7 +106,7 @@ function init () {
         renderer.setSize(window.innerWidth, window.innerHeight);
         render();
 
-        puppet_ready = true;
+        puppet_ready = 1;
 		$('document').trigger('puppet_ready');
         console.log('puppet is now ready');
         return puppet_ready;
@@ -218,7 +218,7 @@ function init () {
     //    var worldPos = screenToWorldPosition(new THREE.Vector2(normalized_x, normalized_y));
     //    console.log("worldPos: " + worldPos.x + ", " + worldPos.y);
     //});
-	init_ready = true;
+	init_ready = 1;
 	$('document').trigger('init_ready');
 	console.log('finished init');
 }
