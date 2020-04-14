@@ -109,7 +109,7 @@ function init () {
         puppet_ready = 1;
 		$('document').trigger('puppet_ready');
         console.log('puppet is now ready');
-        return puppet_ready;
+        //return puppet_ready;
     }
     window.create_puppet = create_puppet;
 
