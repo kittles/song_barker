@@ -1,17 +1,17 @@
 var init_ready = 0; // poll on this to know when you can start doing stuff
 var puppet_ready = 0; // poll on this to know when you can start doing stuff
-var canvas = document.getElementById('image-canvas');
-var ctx = canvas.getContext('2d');
-var container = document.getElementById('container');
-var scene = new THREE.Scene();
+var canvas;
+var ctx;
+var container;
+var scene;
 var camera;
-var renderer = new THREE.WebGLRenderer();
+var renderer;
 var uniforms, material, faceMesh, texture;
 var mouseX = 0, mouseY = 0,
     lat = 0, lon = 0, phy = 0, theta = 0;
 
-var windowHalfX = window.innerWidth / 2;
-var windowHalfY = window.innerHeight / 2;
+var windowHalfX;
+var windowHalfY;
 
 var debugFaceMesh = false;
 // NOTE coordinate system is [-0.5 to 0.5, -0.5 to 0.5]
@@ -30,6 +30,13 @@ $('document').ready(init);
 
 
 function init () {
+	windowHalfX = window.innerWidth / 2;
+	windowHalfY = window.innerHeight / 2;
+	canvas = document.getElementById('image-canvas');
+	ctx = canvas.getContext('2d');
+	container = document.getElementById('container');
+	scene = new THREE.Scene();
+	renderer = new THREE.WebGLRenderer();
 
     // public methods
 
