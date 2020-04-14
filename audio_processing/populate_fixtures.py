@@ -84,66 +84,146 @@ for crop_fp in glob.glob(os.path.join(root_dir, 'fixture_assets', 'crops', '*.aa
 
 
 # songs
-category_map = {
-    'baby_shark.mid':         'Kids',
-    'cmin_fugue.mid':         'Classical',
-    'crazy.mid':              'Test',
-    'for_unit_testing.mid':   'Test',
-    'happy_birthday.mid':     'Holiday',
-    'sample_midi.mid':        'Test',
-    'sweet_child_o_mine.mid': 'Rock',
-    'two_track_test.mid':     'Test',
-}
-backing_track_map = {
-    'happy_birthday.mid':                  'happy_birthday', # this is a directory that has the backing track in all keys
-    'happy_birthday_tovi.mid':             'happy_birthday',
-    'happy_birthday_graig_1_semitone.mid': 'happy_birthday',
-    'happy_birthday_graig_3_semitone.mid': 'happy_birthday',
-    'no_pitch.mid':                        'happy_birthday',
-    'pitched.mid':                         'happy_birthday',
-    'semi_pitched.mid':                    'happy_birthday',
-}
-key_map = {
-    'happy_birthday.mid':                  4,
-    'happy_birthday_tovi.mid':             4,
-    'happy_birthday_graig_1_semitone.mid': 4,
-    'happy_birthday_graig_3_semitone.mid': 4,
-    'no_pitch.mid':                        4,
-    'pitched.mid':                         4,
-    'semi_pitched.mid':                    4,
-}
-family_map = {
-    'happy_birthday.mid':                  'Happy Birthday',
-    'happy_birthday_tovi.mid':             'Happy Birthday',
-    'happy_birthday_graig_1_semitone.mid': 'Happy Birthday',
-    'happy_birthday_graig_3_semitone.mid': 'Happy Birthday',
-    'no_pitch.mid':                        'Test',
-    'pitched.mid':                         'Test',
-    'semi_pitched.mid':                    'Test',
-}
+songs = [
+    {
+        "id": 1,
+        "name": "3",
+        "bucket_url": "gs://song_barker_sequences/midi_files/happy_birthday_graig_1_semitone.mid",
+        "bucket_fp": "midi_files/happy_birthday_graig_1_semitone.mid",
+        "track_count": 3,
+        "bpm": 120,
+        "key": 4,
+        "price": 0.99,
+        "category": "Old",
+        "song_family": "Old Happy Birthday",
+        "backing_track": "happy_birthday",
+        "obj_type": "song"
+    },
+    {
+        "id": 2,
+        "name": "track sync",
+        "bucket_url": "gs://song_barker_sequences/midi_files/track_sync.mid",
+        "bucket_fp": "midi_files/track_sync.mid",
+        "track_count": 2,
+        "bpm": 120,
+        "key": None,
+        "price": 0.99,
+        "category": None,
+        "song_family": None,
+        "backing_track": None,
+        "obj_type": "song"
+    },
+    {
+        "id": 3,
+        "name": "no pitch",
+        "bucket_url": "gs://song_barker_sequences/midi_files/no_pitch.mid",
+        "bucket_fp": "midi_files/no_pitch.mid",
+        "track_count": 3,
+        "bpm": 120,
+        "key": 4,
+        "price": 0.99,
+        "category": "Festive",
+        "song_family": "Happy Birthday",
+        "backing_track": "happy_birthday",
+        "obj_type": "song"
+    },
+    {
+        "id": 4,
+        "name": "cmin fugue",
+        "bucket_url": "gs://song_barker_sequences/midi_files/cmin_fugue.mid",
+        "bucket_fp": "midi_files/cmin_fugue.mid",
+        "track_count": 3,
+        "bpm": 65.000065000065,
+        "key": None,
+        "price": 0.99,
+        "category": "Classical",
+        "song_family": "Fugue",
+        "backing_track": None,
+        "obj_type": "song"
+    },
+    {
+        "id": 5,
+        "name": "pitched",
+        "bucket_url": "gs://song_barker_sequences/midi_files/pitched.mid",
+        "bucket_fp": "midi_files/pitched.mid",
+        "track_count": 3,
+        "bpm": 120,
+        "key": 4,
+        "price": 0.99,
+        "category": "Festive",
+        "song_family": "Happy Birthday",
+        "backing_track": "happy_birthday",
+        "obj_type": "song"
+    },
+    {
+        "id": 6,
+        "name": "semi pitched",
+        "bucket_url": "gs://song_barker_sequences/midi_files/semi_pitched.mid",
+        "bucket_fp": "midi_files/semi_pitched.mid",
+        "track_count": 3,
+        "bpm": 120,
+        "key": 4,
+        "price": 0.99,
+        "category": "Festive",
+        "song_family": "Happy Birthday",
+        "backing_track": "happy_birthday",
+        "obj_type": "song"
+    },
+    {
+        "id": 7,
+        "name": "7",
+        "bucket_url": "gs://song_barker_sequences/midi_files/happy_birthday_tovi.mid",
+        "bucket_fp": "midi_files/happy_birthday_tovi.mid",
+        "track_count": 3,
+        "bpm": 120,
+        "key": 4,
+        "price": 0.99,
+        "category": "Old",
+        "song_family": "Old Happy Birthday",
+        "backing_track": "happy_birthday",
+        "obj_type": "song"
+    },
+    {
+        "id": 8,
+        "name": "baby shark",
+        "bucket_url": "gs://song_barker_sequences/midi_files/baby_shark.mid",
+        "bucket_fp": "midi_files/baby_shark.mid",
+        "track_count": 2,
+        "bpm": 115.00002875000719,
+        "key": None,
+        "price": 0.99,
+        "category": "Kids",
+        "song_family": "Baby Shark",
+        "backing_track": None,
+        "obj_type": "song"
+    },
+    {
+        "id": 9,
+        "name": "9",
+        "bucket_url": "gs://song_barker_sequences/midi_files/happy_birthday_graig_3_semitone.mid",
+        "bucket_fp": "midi_files/happy_birthday_graig_3_semitone.mid",
+        "track_count": 3,
+        "bpm": 120,
+        "key": 4,
+        "price": 0.99,
+        "category": "Old",
+        "song_family": "Old Happy Birthday",
+        "backing_track": "happy_birthday",
+        "obj_type": "song"
+    },
+]
 with tempfile.TemporaryDirectory() as tmp_dir:
-    for midi_fp in glob.glob(os.path.join(root_dir, 'fixture_assets', 'songs', '*.mid')):
-        filename = midi_fp.split('/')[-1]
-        bucket_fp = 'midi_files/' + filename
-        bucket_url = 'gs://song_barker_sequences/midi_files/' + filename
-        bc.upload_filename_to_bucket(midi_fp, bucket_fp)
+    for song in songs:
+        filename = song['bucket_fp'].split('/')[-1]
+        midi_fp = os.path.join('./fixture_assets/songs', filename)
 
+        # just in case the midi files were modified
+        bc.upload_filename_to_bucket(midi_fp, bucket_fp)
         mb = MidiBridge(midi_fp, tmp_dir, False)
-        name = filename.replace('.mid', '');
-        name = name.replace('_', ' ');
-        name = name.lower()
-        dbq.db_insert('songs', **{
-            'name': name,
-            'bucket_fp': bucket_fp,
-            'bucket_url': 'gs://song_barker_sequences/' + bucket_fp,
-            'track_count': mb.track_count(),
-            'bpm': mb.bpm,
-            'price': 0.99,
-            'key': key_map.get(filename),
-            'category': category_map.get(filename),
-            'song_family': family_map.get(filename),
-            'backing_track': backing_track_map.get(filename),
-        })
+        song['track_count'] = mb.track_count()
+        song['bpm'] = mb.bpm
+        del song['obj_type']
+        dbq.db_insert('songs', **song)
 
 
 # upload backing tracks
