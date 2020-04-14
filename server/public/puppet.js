@@ -27,7 +27,7 @@ var startTime = Date.now();
 
 
 function log (msg) {
-	if (Print !=== 'undefined') {
+	if (typeof(Print) !== "undefined") {
 	    Print.postMessage(msg);
 	} else {
 	    console.log('msg');
