@@ -70,7 +70,7 @@ function init () {
 
 
     async function create_puppet (img_url) {
-		img_url = (img_url === undefined ? await to_b64('dog.jpg') : img_url);
+		img_url = (img_url === undefined ? await to_b64('puppy.png') : img_url);
 
         // if this is being called more than once, the scene needs to be cleared
         while (scene.children.length > 0) {
