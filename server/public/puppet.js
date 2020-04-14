@@ -1,3 +1,4 @@
+var init_ready = false; // poll on this to know when you can start doing stuff
 var puppet_ready = false; // poll on this to know when you can start doing stuff
 var canvas = document.getElementById('image-canvas');
 var ctx = canvas.getContext('2d');
@@ -217,6 +218,9 @@ function init () {
     //    var worldPos = screenToWorldPosition(new THREE.Vector2(normalized_x, normalized_y));
     //    console.log("worldPos: " + worldPos.x + ", " + worldPos.y);
     //});
+	init_ready = true;
+	$('document').trigger('init_ready');
+	console.log('finished init');
 }
 
 
