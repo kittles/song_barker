@@ -33,6 +33,12 @@ function log (msg) {
 	    console.log('msg');
 	}
 }
+log('is this thing on? hello?');
+try {
+	Print.postMessage('postMessage: is this thing on? hello?');
+} catch {
+	// pass
+}
 
 
 $('document').ready(init);
