@@ -14,6 +14,12 @@ source .env/bin/activate
 echo "populating fixtures..."
 python populate_fixtures.py
 
+# restart the server
+cd ../server
+pm2 restart app.js
+
+# notify the world
+# to silence this just pass any argument when calling this script
 if [ $# -eq 0 ]
   then
 	echo "notifying discord"
