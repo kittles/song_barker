@@ -107,7 +107,7 @@ function init () {
         render();
 
         puppet_ready = 1;
-		$('document').trigger('puppet_ready');
+		//$('document').trigger('puppet_ready');
         console.log('puppet is now ready');
         //return puppet_ready;
     }
@@ -219,7 +219,7 @@ function init () {
     //    console.log("worldPos: " + worldPos.x + ", " + worldPos.y);
     //});
 	init_ready = 1;
-	$('document').trigger('init_ready');
+	//$('document').trigger('init_ready');
 	console.log('finished init');
 }
 
