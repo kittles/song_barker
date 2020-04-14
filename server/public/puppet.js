@@ -93,6 +93,7 @@ function init () {
 
         // Calculate the aspect ratio of the browser viewport
         viewportAspect = window.innerWidth / window.innerHeight;
+		log(`window.innerWidth ${window.innerWidth} window.innerHeight ${window.innerHeight}`);
 
         // Camera left and right frustrum to make sure the camera size is the same as viewport size
         camera = new THREE.OrthographicCamera(
