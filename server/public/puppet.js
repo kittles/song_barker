@@ -27,18 +27,14 @@ var startTime = Date.now();
 
 
 function log (msg) {
+	msg = '[puppet.js postMessage] ' + msg;
 	if (typeof(Print) !== "undefined") {
 	    Print.postMessage(msg);
 	} else {
 	    console.log('msg');
 	}
 }
-log('is this thing on? hello?');
-try {
-	Print.postMessage('postMessage: is this thing on? hello?');
-} catch {
-	// pass
-}
+log('puppet.js saying hello...');
 
 
 $('document').ready(init);
