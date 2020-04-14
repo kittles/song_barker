@@ -10,8 +10,6 @@ var uniforms, material, faceMesh, texture;
 var mouseX = 0, mouseY = 0,
     lat = 0, lon = 0, phy = 0, theta = 0;
 
-var windowHalfX;
-var windowHalfY;
 
 var debugFaceMesh = false;
 // NOTE coordinate system is [-0.5 to 0.5, -0.5 to 0.5]
@@ -24,6 +22,8 @@ var features = {
 // Segments for the deformation mesh
 var segments = 200;
 var startTime = Date.now();
+var window_width;
+var window_height;
 
 
 function log (msg) {
@@ -41,8 +41,8 @@ $('document').ready(init);
 
 
 function init () {
-	windowHalfX = window.innerWidth / 2;
-	windowHalfY = window.innerHeight / 2;
+	window_width = document.body.offsetWidth;
+	window_height = document.body.offsetHeight;
 	canvas = document.getElementById('image-canvas');
 	ctx = canvas.getContext('2d');
 	container = document.getElementById('container');
@@ -92,8 +92,8 @@ function init () {
         scene.background = new THREE.Color(0x2E2E46);
 
         // Calculate the aspect ratio of the browser viewport
-        viewportAspect = window.innerWidth / window.innerHeight;
-		log(`window.innerWidth ${window.innerWidth} window.innerHeight ${window.innerHeight}`);
+        viewportAspect = window_width / window_height;
+		log(`window width ${window_width} window height ${window_height}`);
 
         // Camera left and right frustrum to make sure the camera size is the same as viewport size
         camera = new THREE.OrthographicCamera(
@@ -121,7 +121,7 @@ function init () {
 
         renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
         container.appendChild(renderer.domElement);
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(window_width, window_height);
         render();
 
         puppet_ready = 1;
@@ -154,8 +154,8 @@ function init () {
 
     function InitFaceShader (features) {
         FaceAnimationShader.uniforms['petImage'].value = texture;
-        FaceAnimationShader.uniforms.resolution.value.x = window.innerWidth;
-        FaceAnimationShader.uniforms.resolution.value.y = window.innerHeight;
+        FaceAnimationShader.uniforms.resolution.value.x = window_width;
+        FaceAnimationShader.uniforms.resolution.value.y = window_height;
         FaceAnimationShader.uniforms.leftEyePosition.value = features.leftEyePosition;
         FaceAnimationShader.uniforms.rightEyePosition.value = features.rightEyePosition;
         FaceAnimationShader.uniforms.mouthPosition.value = features.mouthPosition;
