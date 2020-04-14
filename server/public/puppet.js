@@ -26,6 +26,15 @@ var segments = 200;
 var startTime = Date.now();
 
 
+function log (msg) {
+	if (Print !=== 'undefined') {
+	    Print.postMessage(msg);
+	} else {
+	    console.log('msg');
+	}
+}
+
+
 $('document').ready(init);
 
 
@@ -70,7 +79,7 @@ function init () {
 
 
     async function create_puppet (img_url) {
-		img_url = (img_url === undefined ? await to_b64('puppy.png') : img_url);
+		img_url = (img_url === undefined ? await to_b64('dog.jpg') : img_url);
 
         // if this is being called more than once, the scene needs to be cleared
         while (scene.children.length > 0) {
@@ -95,7 +104,6 @@ function init () {
         camera.position.z = 1;
 
 		texture = await load_texture(img_url);
-        console.log(texture);
 
         InitFaceShader(features);
 
@@ -115,7 +123,7 @@ function init () {
 
         puppet_ready = 1;
 		//$('document').trigger('puppet_ready');
-        console.log('puppet is now ready');
+        log('puppet is now ready');
         //return puppet_ready;
     }
     window.create_puppet = create_puppet;
@@ -148,7 +156,7 @@ function init () {
         FaceAnimationShader.uniforms.leftEyePosition.value = features.leftEyePosition;
         FaceAnimationShader.uniforms.rightEyePosition.value = features.rightEyePosition;
         FaceAnimationShader.uniforms.mouthPosition.value = features.mouthPosition;
-        console.log('InitFaceShader finished');
+        log('InitFaceShader finished');
     }
 
 
@@ -160,7 +168,7 @@ function init () {
         bgMesh.scale.x = texture.image.width / texture.image.height;
         bgMesh.renderOrder = 0;
         scene.add(bgMesh);
-        console.log('CreateBackgroundPlane finished');
+        log('CreateBackgroundPlane finished');
     }
 
 
@@ -199,7 +207,7 @@ function init () {
         faceMesh.rotateZ(rads);
 
         scene.add(faceMesh);
-        console.log('CreateFaceMesh finished');
+        log('CreateFaceMesh finished');
     }
 
 
@@ -227,7 +235,7 @@ function init () {
     //});
 	init_ready = 1;
 	//$('document').trigger('init_ready');
-	console.log('finished init');
+	log('finished init');
 }
 
 
