@@ -18,6 +18,11 @@ dev_user_id = 'dev'
             'email': 'dev@songbarker.com',
         },
         {
+            'user_id': 'patrick',
+            'name': 'patrick',
+            'email': 'pat.w.brooks@gmail.com',
+        },
+        {
             'user_id': 999,
             'name': 'tovi',
             'email': 'deartovi@gmail.com',

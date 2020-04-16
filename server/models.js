@@ -178,6 +178,11 @@ exports.models = [
                     desc: 'a string like [(x1, y1), (x2, y2), ...] storing the coordinates of landmarks on the image',
                 },
                 {
+                    name: 'coordinates_json',
+                    type: 'text',
+                    desc: 'a freeform json string for storing data about image landmarks',
+                },
+                {
                     name: 'hidden',
                     type: 'integer default 0',
                     desc: 'whether the account is active',
