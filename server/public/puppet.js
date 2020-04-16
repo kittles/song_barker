@@ -50,6 +50,11 @@ function init () {
 	renderer = new THREE.WebGLRenderer();
 
     // public methods
+	log(`WIDTH INFO: 
+	window.innerWidth: ${window.innerWidth}
+	document.body.offsetWidth: ${document.body.offsetWidth}
+	document.body.clientWidth: ${document.body.clientWidth}
+	`);
 
 
     function set_eye (eye, pos) {

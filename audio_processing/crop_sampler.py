@@ -238,7 +238,7 @@ if __name__ == '__main__':
         #    except Exception as e:
         #        print('\n*** \n\n !!!! FAILED {} \n\n***'.format(fp))
         #        print(e)
-        fp = './fixture_assets/crops/fart1.aac'
+        fp = './fixture_assets/crops/graig_dog_2.aac'
         tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
         shutil.copyfile(fp, tmp_fp)
         fp = ac.aac_to_wav(tmp_fp)
