@@ -22,6 +22,7 @@ var features = {
 // Segments for the deformation mesh
 var segments = 200;
 var startTime = Date.now();
+var iOS;
 var window_width;
 var window_height;
 
@@ -41,6 +42,9 @@ $('document').ready(init);
 
 
 function init () {
+	iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+	log(`navigator.userAgent: ${navigator.userAgent}`);
+	log(`iOS = ${iOS}`);
 	window_width = document.body.offsetWidth;
 	window_height = document.body.offsetHeight;
 	canvas = document.getElementById('image-canvas');
