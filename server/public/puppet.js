@@ -45,8 +45,13 @@ function init () {
 	iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 	log(`navigator.userAgent: ${navigator.userAgent}`);
 	log(`iOS = ${iOS}`);
-	window_width = document.body.offsetWidth;
-	window_height = document.body.offsetHeight;
+	if (iOS) {
+		window_width = document.body.offsetWidth + 20;
+		window_height = document.body.offsetHeight + 20;
+	} else {
+		window_width = document.body.offsetWidth;
+		window_height = document.body.offsetHeight;
+	}
 	canvas = document.getElementById('image-canvas');
 	ctx = canvas.getContext('2d');
 	container = document.getElementById('container');
@@ -57,6 +62,9 @@ function init () {
 	window.innerWidth: ${window.innerWidth}
 	document.body.offsetWidth: ${document.body.offsetWidth}
 	document.body.clientWidth: ${document.body.clientWidth}
+	USING:
+	window_width: ${window_width}
+	window_height: ${window_height}
 	`);
 
 
