@@ -59,6 +59,7 @@ function init () {
 
     function set_eye (eye, x, y) {
         FaceAnimationShader.uniforms[`${eye}EyePosition`].value = new THREE.Vector2(x, y);
+		log(`called set_eye(${eye}. ${x}, ${y})`);
     }
     window.set_eye = set_eye;
 
