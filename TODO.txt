@@ -1,3 +1,2 @@
 mix audio levels with backing track
-coordintes attrib that is just a json string
-ios js error
+why does ios need 20px extra width and height for webview?
