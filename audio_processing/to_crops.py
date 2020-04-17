@@ -15,7 +15,7 @@ import db_queries as dbq
 import audio_conversion as ac
 
 
-THRESHOLD = 300000 # min sum of abs value of all pcm samples
+THRESHOLD = 500
 
 log = logger.log_fn(os.path.basename(__file__)) 
 
@@ -41,6 +41,12 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         # convert to wav
         local_fp_wav = ac.aac_to_wav(local_fp_aac)
 
+        if debug:
+            samplerate, data = wavfile.read(local_fp_wav)
+            print('raw file sample rate', samplerate, 'data shape', data.shape)
+            print('data min', min(data), 'max', max(data))
+            
+
         # split with sox
         split_cmd = 'sox {in_fp} {out_fp_prefix} silence 1 0.3 0.001% 1 0.1 1% : newfile : restart'
         split_args = {
@@ -60,9 +66,16 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         # TODO normalize maybe?
         good_crops = []
         for crop_fp in glob.glob(os.path.join(tmp_dir, 'crop_*.wav')):
-            samplerate, data = wavfile.read(crop_fp)
-            if np.sum(abs(data)) > THRESHOLD:
-                good_crops.append(crop_fp)
+            try:
+                samplerate, data = wavfile.read(crop_fp)
+                avg = np.average(abs(data))
+                if debug:
+                    print('crop avg', avg)
+                if avg > THRESHOLD:
+                    good_crops.append(crop_fp)
+            except:
+                if debug:
+                    print('couldnt get crop avg')
         log(raw_uuid, 'filtered split count {}'.format(
             len(good_crops)
         ))

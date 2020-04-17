@@ -27,11 +27,11 @@ var window_height;
 
 
 function log (msg) {
-	msg = '[puppet.js postMessage] ' + msg;
 	if (typeof(Print) !== "undefined") {
+		msg = '[puppet.js postMessage] ' + msg;
 	    Print.postMessage(msg);
 	} else {
-	    console.log('msg');
+	    console.log('[puppet.js console.log] ' + msg);
 	}
 }
 log('puppet.js saying hello...');
@@ -49,7 +49,6 @@ function init () {
 	scene = new THREE.Scene();
 	renderer = new THREE.WebGLRenderer();
 
-    // public methods
 	log(`WIDTH INFO: 
 	window.innerWidth: ${window.innerWidth}
 	document.body.offsetWidth: ${document.body.offsetWidth}
@@ -57,9 +56,12 @@ function init () {
 	`);
 
 
+    // public methods
+
     function set_eye (eye, x, y) {
+		log(`calling set_eye(${eye}, ${x}, ${y})`);
         FaceAnimationShader.uniforms[`${eye}EyePosition`].value = new THREE.Vector2(x, y);
-		log(`called set_eye(${eye}. ${x}, ${y})`);
+		render();
     }
     window.set_eye = set_eye;
 

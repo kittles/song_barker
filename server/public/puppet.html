@@ -19,7 +19,11 @@
     <div id="container"></div>
     <canvas id="image-canvas"></canvas>
 	<script type='text/javascript'>
-		Print.postMessage('puppet.html saying hello...');
+        try {
+            Print.postMessage('[puppet.html] saying hello...');
+        } catch {
+            console.log('[puppet.html] Print.postMessage not available...');
+        }
 	</script>
 	<script src="puppet.js"></script>
 </body>
