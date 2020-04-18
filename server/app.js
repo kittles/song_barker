@@ -34,6 +34,12 @@ app.get('/puppet', (req, res) => {
     res.sendFile(path.join(__dirname + '/public/puppet.html'));
 });
 
+// test fps
+
+app.get('/performance', (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/performance.html'));
+});
+
 
 // send a dog puppet
 
