@@ -15,7 +15,7 @@ import db_queries as dbq
 import audio_conversion as ac
 
 
-THRESHOLD = 500
+THRESHOLD = 200
 
 log = logger.log_fn(os.path.basename(__file__)) 
 
