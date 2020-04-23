@@ -1,7 +1,82 @@
 /*
 TODO
 headSway stops after a while
+recreate mesh when features are moved
+
+
+** hey TOVI! look here! ***
+
+how to use: 
+
+wait until init_ready = 1, or listen for log
+call create_puppet with no arguments for default dog, or with a base64 image string
+wait until create_puppet logs that its ready
+
+if needed, set the position of features with set_position(key, x, y),
+where key is one of these strings:
+    'leftEyePosition'
+    'rightEyePosition'
+    'mouthPosition'
+    'headTop'
+    'headBottom'
+    'headLeft'
+    'headRight'
+this is just setting things in the features object
+
+when you are ready to start moving the puppet, call animate() to
+initiate the requestAnimationFrame loop
+note that nothing will move or change on the puppet until animate starts the loop.
+after animate has been called- the following will manipulate the puppet:
+
+to animate the features of the puppet directly, use the following:
+    blink_left (val)
+    blink_right (val)
+    blink (val)
+    eyebrow_left (val)
+    eyebrow_right (val)
+    mouth_open (val)
+these just set the position of the various features to whatever you tell it to.
+for instance, mouth_open(0.5) sets the mouth to 0.5 open
+
+there are also "prepackaged" animations:
+    left_brow_raise
+    right_brow_raise
+    left_brow_furrow
+    right_brow_furrow
+    left_blink_quick
+    left_blink_slow
+    right_blink_quick
+    right_blink_slow
+which take no arguments and do what animations. right_blink_slow() will make the right
+eye blink slowly as soon as you call it
+    
+there are these functions, which smoothly move from one position to another over n frames.
+start is the starting position, end is the ending position, so for instance,
+mouth_to_pos(0,1,100) is open mouth from closed to open over 100 frames
+
+    left_brow_to_pos (start, end, n)
+    right_brow_to_pos (start, end, n)
+    left_blink_to_pos (start, end, n)
+    right_blink_to_pos (start, end, n)
+    mouth_to_pos (start, end, n)
+
+there are these two functions which are more specialized
+
+    headSway (amplitude, speed)
+
+    colin's head swaying function- it may stop working after a bit, i need to
+    diagnose. while the animation is nice, i think it needs to be reimplemented
+    into the tick based animation framework im using.
+
+    mouth_track_sound (amplitudes)
+
+    mouth_track_sound expects an array of floats [0-1] that represent the
+    sound intensity over 1/60th of a second intervals. the mouth will animate
+    as soon as you call this. we need to see if the overhead of passing the 
+    argument to the webview is going to throw this out of sync with the music
+    too much or not
 */
+var fp = _.noConflict(); // lodash fp and lodash at the same time
 var init_ready = 0; // poll on this to know when you can start doing stuff
 var puppet_ready = 0; // poll on this to know when you can start doing stuff
 var image_canvas;
@@ -89,8 +164,6 @@ var mouth_shader = {
 
 
 $('document').ready(init);
-
-
 function init () {
 	log('puppet.js calling init');
 
@@ -127,7 +200,7 @@ function init () {
     ctx = canvas.getContext('webgl2', {alpha: false});
     renderer = new THREE.WebGLRenderer({canvas: canvas, context: ctx});
 
-	// this just holds the render element
+	// this just holds the three.js render element
 	container = document.getElementById('container');
 	scene = new THREE.Scene();
 
@@ -137,7 +210,7 @@ function init () {
         document.body.appendChild(stats.dom);
     }
 
-    // tell client the puppet is ready
+    // tell client the webview is ready to create a puppet
 	init_ready = 1;
 	log('finished init');
 }
@@ -148,6 +221,7 @@ async function create_puppet (img_url) {
         img_url = (img_url === undefined ? await to_b64('dog3.jpg') : img_url);
 
         // if this is being called more than once, the scene needs to be cleared
+        // TODO need to regen other stuff?
         while (scene.children.length > 0) {
             scene.remove(scene.children[0]);
         }
@@ -173,8 +247,10 @@ async function create_puppet (img_url) {
         pet_image_texture = await load_texture(img_url);
         animation_noise_texture = await load_texture('noise_2D.png');
 
+        // load shader text seperate so it can by syntax highlighted
         await get_shader_files();
 
+        // tell the shaders about landmarks and screen sizing
         init_shaders(features);
 
         // Create the background plane
@@ -207,19 +283,16 @@ async function create_puppet (img_url) {
 
 
 
-// set landmarks
+// use this set feature locations
 
-//function set_eye (eye, x, y) {
-//	log(`calling set_eye(${eye}, ${x}, ${y})`);
-//	face_animation_shader.uniforms[`${eye}EyePosition`].value = new THREE.Vector2(x, y);
-//}
 function set_position (key, x, y) {
 	log(`calling set_position(${key}, ${x}, ${y})`);
 	features[key] = new THREE.Vector2(x, y);
+    sync_features_to_shaders();
 }
 
 
-// control puppet directly
+// control puppet features directly
 
 function blink_left (val) {
 	face_animation_shader.uniforms.blinkLeft.value = val;
@@ -247,39 +320,10 @@ function eyebrow_right (val) {
 }
 
 
-function mouthOpen (val) {
-	var clamped = Math.min(Math.max(val, 0), 1);
-	mouth_shader.uniforms.mouthOpen.value = clamped;
-	face_animation_shader.uniforms.mouthOpen.value = clamped;
-}
-
-// TODO need a head_displacement method instead
-function headSway (amplitude, speed) {
-	// Amplitude is how far to move the uvs for the animation, Default value of 1 looks good.
-	// Speed is a representation how often the animation loops in 1 minute.  Default value of 1 looks good
-	// Adjust the input values to make them a bit more intuitive, otherwise you'll need to put in a very small amplitude/speed value
-	amplitude /= 10;
-	speed /= 60;
-
-	var ellipseCenter = get_ellipse_center();
-	var distanceLeft = ellipseCenter.distanceTo(features.headLeft);
-	var distanceRight = ellipseCenter.distanceTo(features.headRight);
-	var distanceTop = ellipseCenter.distanceTo(features.headTop);
-	var distanceBottom = ellipseCenter.distanceTo(features.headBottom);
-	var extentsX = (distanceLeft + distanceRight) * 0.5;
-	var extentsY = (distanceTop + distanceBottom) * 0.5;
-
-	// This value is how the big the ellipse is for the head
-	var ST_numerator = 0.3;
-	var ellipseExtents = new THREE.Vector2(extentsX, extentsY);
-	var faceEllipse_ST = new THREE.Vector4(ST_numerator / ellipseExtents.x, ST_numerator / ellipseExtents.y, ellipseCenter.x, ellipseCenter.y);
-	face_animation_shader.uniforms.swaySpeed.value = speed;
-	face_animation_shader.uniforms.swayAmplitude.value = amplitude;
-	face_animation_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
-
-	mouth_shader.uniforms.swaySpeed.value = speed;
-	mouth_shader.uniforms.swayAmplitude.value = amplitude;
-	mouth_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
+function mouth_open (val) {
+	//var clamped = Math.min(Math.max(val, 0), 1);
+	mouth_shader.uniforms.mouthOpen.value = val;
+	face_animation_shader.uniforms.mouthOpen.value = val;
 }
 
 
@@ -310,46 +354,193 @@ function ticker (handler) {
 }
 
 
-var ticks = {
-    left_blink: ticker(blink_left),
-    right_blink: ticker(blink_right),
-    left_brow: ticker(eyebrow_left),
-    right_brow: ticker(eyebrow_right),
-    //mouth:       _([]),
-};
-
-
 function motion_handler_tick () {
 	_.invokeMap(ticks, 'tick');
 }
 
 
-function ease_out_quad (x) {
-	return 1 - (1 - x) * (1 - x);
-}	
-
-
-function left_brow_to_pos (x, frames) {
-	var vals = _.map(_.range(0, x + (1 / frames), 1 / frames), ease_out_quad);
-	ticks.left_brow.add(vals);
+function unit_linspace (n) {
+    // includes 0 and 1
+    return _.map(_.range(n), (x) => { return x / (n - 1); });
 }
 
 
-function add_left_blink () {
-	var close_frames = 3;
-	var vals = _.map(_.range(0, 1 + (1 / close_frames), 1 / close_frames), ease_out_quad);
-	var open_frames = 7;
-	vals = vals.concat(_.map(_.reverse(_.range(0, 1 + (1 / open_frames), 1 / open_frames)), ease_out_quad));
-	ticks.left_blink.add(vals);
+function to_range (start, end, xs) {
+    xs = _.map(xs, fp.multiply(Math.abs(start - end)));
+    xs = _.map(xs, fp.add(_.min([start, end])));
+    if (end < start) {
+        xs = _.reverse(xs);
+    }
+    return xs;
 }
 
 
-function add_right_blink () {
-	var close_frames = 3;
-	var vals = _.map(_.range(0, 1 + (1 / close_frames), 1 / close_frames), ease_out_quad);
-	var open_frames = 7;
-	vals = vals.concat(_.map(_.reverse(_.range(0, 1 + (1 / open_frames), 1 / open_frames)), ease_out_quad));
-	ticks.right_blink.add(vals);
+function to_positions (start, end, n, easing) {
+    var xs = unit_linspace(n); 
+    xs = _.map(xs, easing);
+    xs = to_range(start, end, xs);
+    return xs;
+}
+
+
+var easings = {
+    linear: t => t,
+    easeInQuad: t => t*t,
+    easeOutQuad: t => t*(2-t),
+    easeInOutQuad: t => t<.5 ? 2*t*t : -1+(4-2*t)*t,
+    easeInCubic: t => t*t*t,
+    easeOutCubic: t => (--t)*t*t+1,
+    easeInOutCubic: t => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1,
+    easeInQuart: t => t*t*t*t,
+    easeOutQuart: t => 1-(--t)*t*t*t,
+    easeInOutQuart: t => t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t,
+    easeInQuint: t => t*t*t*t*t,
+    easeOutQuint: t => 1+(--t)*t*t*t*t,
+    easeInOutQuint: t => t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t,
+};
+
+
+var ticks = {
+    left_blink:  ticker(blink_left),
+    right_blink: ticker(blink_right),
+    left_brow:   ticker(eyebrow_left),
+    right_brow:  ticker(eyebrow_right),
+    mouth:       ticker(mouth_open),
+};
+
+
+// use like this for custom animations:
+// ticks.<feature>.add(to_positions(<start>, <end>, 100, easings.easeInOutQuad))
+
+
+// some prepackaged animations
+
+
+function left_brow_raise () {
+    left_brow_to_pos(0, 1, 15); 
+    setTimeout(() => {
+        left_brow_to_pos(1, 0, 15); 
+    }, 500);
+}
+
+
+function right_brow_raise () {
+    right_brow_to_pos(0, 1, 15); 
+    setTimeout(() => {
+        right_brow_to_pos(1, 0, 15); 
+    }, 500);
+}
+
+
+function left_brow_furrow () {
+    left_brow_to_pos(0, -1, 15); 
+    setTimeout(() => {
+        left_brow_to_pos(-1, 0, 15); 
+    }, 500);
+}
+
+
+function right_brow_furrow () {
+    right_brow_to_pos(0, -1, 15); 
+    setTimeout(() => {
+        right_brow_to_pos(-1, 0, 15); 
+    }, 500);
+}
+
+
+function left_blink_quick () {
+    left_blink_to_pos(0, 1, 4, easings.easeInOutQuad);
+    setTimeout(() => {
+        left_blink_to_pos(1, 0, 8, easings.easeInOutQuad);
+    });
+}
+
+
+function left_blink_slow () {
+    left_blink_to_pos(0, 1, 15, easings.easeInOutQuad);
+    setTimeout(() => {
+        left_blink_to_pos(1, 0, 25, easings.easeInOutQuad);
+    });
+}
+
+
+function right_blink_quick () {
+    right_blink_to_pos(0, 1, 4, easings.easeInOutQuad);
+    setTimeout(() => {
+        right_blink_to_pos(1, 0, 8, easings.easeInOutQuad);
+    });
+}
+
+
+function right_blink_slow () {
+    right_blink_to_pos(0, 1, 15, easings.easeInOutQuad);
+    setTimeout(() => {
+        right_blink_to_pos(1, 0, 25, easings.easeInOutQuad);
+    });
+}
+
+
+// these move smoothly between two positions
+
+function left_brow_to_pos (start, end, n) {
+    ticks.left_brow.add(to_positions(start, end, n, easings.easeInOutQuad));
+}
+
+
+function right_brow_to_pos (start, end, n) {
+    ticks.right_brow.add(to_positions(start, end, n, easings.easeInOutQuad));
+}
+
+
+function left_blink_to_pos (start, end, n) {
+    ticks.left_blink.add(to_positions(start, end, n, easings.easeInOutQuad));
+}
+
+
+function right_blink_to_pos (start, end, n) {
+    ticks.right_blink.add(to_positions(start, end, n, easings.easeInOutQuad));
+}
+
+
+function mouth_to_pos (start, end, n) {
+    ticks.mouth.add(to_positions(start, end, n, easings.easeInOutQuad));
+}
+
+
+// this is the one for having the mouth move along to a sound
+function mouth_track_sound (amplitudes) {
+    ticks.mouth.add(amplitudes);
+}
+
+
+// TODO need a head_displacement method instead
+// this should also probably be animated via the ticker framework
+function headSway (amplitude, speed) {
+	// Amplitude is how far to move the uvs for the animation, Default value of 1 looks good.
+	// Speed is a representation how often the animation loops in 1 minute.  Default value of 1 looks good
+	// Adjust the input values to make them a bit more intuitive, otherwise you'll need to put in a very small amplitude/speed value
+	amplitude /= 10;
+	speed /= 60;
+
+	var ellipseCenter = get_ellipse_center();
+	var distanceLeft = ellipseCenter.distanceTo(features.headLeft);
+	var distanceRight = ellipseCenter.distanceTo(features.headRight);
+	var distanceTop = ellipseCenter.distanceTo(features.headTop);
+	var distanceBottom = ellipseCenter.distanceTo(features.headBottom);
+	var extentsX = (distanceLeft + distanceRight) * 0.5;
+	var extentsY = (distanceTop + distanceBottom) * 0.5;
+
+	// This value is how the big the ellipse is for the head
+	var ST_numerator = 0.3;
+	var ellipseExtents = new THREE.Vector2(extentsX, extentsY);
+	var faceEllipse_ST = new THREE.Vector4(ST_numerator / ellipseExtents.x, ST_numerator / ellipseExtents.y, ellipseCenter.x, ellipseCenter.y);
+	face_animation_shader.uniforms.swaySpeed.value = speed;
+	face_animation_shader.uniforms.swayAmplitude.value = amplitude;
+	face_animation_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
+
+	mouth_shader.uniforms.swaySpeed.value = speed;
+	mouth_shader.uniforms.swayAmplitude.value = amplitude;
+	mouth_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
 }
 
 
@@ -374,8 +565,6 @@ function animate () {
 }
 
 
-
-    
 function screen_to_world_position (screen_pos) {
     var cameraSize = new THREE.Vector2(Math.abs(camera.left) + Math.abs(camera.right), -1.0);
     var offset = new THREE.Vector2(camera.left, 0.5);
@@ -401,6 +590,17 @@ function init_shaders (features) {
     mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;            
 
     log('init shaders finished');
+}
+
+
+function sync_features_to_shaders () {
+    // when feature locations get changed, the shaders need to be informed
+    face_animation_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
+    face_animation_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
+    face_animation_shader.uniforms.mouthPosition.value = features.mouthPosition;
+    mouth_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
+    mouth_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
+    mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;            
 }
 
 
@@ -531,17 +731,18 @@ async function load_image (img_src) {
 }
 
 
+// the mouth has custom geometry that gets loaded with this
 async function load_gltf (model_path) {
 	return new Promise((r) => { 
 		var loader = new THREE.GLTFLoader();
 		// Load a glTF resource
 		loader.load(model_path, (gltf) => {
-			log('gltf loaded');
+			log(`gltf loaded: ${model_path}`);
 			r(gltf);
 		}, () => {
-			log('gltf file loading');
+			log(`gltf file loading: ${model_path}`);
 		}, (error) => {
-			log('error loading gltf');
+			log(`error loading gltf file: ${model_path}`);
 			log(error);
 		});
 	});
@@ -563,7 +764,6 @@ async function load_mouth_mesh (scene, model_path) {
 			vertexColors: true
 		});
 		mesh.renderOrder = 2;
-
 		// Mesh position is same as mouthposition
 		// Mesh rotation is the same as the head rotation
 		var eyeCenter = get_eye_center();
