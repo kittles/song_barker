@@ -1,8 +1,6 @@
 /*
 TODO
 headSway stops after a while
-shaders as seperate files for syntax
-input fns for different feature locations
 */
 var init_ready = 0; // poll on this to know when you can start doing stuff
 var puppet_ready = 0; // poll on this to know when you can start doing stuff
@@ -27,6 +25,7 @@ var show_fps = true;
 var stats = new Stats();
 var features = {
 	// NOTE coordinate system is [-0.5 to 0.5, -0.5 to 0.5]
+    // defaults here work with dog3.jpg
     leftEyePosition:  new THREE.Vector2(-0.126, 0.308),
     rightEyePosition: new THREE.Vector2(0.007, 0.314),
     mouthPosition:    new THREE.Vector2(-0.058, 0.160),
@@ -41,205 +40,55 @@ var startTime = Date.now();
 var iOS; // iOS webviews need 20 extra pixels
 var window_width; // cant count on a single way of getting this
 var window_height; // so use these for the result
+var face_animation_shader = {
+    uniforms: {
+        resolution:         { type: 'v2', value: new THREE.Vector2() },
+        leftEyePosition:    { type: 'v2', value: new THREE.Vector2() },
+        rightEyePosition:   { type: 'v2', value: new THREE.Vector2() },
+        mouthPosition:      { type: 'v2', value: new THREE.Vector2() },
+        blinkLeft:          { type: 'f', value: 0.0 },
+        blinkRight:         { type: 'f', value: 0.0 },
+        mouthOpen:          { type: 'f', value: 0.0 },
+        aspectRatio:        { type: 'f', value: 1.0 },
+		petImage:           { type: 't', value: new THREE.Texture() },
+		// Head Sway
+		faceEllipse_ST:     { type: 'v4', value: new THREE.Vector4() },
+		animationNoise:     { type: 't', value: new THREE.Texture() },
+		swayTime:           { type: 'f', value: 0.0 },
+		swaySpeed:          { type: 'f', value: 0.1 },
+		swayAmplitude:      { type: 'f', value: 0.0 },
+		// Eyebrows
+		eyebrowLeftOffset:  { type: 'f', value: 0.0 },
+		eyebrowRightOffset: { type: 'f', value: 0.0 },
+		worldToFaceMatrix:  { type: 'm4', value: new THREE.Matrix4() }
+    },
+	// shaders get vertex and fragment shaders from server
+	// so the files can have syntax highlighting
+	vertexShader: null,
+	fragmentShader: null,
+};
+var mouth_shader = {
+    uniforms: {
+        resolution:       { type: 'v2', value: new THREE.Vector2() },
+        leftEyePosition:  { type: 'v2', value: new THREE.Vector2() },
+        rightEyePosition: { type: 'v2', value: new THREE.Vector2() },
+        mouthPosition:    { type: 'v2', value: new THREE.Vector2() },
+        mouthOpen:        { type: 'f', value: 0.0 },
+		// Head Sway
+		faceEllipse_ST:   { type: 'v4', value: new THREE.Vector4() },
+		animationNoise:   { type: 't', value: new THREE.Texture() },
+		swayTime:         { type: 'f', value: 0.0 },
+		swaySpeed:        { type: 'f', value: 0.0 },
+		swayAmplitude:    { type: 'f', value: 0.0 }
+    },
+	// shaders get vertex and fragment shaders from server
+	// so the files can have syntax highlighting
+	vertexShader: null,
+	fragmentShader: null,
+};
 
 
 $('document').ready(init);
-
-
-function set_eye (eye, x, y) {
-	log(`calling set_eye(${eye}, ${x}, ${y})`);
-	face_animation_shader.uniforms[`${eye}EyePosition`].value = new THREE.Vector2(x, y);
-}
-
-
-function blinkLeft (val) {
-	face_animation_shader.uniforms.blinkLeft.value = val;
-}
-
-
-function blinkRight (val) {
-	face_animation_shader.uniforms.blinkRight.value = val;
-}
-
-
-function blink (val) {
-	face_animation_shader.uniforms.blinkRight.value = val;
-	face_animation_shader.uniforms.blinkLeft.value = val;
-}
-
-
-function headSway (amplitude, speed) {
-	// Amplitude is how far to move the uvs for the animation, Default value of 1 looks good.
-	// Speed is a representation how often the animation loops in 1 minute.  Default value of 1 looks good
-	// Adjust the input values to make them a bit more intuitive, otherwise you'll need to put in a very small amplitude/speed value
-	amplitude /= 10;
-	speed /= 60;
-
-	var ellipseCenter = get_ellipse_center();
-	var distanceLeft = ellipseCenter.distanceTo(features.headLeft);
-	var distanceRight = ellipseCenter.distanceTo(features.headRight);
-	var distanceTop = ellipseCenter.distanceTo(features.headTop);
-	var distanceBottom = ellipseCenter.distanceTo(features.headBottom);
-	var extentsX = (distanceLeft + distanceRight) * 0.5;
-	var extentsY = (distanceTop + distanceBottom) * 0.5;
-
-	// This value is how the big the ellipse is for the head
-	var ST_numerator = 0.3;
-	var ellipseExtents = new THREE.Vector2(extentsX, extentsY);
-	var faceEllipse_ST = new THREE.Vector4(ST_numerator / ellipseExtents.x, ST_numerator / ellipseExtents.y, ellipseCenter.x, ellipseCenter.y);
-	face_animation_shader.uniforms.swaySpeed.value = speed;
-	face_animation_shader.uniforms.swayAmplitude.value = amplitude;
-	face_animation_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
-
-	mouth_shader.uniforms.swaySpeed.value = speed;
-	mouth_shader.uniforms.swayAmplitude.value = amplitude;
-	mouth_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
-}
-
-
-function eyebrowLeft (val) {
-	face_animation_shader.uniforms.eyebrowLeftOffset.value = val;
-}
-
-
-function eyebrowRight (val) {
-	face_animation_shader.uniforms.eyebrowRightOffset.value = val;
-}
-
-
-function mouthOpen (val) {
-	var clamped = Math.min(Math.max(val, 0), 1);
-	mouth_shader.uniforms.mouthOpen.value = clamped;
-	face_animation_shader.uniforms.mouthOpen.value = clamped;
-}
-
-
-async function create_puppet (img_url) {
-    return new Promise(async (r) => {
-        img_url = (img_url === undefined ? await to_b64('dog3.jpg') : img_url);
-
-        // if this is being called more than once, the scene needs to be cleared
-        while (scene.children.length > 0) {
-            scene.remove(scene.children[0]);
-        }
-
-        // Create a webgl scene
-        scene.background = new THREE.Color(0x2E2E46);
-
-        // Calculate the aspect ratio of the browser viewport
-        viewportAspect = window_width / window_height;
-        log(`window width ${window_width} window height ${window_height}`);
-
-        // Camera left and right frustrum to make sure the camera size is the same as viewport size
-        camera = new THREE.OrthographicCamera(
-            -0.5 * viewportAspect,
-            0.5 * viewportAspect,
-            0.5,
-            -0.5,
-            0.001,
-            1000
-        );
-        camera.position.z = 1;
-
-        pet_image_texture = await load_texture(img_url);
-        animation_noise_texture = await load_texture('noise_2D.png');
-
-        init_shaders(features);
-
-        // Create the background plane
-        // This is just the static pet image on the plane
-        // Draw this if we aren't debugging the face mesh
-        if (!debug_face_mesh) {
-            create_background_plane(scene);
-        }
-
-        // Deforming mesh
-        create_face_mesh(scene, segments, segments, features);
-
-        // mouth sprite
-        await load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
-
-        renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-        container.appendChild(renderer.domElement);
-        renderer.setSize(window_width, window_height);
-        renderer.render(scene, camera);
-
-        if (enable_controls) {
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-        }
-
-        puppet_ready = 1;
-        log('puppet is now ready');
-        return r(puppet_ready);
-    })
-}
-
-
-function ticker (handler) {
-	var ticks = [];
-	function next () {
-		if (ticks.length > 0) {
-			return ticks.shift();
-		} else {
-			return false;
-		}
-	}
-	function add (xs) {
-		ticks = ticks.concat(xs);
-	}
-	function tick () {
-		var val = next();
-		if (val !== false) {
-			handler(val);
-		}
-	}
-	return {
-		add: add,
-		tick: tick,
-	};
-}
-
-var ticks = {
-    left_blink: ticker(blinkLeft),
-    //right_blink: _([]),
-    //left_brow:   _([]),
-    //right_brow:  _([]),
-    //mouth:       _([]),
-};
-function motion_handler_tick () {
-	_.invokeMap(ticks, 'tick');
-}
-function ease_out_quad (x) {
-	return 1 - (1 - x) * (1 - x);
-}	
-function add_left_blink () {
-	var close_frames = 3;
-	var vals = _.map(_.range(0, 1 + (1 / close_frames), 1 / close_frames), ease_out_quad);
-	var open_frames = 7;
-	vals = vals.concat(_.map(_.reverse(_.range(0, 1 + (1 / open_frames), 1 / open_frames)), ease_out_quad));
-	ticks.left_blink.add(vals);
-}
-
-
-function animate () {
-    stats.begin();
-    if (enable_controls) {
-        controls.update();
-    }
-
-    // Tell the shaders how many seconds have elapsed, this is for the headsway animation
-    var elapsedMilliseconds = Date.now() - startTime;
-    var elapsedSeconds = elapsedMilliseconds / 1000.;
-    face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
-    mouth_shader.uniforms.swayTime.value = elapsedSeconds;
-
-    // step a tick in the motion handler
-    motion_handler_tick();
-
-    renderer.render(scene, camera);
-    stats.end();
-    requestAnimationFrame(animate);
-}
 
 
 function init () {
@@ -292,6 +141,239 @@ function init () {
 	init_ready = 1;
 	log('finished init');
 }
+
+
+async function create_puppet (img_url) {
+    return new Promise(async (r) => {
+        img_url = (img_url === undefined ? await to_b64('dog3.jpg') : img_url);
+
+        // if this is being called more than once, the scene needs to be cleared
+        while (scene.children.length > 0) {
+            scene.remove(scene.children[0]);
+        }
+
+        // Create a webgl scene
+        scene.background = new THREE.Color(0x2E2E46);
+
+        // Calculate the aspect ratio of the browser viewport
+        viewportAspect = window_width / window_height;
+        log(`window width ${window_width} window height ${window_height}`);
+
+        // Camera left and right frustrum to make sure the camera size is the same as viewport size
+        camera = new THREE.OrthographicCamera(
+            -0.5 * viewportAspect,
+            0.5 * viewportAspect,
+            0.5,
+            -0.5,
+            0.001,
+            1000
+        );
+        camera.position.z = 1;
+
+        pet_image_texture = await load_texture(img_url);
+        animation_noise_texture = await load_texture('noise_2D.png');
+
+        await get_shader_files();
+
+        init_shaders(features);
+
+        // Create the background plane
+        // This is just the static pet image on the plane
+        // Draw this if we aren't debugging the face mesh
+        if (!debug_face_mesh) {
+            create_background_plane(scene);
+        }
+
+        // Deforming mesh
+        create_face_mesh(scene, segments, segments, features);
+
+        // mouth sprite
+        await load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
+
+        renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+        container.appendChild(renderer.domElement);
+        renderer.setSize(window_width, window_height);
+        renderer.render(scene, camera);
+
+        if (enable_controls) {
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+        }
+
+        puppet_ready = 1;
+        log('puppet is now ready');
+        return r(puppet_ready);
+    });
+}
+
+
+
+// set landmarks
+
+//function set_eye (eye, x, y) {
+//	log(`calling set_eye(${eye}, ${x}, ${y})`);
+//	face_animation_shader.uniforms[`${eye}EyePosition`].value = new THREE.Vector2(x, y);
+//}
+function set_position (key, x, y) {
+	log(`calling set_position(${key}, ${x}, ${y})`);
+	features[key] = new THREE.Vector2(x, y);
+}
+
+
+// control puppet directly
+
+function blink_left (val) {
+	face_animation_shader.uniforms.blinkLeft.value = val;
+}
+
+
+function blink_right (val) {
+	face_animation_shader.uniforms.blinkRight.value = val;
+}
+
+
+function blink (val) {
+	face_animation_shader.uniforms.blinkRight.value = val;
+	face_animation_shader.uniforms.blinkLeft.value = val;
+}
+
+
+function eyebrow_left (val) {
+	face_animation_shader.uniforms.eyebrowLeftOffset.value = val;
+}
+
+
+function eyebrow_right (val) {
+	face_animation_shader.uniforms.eyebrowRightOffset.value = val;
+}
+
+
+function mouthOpen (val) {
+	var clamped = Math.min(Math.max(val, 0), 1);
+	mouth_shader.uniforms.mouthOpen.value = clamped;
+	face_animation_shader.uniforms.mouthOpen.value = clamped;
+}
+
+// TODO need a head_displacement method instead
+function headSway (amplitude, speed) {
+	// Amplitude is how far to move the uvs for the animation, Default value of 1 looks good.
+	// Speed is a representation how often the animation loops in 1 minute.  Default value of 1 looks good
+	// Adjust the input values to make them a bit more intuitive, otherwise you'll need to put in a very small amplitude/speed value
+	amplitude /= 10;
+	speed /= 60;
+
+	var ellipseCenter = get_ellipse_center();
+	var distanceLeft = ellipseCenter.distanceTo(features.headLeft);
+	var distanceRight = ellipseCenter.distanceTo(features.headRight);
+	var distanceTop = ellipseCenter.distanceTo(features.headTop);
+	var distanceBottom = ellipseCenter.distanceTo(features.headBottom);
+	var extentsX = (distanceLeft + distanceRight) * 0.5;
+	var extentsY = (distanceTop + distanceBottom) * 0.5;
+
+	// This value is how the big the ellipse is for the head
+	var ST_numerator = 0.3;
+	var ellipseExtents = new THREE.Vector2(extentsX, extentsY);
+	var faceEllipse_ST = new THREE.Vector4(ST_numerator / ellipseExtents.x, ST_numerator / ellipseExtents.y, ellipseCenter.x, ellipseCenter.y);
+	face_animation_shader.uniforms.swaySpeed.value = speed;
+	face_animation_shader.uniforms.swayAmplitude.value = amplitude;
+	face_animation_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
+
+	mouth_shader.uniforms.swaySpeed.value = speed;
+	mouth_shader.uniforms.swayAmplitude.value = amplitude;
+	mouth_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
+}
+
+
+// animations
+
+function ticker (handler) {
+	var ticks = [];
+	function next () {
+		if (ticks.length > 0) {
+			return ticks.shift();
+		} else {
+			return false;
+		}
+	}
+	function add (xs) {
+		ticks = ticks.concat(xs);
+	}
+	function tick () {
+		var val = next();
+		if (val !== false) {
+			handler(val);
+		}
+	}
+	return {
+		add: add,
+		tick: tick,
+	};
+}
+
+
+var ticks = {
+    left_blink: ticker(blink_left),
+    right_blink: ticker(blink_right),
+    left_brow: ticker(eyebrow_left),
+    right_brow: ticker(eyebrow_right),
+    //mouth:       _([]),
+};
+
+
+function motion_handler_tick () {
+	_.invokeMap(ticks, 'tick');
+}
+
+
+function ease_out_quad (x) {
+	return 1 - (1 - x) * (1 - x);
+}	
+
+
+function left_brow_to_pos (x, frames) {
+	var vals = _.map(_.range(0, x + (1 / frames), 1 / frames), ease_out_quad);
+	ticks.left_brow.add(vals);
+}
+
+
+function add_left_blink () {
+	var close_frames = 3;
+	var vals = _.map(_.range(0, 1 + (1 / close_frames), 1 / close_frames), ease_out_quad);
+	var open_frames = 7;
+	vals = vals.concat(_.map(_.reverse(_.range(0, 1 + (1 / open_frames), 1 / open_frames)), ease_out_quad));
+	ticks.left_blink.add(vals);
+}
+
+
+function add_right_blink () {
+	var close_frames = 3;
+	var vals = _.map(_.range(0, 1 + (1 / close_frames), 1 / close_frames), ease_out_quad);
+	var open_frames = 7;
+	vals = vals.concat(_.map(_.reverse(_.range(0, 1 + (1 / open_frames), 1 / open_frames)), ease_out_quad));
+	ticks.right_blink.add(vals);
+}
+
+
+function animate () {
+    stats.begin();
+    if (enable_controls) {
+        controls.update();
+    }
+
+    // Tell the shaders how many seconds have elapsed, this is for the headsway animation
+    var elapsedMilliseconds = Date.now() - startTime;
+    var elapsedSeconds = elapsedMilliseconds / 1000.;
+    face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
+    mouth_shader.uniforms.swayTime.value = elapsedSeconds;
+
+    // step a tick in the motion handler
+    motion_handler_tick();
+
+    renderer.render(scene, camera);
+    stats.end();
+    requestAnimationFrame(animate);
+}
+
+
 
     
 function screen_to_world_position (screen_pos) {
@@ -372,6 +454,55 @@ function create_face_mesh (scene, widthSegments, heightSegments, features) {
     log('create face mesh finished');
 }
 
+
+// util functions for features on the image
+
+function get_eye_center () {
+	var leftEye = new THREE.Vector2(features.leftEyePosition.x, features.leftEyePosition.y);
+	var rightEye = new THREE.Vector2(features.rightEyePosition.x, features.rightEyePosition.y);
+	// We need to center this geometry at the face
+	var eyeCenter = leftEye.add(rightEye).multiplyScalar(0.5);
+	return eyeCenter;
+}
+
+
+function get_eye_line () {
+	var leftEye = new THREE.Vector2(features.leftEyePosition.x, features.leftEyePosition.y);
+	var rightEye = new THREE.Vector2(features.rightEyePosition.x, features.rightEyePosition.y);
+	return rightEye.sub(leftEye);
+}
+
+
+function get_ellipse_center () {
+	// The head top/left/right/bottom points create an ellipse around the head which drives head sway motion
+	var top = new THREE.Vector2(features.headTop.x, features.headTop.y);
+	var bottom = new THREE.Vector2(features.headBottom.x, features.headBottom.y);
+	var left = new THREE.Vector2(features.headLeft.x, features.headLeft.y);
+	var right = new THREE.Vector2(features.headRight.x, features.headRight.y);
+	var center = top.add(bottom).add(left).add(right).divideScalar(4);
+	return center;
+}
+
+
+function log (msg) {
+	// this gets picked up clientside through a "javascript channel"
+	// if its in a webview in the app
+	if (typeof(Print) !== 'undefined') {
+		msg = '[puppet.js postMessage] ' + msg;
+	    Print.postMessage(msg);
+	} else {
+	    console.log('[puppet.js console.log] ' + msg);
+	}
+}
+
+
+async function test () {
+    await create_puppet();
+    animate();
+}
+
+
+// loaders
 
 async function load_texture (img_src) {
     return new Promise(resolve => {
@@ -459,76 +590,28 @@ async function load_mouth_mesh (scene, model_path) {
 }
 
 
-// util functions for features on the image
-
-
-function get_eye_center () {
-	var leftEye = new THREE.Vector2(features.leftEyePosition.x, features.leftEyePosition.y);
-	var rightEye = new THREE.Vector2(features.rightEyePosition.x, features.rightEyePosition.y);
-	// We need to center this geometry at the face
-	var eyeCenter = leftEye.add(rightEye).multiplyScalar(0.5);
-	return eyeCenter;
+async function get_hlsl_text (url) {
+    var response = await fetch(url);
+    var text = await response.text();
+    return text;
 }
 
 
-function get_eye_line () {
-	var leftEye = new THREE.Vector2(features.leftEyePosition.x, features.leftEyePosition.y);
-	var rightEye = new THREE.Vector2(features.rightEyePosition.x, features.rightEyePosition.y);
-	return rightEye.sub(leftEye);
-}
-
-
-function get_ellipse_center () {
-	// The head top/left/right/bottom points create an ellipse around the head which drives head sway motion
-	var top = new THREE.Vector2(features.headTop.x, features.headTop.y);
-	var bottom = new THREE.Vector2(features.headBottom.x, features.headBottom.y);
-	var left = new THREE.Vector2(features.headLeft.x, features.headLeft.y);
-	var right = new THREE.Vector2(features.headRight.x, features.headRight.y);
-	var center = top.add(bottom).add(left).add(right).divideScalar(4);
-	return center;
-}
-
-
-function log (msg) {
-	// this gets picked up clientside through a "javascript channel"
-	// if its in a webview in the app
-	if (typeof(Print) !== "undefined") {
-		msg = '[puppet.js postMessage] ' + msg;
-	    Print.postMessage(msg);
-	} else {
-	    console.log('[puppet.js console.log] ' + msg);
-	}
-}
-
-
-async function test () {
-    await create_puppet();
-    headSway(3,1);
-    animate();
-    //var mouth_pos = 0;
-    //var lbrow = 0;
-    //var rbrow = 0;
-    //var lblink = 0;
-    //var rblink = 0;
-    //setInterval(() => {
-    //    mouth_pos += 0.02;
-    //    mouth_pos %= 1;
-    //    mouthOpen(mouth_pos);
-
-    //    lbrow += 0.01;
-    //    lbrow %= 2;
-    //    eyebrowLeft(lbrow);
-
-    //    rbrow += 0.006;
-    //    rbrow %= 2;
-    //    eyebrowRight(rbrow);
-
-    //    lblink += 0.02;
-    //    lblink %= 1;
-    //    blinkLeft(1 - lblink);
-
-    //    rblink += 0.011;
-    //    rblink %= 1;
-    //    blinkRight(1 - rblink);
-    //}, 1000 / 60);
+async function get_shader_files () {
+    return new Promise(async (r) => {
+        if (face_animation_shader.fragmentShader == null) {
+            face_animation_shader.fragmentShader = await get_hlsl_text('/puppet_001/face_fragment_shader.hlsl');
+        }
+        if (face_animation_shader.vertextShader == null) {
+            face_animation_shader.vertexShader = await get_hlsl_text('/puppet_001/face_vertex_shader.hlsl');
+        }
+        if (mouth_shader.fragmentShader == null) {
+            mouth_shader.fragmentShader = await get_hlsl_text('/puppet_001/mouth_fragment_shader.hlsl'); 
+        }
+        if (mouth_shader.vertexShader == null) {
+            mouth_shader.vertexShader = await get_hlsl_text('/puppet_001/mouth_vertex_shader.hlsl');
+        }
+        log('loaded shader files');
+        r();
+    });
 }
