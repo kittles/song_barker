@@ -223,6 +223,7 @@ function init () {
 
 
 async function create_puppet (img_url) {
+	cancelAnimationFrame(animation_frame);
     return new Promise(async (r) => {
         img_url = (img_url === undefined ? await to_b64('dog3.jpg') : img_url);
 
@@ -551,12 +552,11 @@ function headSway (amplitude, speed) {
 
 
 function animate () {
-	cancelAnimationFrame(animation_frame);
-    stats.begin();
-    if (enable_controls) {
+    if (enable_controls && controls != undefined) {
         controls.update();
     }
 
+    stats.begin();
     // Tell the shaders how many seconds have elapsed, this is for the headsway animation
     var elapsedMilliseconds = Date.now() - startTime;
     var elapsedSeconds = elapsedMilliseconds / 1000.;
