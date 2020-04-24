@@ -199,6 +199,11 @@ function init () {
     // TODO destroy old canvases
     canvas = document.createElement('canvas');
     ctx = canvas.getContext('webgl2', {alpha: false});
+	if (!ctx) {
+		log('webgl2 unavailable, the puppet will not work');
+	} else {
+		log('webgl2 available');
+	}
     renderer = new THREE.WebGLRenderer({canvas: canvas, context: ctx});
 
 	// this just holds the three.js render element
