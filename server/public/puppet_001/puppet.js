@@ -87,6 +87,7 @@ var container;
 var scene;
 var camera;
 var renderer;
+var animation_frame;
 var uniforms, material, faceMesh, texture;
 var mouseX = 0;
 var mouseY = 0;
@@ -545,6 +546,7 @@ function headSway (amplitude, speed) {
 
 
 function animate () {
+	cancelAnimationFrame(animation_frame);
     stats.begin();
     if (enable_controls) {
         controls.update();
@@ -561,7 +563,7 @@ function animate () {
 
     renderer.render(scene, camera);
     stats.end();
-    requestAnimationFrame(animate);
+    animation_frame = requestAnimationFrame(animate);
 }
 
 
