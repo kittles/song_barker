@@ -324,30 +324,38 @@ function set_position (key, x, y) {
 
 
 // control puppet features directly
+function direct_render () {
+	renderer.render(scene, camera);
+}
 
 function blink_left (val) {
 	face_animation_shader.uniforms.blinkLeft.value = val;
+	direct_render();
 }
 
 
 function blink_right (val) {
 	face_animation_shader.uniforms.blinkRight.value = val;
+	direct_render();
 }
 
 
 function blink (val) {
 	face_animation_shader.uniforms.blinkRight.value = val;
 	face_animation_shader.uniforms.blinkLeft.value = val;
+	direct_render();
 }
 
 
 function eyebrow_left (val) {
 	face_animation_shader.uniforms.eyebrowLeftOffset.value = val;
+	direct_render();
 }
 
 
 function eyebrow_right (val) {
 	face_animation_shader.uniforms.eyebrowRightOffset.value = val;
+	direct_render();
 }
 
 
@@ -355,6 +363,7 @@ function mouth_open (val) {
 	//var clamped = Math.min(Math.max(val, 0), 1);
 	mouth_shader.uniforms.mouthOpen.value = val;
 	face_animation_shader.uniforms.mouthOpen.value = val;
+	direct_render();
 }
 
 
