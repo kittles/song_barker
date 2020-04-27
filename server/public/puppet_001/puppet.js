@@ -75,6 +75,14 @@ there are these two functions which are more specialized
     as soon as you call this. we need to see if the overhead of passing the 
     argument to the webview is going to throw this out of sync with the music
     too much or not
+
+to stop all current and future scheduled animations,
+use 
+	
+	stop_all_animations ()
+
+the raf loop will still keep going, but scheduled animations get erased
+
 */
 var fp = _.noConflict(); // lodash fp and lodash at the same time
 var init_ready = 0; // poll on this to know when you can start doing stuff
@@ -364,6 +372,9 @@ function ticker (handler) {
 	function add (xs) {
 		ticks = ticks.concat(xs);
 	}
+	function cancel () {
+		ticks = [];
+	}
 	function tick () {
 		var val = next();
 		if (val !== false) {
@@ -372,6 +383,7 @@ function ticker (handler) {
 	}
 	return {
 		add: add,
+		cancel: cancel,
 		tick: tick,
 	};
 }
@@ -430,6 +442,18 @@ var ticks = {
     right_brow:  ticker(eyebrow_right),
     mouth:       ticker(mouth_open),
 };
+
+function stop_all_animations () {
+	_.each(ticks, (t, key) => {
+		t.cancel();
+	});
+	// reset the dog to neutral position
+	blink_left(0);
+	blink_right(0);
+	eyebrow_left(0);
+	eyebrow_right(0);
+	mouth_open(0);
+}
 
 
 // use like this for custom animations:
