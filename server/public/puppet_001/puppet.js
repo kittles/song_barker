@@ -590,30 +590,30 @@ function headSway (amplitude, speed) {
 	mouth_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
 }
 
-animate = _.noop;
-//function animate () {
-//    if (enable_controls && controls != undefined) {
-//        controls.update();
-//    }
-//	cancelAnimationFrame(animation_frame);
-//
-//	function do_animate () {
-//		stats.begin();
-//		// Tell the shaders how many seconds have elapsed, this is for the headsway animation
-//		var elapsedMilliseconds = Date.now() - startTime;
-//		var elapsedSeconds = elapsedMilliseconds / 1000.;
-//		face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
-//		mouth_shader.uniforms.swayTime.value = elapsedSeconds;
-//
-//		// step a tick in the motion handler
-//		motion_handler_tick();
-//
-//		renderer.render(scene, camera);
-//		stats.end();
-//		animation_frame = requestAnimationFrame(do_animate);
-//	}
-//	do_animate();
-//}
+//animate = _.noop;
+function animate () {
+    if (enable_controls && controls != undefined) {
+        controls.update();
+    }
+	cancelAnimationFrame(animation_frame);
+
+	function do_animate () {
+		stats.begin();
+		// Tell the shaders how many seconds have elapsed, this is for the headsway animation
+		//var elapsedMilliseconds = Date.now() - startTime;
+		//var elapsedSeconds = elapsedMilliseconds / 1000.;
+		//face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
+		//mouth_shader.uniforms.swayTime.value = elapsedSeconds;
+
+		//// step a tick in the motion handler
+		//motion_handler_tick();
+
+		//renderer.render(scene, camera);
+		stats.end();
+		animation_frame = requestAnimationFrame(do_animate);
+	}
+	do_animate();
+}
 
 
 function screen_to_world_position (screen_pos) {
