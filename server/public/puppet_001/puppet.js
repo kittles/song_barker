@@ -385,12 +385,21 @@ function ticker (handler) {
 		add: add,
 		cancel: cancel,
 		tick: tick,
+		ticks: ticks,
 	};
 }
 
 
 function motion_handler_tick () {
+	// check if there is any ticking needed
+	var render_needed = false;
+	_.each(ticks, (t, key) => {
+		if (t.ticks.length > 0) {
+			render_needed = true;
+		}
+	});
 	_.invokeMap(ticks, 'tick');
+	return render_needed;
 }
 
 
@@ -605,10 +614,12 @@ function animate () {
 		//face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
 		//mouth_shader.uniforms.swayTime.value = elapsedSeconds;
 
-		//// step a tick in the motion handler
-		//motion_handler_tick();
+		// step a tick in the motion handler
+		if (motion_handler_tick()) {
+			// only render new frames when needed
+			renderer.render(scene, camera);
+		};
 
-		//renderer.render(scene, camera);
 		stats.end();
 		animation_frame = requestAnimationFrame(do_animate);
 	}
