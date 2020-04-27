@@ -375,6 +375,9 @@ function ticker (handler) {
 	function cancel () {
 		ticks = [];
 	}
+	function needs_render () {
+		return ticks.length > 0;
+	}
 	function tick () {
 		var val = next();
 		if (val !== false) {
@@ -385,7 +388,7 @@ function ticker (handler) {
 		add: add,
 		cancel: cancel,
 		tick: tick,
-		ticks: ticks,
+		needs_render: needs_render,
 	};
 }
 
@@ -394,7 +397,7 @@ function motion_handler_tick () {
 	// check if there is any ticking needed
 	var render_needed = false;
 	_.each(ticks, (t, key) => {
-		if (t.ticks.length > 0) {
+		if (t.needs_render()) {
 			render_needed = true;
 		}
 	});
