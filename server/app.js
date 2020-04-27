@@ -23,6 +23,23 @@ app.use(morgan('combined')) // logging
 app.use(express.static('./public'));
 
 
+/*
+get a code:
+	- pull down the id token
+	- create user object on server db if it doesnt exist
+		- user object should use email as primary key"?
+	- get user object from id token
+	- set user to logged in for some length of time
+	- associate the bearer token with the user object
+
+all mobile app requests include the bearer token
+	- try to pull up the user by the bearer token
+	- if the users session is expired, tell the mobile app
+	to refresh the token?
+	- if the session is valid, let the request pass through unaltered
+*/
+
+
 // index
 
 app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));

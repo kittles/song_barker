@@ -7,16 +7,6 @@
 	<script src="/puppet_001/orbit_controls.js"></script>
 	<script src="/puppet_001/stats.min.js"></script>
 	<script src="/puppet_001/raf.js"></script>
-
-    <!--
-	<script src="/puppet_001/face_fragment_shader.hlsl" id="face_fragment_shader" type="text/hlsl"></script>
-	<script src="/puppet_001/face_vertex_shader.hlsl" id="face_vertex_shader" type="text/hlsl"></script>
-	<script src="/puppet_001/mouth_fragment_shader.hlsl" id="mouth_fragment_shader" type="text/hlsl"></script>
-	<script src="/puppet_001/mouth_vertex_shader.hlsl" id="mouth_vertex_shader" type="text/hlsl"></script>
-
-	<script src="/puppet_001/face_animation_shader.js" id="faceAnimationShader" type="text/javascript"></script>
-	<script src="/puppet_001/mouth_shader.js" id="mouthShader" type="text/javascript"></script>
-    -->
 	<style>
 	body {
 		margin: 0px auto;
@@ -28,7 +18,12 @@
 	</style>
 </head>
 <body>
+
+	<!-- puppet render canvas goes inside this -->
     <div id="container"></div>
+
+	<!-- this is just for turning images into base64, for testing -->
     <canvas id="image-canvas"></canvas>
+
 	<script src="/puppet_001/puppet.js"></script>
 </body>
