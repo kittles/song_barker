@@ -95,7 +95,7 @@ var lat = 0;
 var lon = 0;
 var phy = 0;
 var theta = 0;
-var enable_controls = true;
+var enable_controls = false;
 var debug_face_mesh = false;
 var show_fps = true;
 var stats = new Stats();
@@ -162,6 +162,10 @@ var mouth_shader = {
 	vertexShader: null,
 	fragmentShader: null,
 };
+var face_mesh;
+var bgMesh;
+var mouth_gltf;
+var gltf_mesh;
 
 
 $('document').ready(init);
@@ -211,9 +215,27 @@ function init () {
 	container = document.getElementById('container');
 	scene = new THREE.Scene();
 
+	// Create a webgl scene
+	scene.background = new THREE.Color(0x2E2E46);
+
+	// Calculate the aspect ratio of the browser viewport
+	viewportAspect = window_width / window_height;
+	log(`window width ${window_width} window height ${window_height}`);
+
+	// Camera left and right frustrum to make sure the camera size is the same as viewport size
+	camera = new THREE.OrthographicCamera(
+		-0.5 * viewportAspect,
+		0.5 * viewportAspect,
+		0.5,
+		-0.5,
+		0.001,
+		1000
+	);
+	camera.position.z = 1;
+
     // see fps
     if (show_fps) {
-        stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        stats.showPanel(2); // 0: fps, 1: ms, 2: mb, 3+: custom
         document.body.appendChild(stats.dom);
     }
 
@@ -229,28 +251,20 @@ async function create_puppet (img_url) {
         img_url = (img_url === undefined ? await to_b64('dog3.jpg') : img_url);
 
         // if this is being called more than once, the scene needs to be cleared
-        // TODO need to regen other stuff?
         while (scene.children.length > 0) {
-            scene.remove(scene.children[0]);
+			var obj = scene.children[0];
+            scene.remove(obj);
+			console.log(obj.type);
+			if (obj.type == 'Mesh') {
+				console.log('disposing geometry');
+				obj.geometry.dispose();
+				obj.material.dispose();
+			}
+			if (obj.type == 'Group') {
+				obj.children[0].children[0].geometry.dispose();
+				obj.children[0].children[0].material.dispose();
+			}
         }
-
-        // Create a webgl scene
-        scene.background = new THREE.Color(0x2E2E46);
-
-        // Calculate the aspect ratio of the browser viewport
-        viewportAspect = window_width / window_height;
-        log(`window width ${window_width} window height ${window_height}`);
-
-        // Camera left and right frustrum to make sure the camera size is the same as viewport size
-        camera = new THREE.OrthographicCamera(
-            -0.5 * viewportAspect,
-            0.5 * viewportAspect,
-            0.5,
-            -0.5,
-            0.001,
-            1000
-        );
-        camera.position.z = 1;
 
         pet_image_texture = await load_texture(img_url);
         animation_noise_texture = await load_texture('noise_2D.png');
@@ -285,6 +299,7 @@ async function create_puppet (img_url) {
 
         puppet_ready = 1;
         log('puppet is now ready');
+		animate();
         return r(puppet_ready);
     });
 }
@@ -556,20 +571,24 @@ function animate () {
     if (enable_controls && controls != undefined) {
         controls.update();
     }
+	cancelAnimationFrame(animation_frame);
 
-    stats.begin();
-    // Tell the shaders how many seconds have elapsed, this is for the headsway animation
-    var elapsedMilliseconds = Date.now() - startTime;
-    var elapsedSeconds = elapsedMilliseconds / 1000.;
-    face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
-    mouth_shader.uniforms.swayTime.value = elapsedSeconds;
+	function do_animate () {
+		stats.begin();
+		// Tell the shaders how many seconds have elapsed, this is for the headsway animation
+		var elapsedMilliseconds = Date.now() - startTime;
+		var elapsedSeconds = elapsedMilliseconds / 1000.;
+		face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
+		mouth_shader.uniforms.swayTime.value = elapsedSeconds;
 
-    // step a tick in the motion handler
-    motion_handler_tick();
+		// step a tick in the motion handler
+		motion_handler_tick();
 
-    renderer.render(scene, camera);
-    stats.end();
-    animation_frame = requestAnimationFrame(animate);
+		renderer.render(scene, camera);
+		stats.end();
+		animation_frame = requestAnimationFrame(do_animate);
+	}
+	do_animate();
 }
 
 
@@ -631,14 +650,14 @@ function create_face_mesh (scene, widthSegments, heightSegments, features) {
         vertexShader:   face_animation_shader.vertexShader,
         fragmentShader: face_animation_shader.fragmentShader,
         depthFunc:      debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
-        side:           THREE.DoubleSide,
-        wireframe:      debug_face_mesh,
+        //side:           THREE.DoubleSide,
+        //wireframe:      debug_face_mesh,
     });
 
     face_animation_shader.uniforms.aspectRatio.value = pet_image_texture.image.width / pet_image_texture.image.height;
 
     // Adds the material to the geometry
-    var faceMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, widthSegments, heightSegments), material);
+    faceMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, widthSegments, heightSegments), material);
     
     // This object renders on top of the background
     faceMesh.renderOrder = 1;
@@ -705,8 +724,10 @@ function log (msg) {
 
 
 async function test () {
-    await create_puppet();
+    await create_puppet('dog3.jpg');
     animate();
+	left_blink_slow();
+	right_blink_slow();
 }
 
 
@@ -740,19 +761,26 @@ async function load_image (img_src) {
 
 
 // the mouth has custom geometry that gets loaded with this
+var gltf_memo = {};
 async function load_gltf (model_path) {
 	return new Promise((r) => { 
-		var loader = new THREE.GLTFLoader();
-		// Load a glTF resource
-		loader.load(model_path, (gltf) => {
-			log(`gltf loaded: ${model_path}`);
-			r(gltf);
-		}, () => {
-			log(`gltf file loading: ${model_path}`);
-		}, (error) => {
-			log(`error loading gltf file: ${model_path}`);
-			log(error);
-		});
+		if (_.get(gltf_memo, model_path, false)) {
+			log(`using cached gltf file: ${model_path}`);
+			r(gltf_memo[model_path]);
+		} else {
+			var loader = new THREE.GLTFLoader();
+			// Load a glTF resource
+			loader.load(model_path, (gltf) => {
+				log(`gltf loaded: ${model_path}`);
+				gltf_memo[model_path] = gltf;
+				r(gltf);
+			}, () => {
+				log(`gltf file loading: ${model_path}`);
+			}, (error) => {
+				log(`error loading gltf file: ${model_path}`);
+				log(error);
+			});
+		}
 	});
 }
 
@@ -760,9 +788,9 @@ async function load_gltf (model_path) {
 async function load_mouth_mesh (scene, model_path) {
 	// Load the Mouth custom mesh
 	return new Promise(async (r) => { 
-		var gltf = await load_gltf(model_path);
-		var mesh = gltf.scene.children[0].children[0];
-		mesh.material = new THREE.ShaderMaterial({ 
+		mouth_gltf = await load_gltf(model_path);
+		gltf_mesh = mouth_gltf.scene.children[0].children[0];
+		gltf_mesh.material = new THREE.ShaderMaterial({ 
 			uniforms: mouth_shader.uniforms,
 			vertexShader: mouth_shader.vertexShader,
 			fragmentShader: mouth_shader.fragmentShader,
@@ -771,29 +799,29 @@ async function load_mouth_mesh (scene, model_path) {
 			blending: THREE.MultiplyBlending,
 			vertexColors: true
 		});
-		mesh.renderOrder = 2;
+		gltf_mesh.renderOrder = 2;
 		// Mesh position is same as mouthposition
 		// Mesh rotation is the same as the head rotation
 		var eyeCenter = get_eye_center();
 		var eyeLine = get_eye_line();
 		var eyeLineLength = eyeLine.length();
 		var mouthPosition = new THREE.Vector2(features.mouthPosition.x, features.mouthPosition.y);
-		mesh.scale.set(eyeLineLength * mouthScale, eyeLineLength * mouthScale, eyeLineLength * mouthScale);
+		gltf_mesh.scale.set(eyeLineLength * mouthScale, eyeLineLength * mouthScale, eyeLineLength * mouthScale);
 
 		// Center the mesh's position on the eyes
-		mesh.position.x = mouthPosition.x;
-		mesh.position.y = mouthPosition.y;
+		gltf_mesh.position.x = mouthPosition.x;
+		gltf_mesh.position.y = mouthPosition.y;
 
 		// Rotate the mesh the same direction as the eyes
 		var rads = Math.atan(eyeLine.y / eyeLine.x);        
-		mesh.rotateY(-rads);
-		scene.add(gltf.scene);
-		gltf.animations; // Array<THREE.AnimationClip>
-		gltf.scene; // THREE.Group
-		gltf.scenes; // Array<THREE.Group>
-		gltf.cameras; // Array<THREE.Camera>
-		gltf.asset; // Object
-		r(gltf);
+		gltf_mesh.rotateY(-rads);
+		scene.add(mouth_gltf.scene);
+		mouth_gltf.animations; // Array<THREE.AnimationClip>
+		mouth_gltf.scene; // THREE.Group
+		mouth_gltf.scenes; // Array<THREE.Group>
+		mouth_gltf.cameras; // Array<THREE.Camera>
+		mouth_gltf.asset; // Object
+		r(mouth_gltf);
 	});
 }
 
@@ -808,18 +836,22 @@ async function get_hlsl_text (url) {
 async function get_shader_files () {
     return new Promise(async (r) => {
         if (face_animation_shader.fragmentShader == null) {
+			log('loading shader file: /puppet_001/face_fragment_shader.hlsl');
             face_animation_shader.fragmentShader = await get_hlsl_text('/puppet_001/face_fragment_shader.hlsl');
         }
-        if (face_animation_shader.vertextShader == null) {
+        if (face_animation_shader.vertexShader == null) {
+			log('loading shader file: /puppet_001/face_vertex_shader.hlsl');
             face_animation_shader.vertexShader = await get_hlsl_text('/puppet_001/face_vertex_shader.hlsl');
         }
         if (mouth_shader.fragmentShader == null) {
+			log('loading shader file: /puppet_001/mouth_fragment_shader.hlsl');
             mouth_shader.fragmentShader = await get_hlsl_text('/puppet_001/mouth_fragment_shader.hlsl'); 
         }
         if (mouth_shader.vertexShader == null) {
+			log('loading shader file: /puppet_001/mouth_vertex_shader.hlsl');
             mouth_shader.vertexShader = await get_hlsl_text('/puppet_001/mouth_vertex_shader.hlsl');
         }
-        log('loaded shader files');
+        log('finished loaded shader files');
         r();
     });
 }
