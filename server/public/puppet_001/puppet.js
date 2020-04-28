@@ -85,28 +85,42 @@ the raf loop will still keep going, but scheduled animations get erased
 
 */
 var fp = _.noConflict(); // lodash fp and lodash at the same time
+
+// these are for the app to check the state of things
 var init_ready = 0; // poll on this to know when you can start doing stuff
 var puppet_ready = 0; // poll on this to know when you can start doing stuff
+
+// for turning images into base64 strings, for testing
 var image_canvas;
 var image_ctx;
+
+// the actual render canvas
 var canvas;
 var ctx;
+
+// where the render canvas lives in the dom
 var container;
+
+// three js objects
 var scene;
 var camera;
 var renderer;
+
+// the id of the RAF loop if you want to cancel it
 var animation_frame;
-var uniforms, material, faceMesh, texture;
-var mouseX = 0;
-var mouseY = 0;
-var lat = 0;
-var lon = 0;
-var phy = 0;
-var theta = 0;
-var enable_controls = false;
+
+// the threejs mesh object for deforming the face
+var face_mesh;
+
+// shows the mesh for debugging
 var debug_face_mesh = false;
+var enable_controls = false;
+
+// show threejs stats about fps and mb
 var show_fps = true;
 var stats = new Stats();
+
+// store the coordinates of the features here
 var features = {
 	// NOTE coordinate system is [-0.5 to 0.5, -0.5 to 0.5]
     // defaults here work with dog3.jpg
@@ -118,12 +132,27 @@ var features = {
     headLeft:         new THREE.Vector2(-0.255, 0.301),
     headRight:        new THREE.Vector2(0.151, 0.334),
 };
-var mouthScale = 0.8;
-var segments = 200; // Segments for the deformation mesh
-var startTime = Date.now();
-var iOS; // iOS webviews need 20 extra pixels
-var window_width; // cant count on a single way of getting this
-var window_height; // so use these for the result
+
+// mouth uses other feature locations to infer some things
+// i think its using eye distance and the scale here to determine size
+// TODO check this
+var mouthScale = 1.5;
+
+// Segments for the deformation mesh
+// NOTE this can be lowered to around 50 for less memory use, but the
+// quality seems to drop off a bit
+var segments = 200;
+
+// iOS webviews need 20 extra pixels
+// so store whether its on ios or not here
+var iOS;
+
+// getting the window size is platform and version specific
+// store the results of that here
+var window_width;
+var window_height; 
+
+// this is the config for the face animation shader
 var face_animation_shader = {
     uniforms: {
         resolution:         { type: 'v2', value: new THREE.Vector2() },
@@ -137,6 +166,7 @@ var face_animation_shader = {
 		petImage:           { type: 't', value: new THREE.Texture() },
 		// Head Sway
 		faceEllipse_ST:     { type: 'v4', value: new THREE.Vector4() },
+		// TODO this should be happneing in js
 		animationNoise:     { type: 't', value: new THREE.Texture() },
 		swayTime:           { type: 'f', value: 0.0 },
 		swaySpeed:          { type: 'f', value: 0.1 },
@@ -151,6 +181,8 @@ var face_animation_shader = {
 	vertexShader: null,
 	fragmentShader: null,
 };
+
+// this is the config for the mouth animation shader
 var mouth_shader = {
     uniforms: {
         resolution:       { type: 'v2', value: new THREE.Vector2() },
@@ -170,15 +202,52 @@ var mouth_shader = {
 	vertexShader: null,
 	fragmentShader: null,
 };
+
+
+// these are where the threejs objects live, in case 
+// you need to directly manipulate them for memory management or whatever
 var face_mesh;
+// the shader for the face mesh
+var face_mesh_material;
 var bgMesh;
-var mouth_gltf;
+var mouth_gltf; // this is a "Group"
 var gltf_mesh;
+var pet_image_texture;
+var basicMaterial;
+
+
+// just for checking how long the initialization process takes
+var start_time;
+// log messages include time since init
+var show_timing = true;
+
+
+// wrap output so it can be sent to the app through a javascript channel
+function log (msg) {
+	// this gets picked up clientside through a "javascript channel"
+	// if its in a webview in the app
+	if (typeof(Print) !== 'undefined') {
+		msg = '[puppet.js postMessage] ' + msg;
+	    Print.postMessage(msg);
+		if (show_timing) {
+			Print.postMessage(`[puppet.js timing] ${performance.now() - start_time}`);
+		}
+	} else {
+	    console.log('[puppet.js console.log] ' + msg);
+		if (show_timing) {
+			console.log(`[puppet.js timing] ${performance.now() - start_time}`);
+		}
+	}
+}
 
 
 $('document').ready(init);
+
+
+// prepare a threejs scene for puppet creation
 function init () {
-	log('puppet.js calling init');
+	log('puppet.js initializing');
+	start_time = performance.now();
 
 	// iOS webview sizing shim
     // webviews dimensions come out undersized on ios for some reason
@@ -210,13 +279,6 @@ function init () {
     // for rendering the actual puppet
     // TODO destroy old canvases
     canvas = document.createElement('canvas');
-    //ctx = canvas.getContext('webgl2', {alpha: false});
-	//if (!ctx) {
-	//	log('webgl2 unavailable, the puppet will not work');
-	//} else {
-	//	log('webgl2 available');
-	//}
-    //renderer = new THREE.WebGLRenderer({canvas: canvas, context: ctx});
     renderer = new THREE.WebGLRenderer();
 
 	// this just holds the three.js render element
@@ -245,6 +307,7 @@ function init () {
     if (show_fps) {
         stats.showPanel(2); // 0: fps, 1: ms, 2: mb, 3+: custom
         document.body.appendChild(stats.dom);
+		stats.dom.style.left = '80px';
     }
 
     // tell client the webview is ready to create a puppet
@@ -253,35 +316,46 @@ function init () {
 }
 
 
+// create a puppet from an image url
+// the app will pass a base64 string encoding to this
 async function create_puppet (img_url) {
+	start_time = performance.now();
+
 	cancelAnimationFrame(animation_frame);
+
     return new Promise(async (r) => {
         img_url = (img_url === undefined ? await to_b64('dog3.jpg') : img_url);
 
-        // if this is being called more than once, the scene needs to be cleared
-        while (scene.children.length > 0) {
-			var obj = scene.children[0];
-            scene.remove(obj);
-			console.log(obj.type);
-			if (obj.type == 'Mesh') {
-				console.log('disposing geometry');
-				obj.geometry.dispose();
-				obj.material.dispose();
-			}
-			if (obj.type == 'Group') {
-				obj.children[0].children[0].geometry.dispose();
-				obj.children[0].children[0].material.dispose();
-			}
-        }
-
+		if (pet_image_texture) {
+			pet_image_texture.dispose();
+		}
         pet_image_texture = await load_texture(img_url);
+
+		// TODO deprecated
         animation_noise_texture = await load_texture('noise_2D.png');
 
-        // load shader text seperate so it can by syntax highlighted
-        await get_shader_files();
+        // shader code lives in its on .hlsl files so they can be more easily
+		// syntax highlighted
+		// this fills in the null values in the shader configs at the top of this
+		// file
+        await load_shader_files();
 
-        // tell the shaders about landmarks and screen sizing
-        init_shaders(features);
+        // tell the shaders where features are
+		face_animation_shader.uniforms['petImage'].value = pet_image_texture;
+		face_animation_shader.uniforms['animationNoise'].value = animation_noise_texture;
+		face_animation_shader.uniforms.resolution.value.x = window_width;
+		face_animation_shader.uniforms.resolution.value.y = window_height;
+		face_animation_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
+		face_animation_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
+		face_animation_shader.uniforms.mouthPosition.value = features.mouthPosition;
+
+		mouth_shader.uniforms['animationNoise'].value = animation_noise_texture;
+		mouth_shader.uniforms.resolution.value.x = window.innerWidth;
+		mouth_shader.uniforms.resolution.value.y = window.innerHeight;
+		mouth_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
+		mouth_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
+		mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;            
+
 
         // Create the background plane
         // This is just the static pet image on the plane
@@ -296,10 +370,20 @@ async function create_puppet (img_url) {
         // mouth sprite
         await load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
+
+
         renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
         container.appendChild(renderer.domElement);
         renderer.setSize(window_width, window_height);
-        renderer.render(scene, camera);
+
+		// if this is being after there was already a puppet, make sure updated
+		// textures and sizing take effect
+		rescale_objects();
+		face_mesh.needsUpdate = true;
+		face_mesh_material.needsUpdate = true;
+
+
+        direct_render();
 
         if (enable_controls) {
             controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -313,17 +397,28 @@ async function create_puppet (img_url) {
 }
 
 
-
-// use this set feature locations
-
+// use this set feature locations from the app
 function set_position (key, x, y) {
 	log(`calling set_position(${key}, ${x}, ${y})`);
 	features[key] = new THREE.Vector2(x, y);
-    sync_features_to_shaders();
+
+    // when feature locations get changed, the shaders need to be informed
+    face_animation_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
+    face_animation_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
+    face_animation_shader.uniforms.mouthPosition.value = features.mouthPosition;
+    mouth_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
+    mouth_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
+    mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;            
+
+	// some stuff gets inferred from feature positions, so recompute some things
+	orient_face_mesh();
+	orient_mouth_mesh();
+	direct_render();
 }
 
 
-// control puppet features directly
+// this stands in contrast to implicit rendering that happens in the RAF loop
+// whenever there are animation ticks left
 function direct_render () {
 	renderer.render(scene, camera);
 }
@@ -581,36 +676,6 @@ function mouth_track_sound (amplitudes) {
 }
 
 
-// TODO need a head_displacement method instead
-// this should also probably be animated via the ticker framework
-function headSway (amplitude, speed) {
-	// Amplitude is how far to move the uvs for the animation, Default value of 1 looks good.
-	// Speed is a representation how often the animation loops in 1 minute.  Default value of 1 looks good
-	// Adjust the input values to make them a bit more intuitive, otherwise you'll need to put in a very small amplitude/speed value
-	amplitude /= 10;
-	speed /= 60;
-
-	var ellipseCenter = get_ellipse_center();
-	var distanceLeft = ellipseCenter.distanceTo(features.headLeft);
-	var distanceRight = ellipseCenter.distanceTo(features.headRight);
-	var distanceTop = ellipseCenter.distanceTo(features.headTop);
-	var distanceBottom = ellipseCenter.distanceTo(features.headBottom);
-	var extentsX = (distanceLeft + distanceRight) * 0.5;
-	var extentsY = (distanceTop + distanceBottom) * 0.5;
-
-	// This value is how the big the ellipse is for the head
-	var ST_numerator = 0.3;
-	var ellipseExtents = new THREE.Vector2(extentsX, extentsY);
-	var faceEllipse_ST = new THREE.Vector4(ST_numerator / ellipseExtents.x, ST_numerator / ellipseExtents.y, ellipseCenter.x, ellipseCenter.y);
-	face_animation_shader.uniforms.swaySpeed.value = speed;
-	face_animation_shader.uniforms.swayAmplitude.value = amplitude;
-	face_animation_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
-
-	mouth_shader.uniforms.swaySpeed.value = speed;
-	mouth_shader.uniforms.swayAmplitude.value = amplitude;
-	mouth_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
-}
-
 //animate = _.noop;
 function animate () {
     if (enable_controls && controls != undefined) {
@@ -629,7 +694,7 @@ function animate () {
 		// step a tick in the motion handler
 		if (motion_handler_tick()) {
 			// only render new frames when needed
-			renderer.render(scene, camera);
+			direct_render();
 		};
 
 		stats.end();
@@ -639,143 +704,137 @@ function animate () {
 }
 
 
-function screen_to_world_position (screen_pos) {
-    var cameraSize = new THREE.Vector2(Math.abs(camera.left) + Math.abs(camera.right), -1.0);
-    var offset = new THREE.Vector2(camera.left, 0.5);
-    var worldPos = screen_pos.multiply(cameraSize);
-    return worldPos.add(offset);
-}
-
-
-function init_shaders (features) {
-    face_animation_shader.uniforms['petImage'].value = pet_image_texture;
-    face_animation_shader.uniforms['animationNoise'].value = animation_noise_texture;
-    face_animation_shader.uniforms.resolution.value.x = window_width;
-    face_animation_shader.uniforms.resolution.value.y = window_height;
-    face_animation_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
-    face_animation_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
-    face_animation_shader.uniforms.mouthPosition.value = features.mouthPosition;
-
-    mouth_shader.uniforms['animationNoise'].value = animation_noise_texture;
-    mouth_shader.uniforms.resolution.value.x = window.innerWidth;
-    mouth_shader.uniforms.resolution.value.y = window.innerHeight;
-    mouth_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
-    mouth_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
-    mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;            
-
-    log('init shaders finished');
-}
-
-
-function sync_features_to_shaders () {
-    // when feature locations get changed, the shaders need to be informed
-    face_animation_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
-    face_animation_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
-    face_animation_shader.uniforms.mouthPosition.value = features.mouthPosition;
-    mouth_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
-    mouth_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
-    mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;            
-}
-
-
 function create_background_plane (scene) {
-    basicMaterial = new THREE.MeshBasicMaterial({
-        map: pet_image_texture,
-    });
-    bgMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), basicMaterial);
+	if (bgMesh) {
+		basicMaterial.map = pet_image_texture;
+		bgMesh.scale.x = pet_image_texture.image.width / pet_image_texture.image.height;
+		return;
+	} else {
+		basicMaterial = new THREE.MeshBasicMaterial({
+			map: pet_image_texture,
+		});
+		bgMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), basicMaterial);
+		bgMesh.scale.x = pet_image_texture.image.width / pet_image_texture.image.height;
+		bgMesh.renderOrder = 0;
+		scene.add(bgMesh);
+		log('create background plane finished');
+	}
+}
+
+
+function rescale_objects () {
     bgMesh.scale.x = pet_image_texture.image.width / pet_image_texture.image.height;
-    bgMesh.renderOrder = 0;
-    scene.add(bgMesh);
-    log('create background plane finished');
+    face_animation_shader.uniforms.aspectRatio.value = pet_image_texture.image.width / pet_image_texture.image.height;
+	direct_render();
 }
 
 
 function create_face_mesh (scene, widthSegments, heightSegments, features) {
+	// dont make more than one face mesh;
+	if (face_mesh_material) {
+		return;
+	}
     // Create a material
-    var material = new THREE.ShaderMaterial({
+    face_mesh_material = new THREE.ShaderMaterial({
         uniforms:       face_animation_shader.uniforms,
         vertexShader:   face_animation_shader.vertexShader,
         fragmentShader: face_animation_shader.fragmentShader,
         depthFunc:      debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
-        //side:           THREE.DoubleSide,
-        //wireframe:      debug_face_mesh,
+		// TODO double side needed?
+        side:           THREE.DoubleSide,
+		// TODO does this cost anything memory wise
+        wireframe:      debug_face_mesh,
     });
 
     face_animation_shader.uniforms.aspectRatio.value = pet_image_texture.image.width / pet_image_texture.image.height;
 
     // Adds the material to the geometry
-    faceMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, widthSegments, heightSegments), material);
+    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, widthSegments, heightSegments), face_mesh_material);
     
     // This object renders on top of the background
-    faceMesh.renderOrder = 1;
+    face_mesh.renderOrder = 1;
 
-    leftEye = new THREE.Vector2(features.leftEyePosition.x, features.leftEyePosition.y);
-    rightEye = new THREE.Vector2(features.rightEyePosition.x, features.rightEyePosition.y);
+	// use eye position to orient
+	// this is a seperate function because it needs to be called
+	// whenever the eyes are moved
+	orient_face_mesh();
 
-    // We need to center this geometry at the face
-    var eyeCenter = leftEye.add(rightEye).multiplyScalar(0.5);
-    var eyeLine = rightEye.sub(leftEye);
-
-    // Center the mesh's position on the eyes
-    faceMesh.position.x = eyeCenter.x;
-    faceMesh.position.y = eyeCenter.y;
-
-    // Rotate the mesh the same direction as the eyes
-    var rads = Math.atan(eyeLine.y / eyeLine.x);        
-    faceMesh.rotateZ(rads);
-
-    scene.add(faceMesh);
+    scene.add(face_mesh);
     log('create face mesh finished');
 }
 
 
-// util functions for features on the image
+function orient_face_mesh () {
+	var leftEye = new THREE.Vector2(features.leftEyePosition.x, features.leftEyePosition.y);
+	var rightEye = new THREE.Vector2(features.rightEyePosition.x, features.rightEyePosition.y);
 
-function get_eye_center () {
+	// We need to center this geometry at the face
+	var eyeCenter = leftEye.add(rightEye).multiplyScalar(0.5);
+	var eyeLine = rightEye.sub(leftEye);
+
+	// Center the mesh's position on the eyes
+	face_mesh.position.x = eyeCenter.x;
+	face_mesh.position.y = eyeCenter.y;
+
+	// Rotate the mesh the same direction as the eyes
+	var rads = Math.atan(eyeLine.y / eyeLine.x);        
+	face_mesh.rotation.set(0, 0, 0);
+	face_mesh.rotateZ(rads);
+}
+
+
+async function load_mouth_mesh (scene, model_path) {
+	// Load the Mouth custom mesh
+	return new Promise(async (r) => { 
+		// dont make more than one
+		if (mouth_gltf) {
+			r(mouth_gltf);
+		} else {
+			mouth_gltf = await load_gltf(model_path);
+			gltf_mesh = mouth_gltf.scene.children[0].children[0];
+			gltf_mesh.material = new THREE.ShaderMaterial({ 
+				uniforms: mouth_shader.uniforms,
+				vertexShader: mouth_shader.vertexShader,
+				fragmentShader: mouth_shader.fragmentShader,
+				depthFunc: THREE.AlwaysDepth,
+				side: THREE.DoubleSide,
+				blending: THREE.MultiplyBlending,
+				vertexColors: true
+			});
+			gltf_mesh.renderOrder = 2;
+			// Mesh position is same as mouthposition
+			// Mesh rotation is the same as the head rotation
+			orient_mouth_mesh();
+			scene.add(mouth_gltf.scene);
+			r(mouth_gltf);
+		}
+	});
+}
+
+
+function orient_mouth_mesh () {
 	var leftEye = new THREE.Vector2(features.leftEyePosition.x, features.leftEyePosition.y);
 	var rightEye = new THREE.Vector2(features.rightEyePosition.x, features.rightEyePosition.y);
 	// We need to center this geometry at the face
 	var eyeCenter = leftEye.add(rightEye).multiplyScalar(0.5);
-	return eyeCenter;
+	var eyeLine = rightEye.sub(leftEye);
+	var eyeLineLength = eyeLine.length();
+	var mouthPosition = new THREE.Vector2(features.mouthPosition.x, features.mouthPosition.y);
+
+	gltf_mesh.scale.set(eyeLineLength * mouthScale, eyeLineLength * mouthScale, eyeLineLength * mouthScale);
+
+	// Center the mesh's position on the eyes
+	gltf_mesh.position.x = mouthPosition.x;
+	gltf_mesh.position.y = mouthPosition.y;
+
+	// Rotate the mesh the same direction as the eyes
+	var rads = Math.atan(eyeLine.y / eyeLine.x);        
+	var rot = gltf_mesh.rotation.clone();
+	gltf_mesh.rotation.set(rot.x, rot.y, rot.z);
+	gltf_mesh.rotateY(-rads);
+	console.log(gltf_mesh.rotation);
 }
 
-
-function get_eye_line () {
-	var leftEye = new THREE.Vector2(features.leftEyePosition.x, features.leftEyePosition.y);
-	var rightEye = new THREE.Vector2(features.rightEyePosition.x, features.rightEyePosition.y);
-	return rightEye.sub(leftEye);
-}
-
-
-function get_ellipse_center () {
-	// The head top/left/right/bottom points create an ellipse around the head which drives head sway motion
-	var top = new THREE.Vector2(features.headTop.x, features.headTop.y);
-	var bottom = new THREE.Vector2(features.headBottom.x, features.headBottom.y);
-	var left = new THREE.Vector2(features.headLeft.x, features.headLeft.y);
-	var right = new THREE.Vector2(features.headRight.x, features.headRight.y);
-	var center = top.add(bottom).add(left).add(right).divideScalar(4);
-	return center;
-}
-
-
-function log (msg) {
-	// this gets picked up clientside through a "javascript channel"
-	// if its in a webview in the app
-	if (typeof(Print) !== 'undefined') {
-		msg = '[puppet.js postMessage] ' + msg;
-	    Print.postMessage(msg);
-	} else {
-	    console.log('[puppet.js console.log] ' + msg);
-	}
-}
-
-
-async function test () {
-    await create_puppet('dog3.jpg');
-    animate();
-	left_blink_slow();
-	right_blink_slow();
-}
 
 
 // loaders
@@ -784,16 +843,6 @@ async function load_texture (img_src) {
     return new Promise(resolve => {
         new THREE.TextureLoader().load(img_src, resolve);
     });
-}
-
-
-// for console testing
-async function to_b64 (img_src) {
-    var img = await load_image(img_src);
-    image_canvas.width = img.width;
-    image_canvas.height = img.height;
-    image_ctx.drawImage(img, 0, 0);
-    return image_canvas.toDataURL();
 }
 
 
@@ -832,73 +881,113 @@ async function load_gltf (model_path) {
 }
 
 
-async function load_mouth_mesh (scene, model_path) {
-	// Load the Mouth custom mesh
-	return new Promise(async (r) => { 
-		mouth_gltf = await load_gltf(model_path);
-		gltf_mesh = mouth_gltf.scene.children[0].children[0];
-		gltf_mesh.material = new THREE.ShaderMaterial({ 
-			uniforms: mouth_shader.uniforms,
-			vertexShader: mouth_shader.vertexShader,
-			fragmentShader: mouth_shader.fragmentShader,
-			depthFunc: THREE.AlwaysDepth,
-			side: THREE.DoubleSide,
-			blending: THREE.MultiplyBlending,
-			vertexColors: true
-		});
-		gltf_mesh.renderOrder = 2;
-		// Mesh position is same as mouthposition
-		// Mesh rotation is the same as the head rotation
-		var eyeCenter = get_eye_center();
-		var eyeLine = get_eye_line();
-		var eyeLineLength = eyeLine.length();
-		var mouthPosition = new THREE.Vector2(features.mouthPosition.x, features.mouthPosition.y);
-		gltf_mesh.scale.set(eyeLineLength * mouthScale, eyeLineLength * mouthScale, eyeLineLength * mouthScale);
-
-		// Center the mesh's position on the eyes
-		gltf_mesh.position.x = mouthPosition.x;
-		gltf_mesh.position.y = mouthPosition.y;
-
-		// Rotate the mesh the same direction as the eyes
-		var rads = Math.atan(eyeLine.y / eyeLine.x);        
-		gltf_mesh.rotateY(-rads);
-		scene.add(mouth_gltf.scene);
-		mouth_gltf.animations; // Array<THREE.AnimationClip>
-		mouth_gltf.scene; // THREE.Group
-		mouth_gltf.scenes; // Array<THREE.Group>
-		mouth_gltf.cameras; // Array<THREE.Camera>
-		mouth_gltf.asset; // Object
-		r(mouth_gltf);
-	});
-}
-
-
-async function get_hlsl_text (url) {
+async function load_hlsl_text (url) {
     var response = await fetch(url);
     var text = await response.text();
     return text;
 }
 
 
-async function get_shader_files () {
+async function load_shader_files () {
     return new Promise(async (r) => {
         if (face_animation_shader.fragmentShader == null) {
 			log('loading shader file: /puppet_001/face_fragment_shader.hlsl');
-            face_animation_shader.fragmentShader = await get_hlsl_text('/puppet_001/face_fragment_shader.hlsl');
+            face_animation_shader.fragmentShader = await load_hlsl_text('/puppet_001/face_fragment_shader.hlsl');
         }
         if (face_animation_shader.vertexShader == null) {
 			log('loading shader file: /puppet_001/face_vertex_shader.hlsl');
-            face_animation_shader.vertexShader = await get_hlsl_text('/puppet_001/face_vertex_shader.hlsl');
+            face_animation_shader.vertexShader = await load_hlsl_text('/puppet_001/face_vertex_shader.hlsl');
         }
         if (mouth_shader.fragmentShader == null) {
 			log('loading shader file: /puppet_001/mouth_fragment_shader.hlsl');
-            mouth_shader.fragmentShader = await get_hlsl_text('/puppet_001/mouth_fragment_shader.hlsl'); 
+            mouth_shader.fragmentShader = await load_hlsl_text('/puppet_001/mouth_fragment_shader.hlsl'); 
         }
         if (mouth_shader.vertexShader == null) {
 			log('loading shader file: /puppet_001/mouth_vertex_shader.hlsl');
-            mouth_shader.vertexShader = await get_hlsl_text('/puppet_001/mouth_vertex_shader.hlsl');
+            mouth_shader.vertexShader = await load_hlsl_text('/puppet_001/mouth_vertex_shader.hlsl');
         }
         log('finished loaded shader files');
         r();
     });
+}
+
+
+// for console testing
+async function to_b64 (img_src) {
+    var img = await load_image(img_src);
+    image_canvas.width = img.width;
+    image_canvas.height = img.height;
+    image_ctx.drawImage(img, 0, 0);
+    return image_canvas.toDataURL();
+}
+
+
+
+// TODO need a head_displacement method instead
+// this should also probably be animated via the ticker framework
+function headSway (amplitude, speed) {
+	// Amplitude is how far to move the uvs for the animation, Default value of 1 looks good.
+	// Speed is a representation how often the animation loops in 1 minute.  Default value of 1 looks good
+	// Adjust the input values to make them a bit more intuitive, otherwise you'll need to put in a very small amplitude/speed value
+	amplitude /= 10;
+	speed /= 60;
+
+	var ellipseCenter = get_ellipse_center();
+	var distanceLeft = ellipseCenter.distanceTo(features.headLeft);
+	var distanceRight = ellipseCenter.distanceTo(features.headRight);
+	var distanceTop = ellipseCenter.distanceTo(features.headTop);
+	var distanceBottom = ellipseCenter.distanceTo(features.headBottom);
+	var extentsX = (distanceLeft + distanceRight) * 0.5;
+	var extentsY = (distanceTop + distanceBottom) * 0.5;
+
+	// This value is how the big the ellipse is for the head
+	var ST_numerator = 0.3;
+	var ellipseExtents = new THREE.Vector2(extentsX, extentsY);
+	var faceEllipse_ST = new THREE.Vector4(ST_numerator / ellipseExtents.x, ST_numerator / ellipseExtents.y, ellipseCenter.x, ellipseCenter.y);
+	face_animation_shader.uniforms.swaySpeed.value = speed;
+	face_animation_shader.uniforms.swayAmplitude.value = amplitude;
+	face_animation_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
+
+	mouth_shader.uniforms.swaySpeed.value = speed;
+	mouth_shader.uniforms.swayAmplitude.value = amplitude;
+	mouth_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
+}
+
+
+function get_ellipse_center () {
+	// The head top/left/right/bottom points create an ellipse around the head which drives head sway motion
+	var top = new THREE.Vector2(features.headTop.x, features.headTop.y);
+	var bottom = new THREE.Vector2(features.headBottom.x, features.headBottom.y);
+	var left = new THREE.Vector2(features.headLeft.x, features.headLeft.y);
+	var right = new THREE.Vector2(features.headRight.x, features.headRight.y);
+	var center = top.add(bottom).add(left).add(right).divideScalar(4);
+	return center;
+}
+
+
+function screen_to_world_position (screen_pos) {
+    var cameraSize = new THREE.Vector2(Math.abs(camera.left) + Math.abs(camera.right), -1.0);
+    var offset = new THREE.Vector2(camera.left, 0.5);
+    var worldPos = screen_pos.multiply(cameraSize);
+    return worldPos.add(offset);
+}
+
+
+async function test () {
+    await create_puppet('dog3.jpg');
+	left_blink_slow();
+	right_blink_slow();
+	ticks.mouth.add(_.map(_.range(60 * 60), (i) => {
+		return  (1 + Math.sin(i / 10))/2;
+	}));
+	//setTimeout(() => {
+	//	create_puppet('dog2.jpg');
+	//	left_blink_slow();
+	//	right_blink_slow();
+	//	//setTimeout(() => {
+	//	//	create_puppet('dog1.jpg');
+	//	//	left_blink_slow();
+	//	//	right_blink_slow();
+	//	//}, 1500);
+	//}, 1500);
 }
