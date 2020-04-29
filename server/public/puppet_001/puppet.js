@@ -1,9 +1,4 @@
 /*
-TODO
-headSway stops after a while
-recreate mesh when features are moved
-
-
 ** hey TOVI! look here! ***
 
 how to use: 
