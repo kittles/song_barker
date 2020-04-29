@@ -295,9 +295,9 @@ async function init () {
 
         // see fps and memory for debugging
         if (show_fps) {
-            stats.showPanel(2); // 0: fps, 1: ms, 2: mb, 3+: custom
+            stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
             document.body.appendChild(stats.dom);
-            stats.dom.style.left = '80px';
+            stats.dom.style.left = '120px';
         }
 
         // shader code lives in its on .hlsl files so they can be more easily
@@ -376,25 +376,19 @@ async function init () {
         // add the meshes and stuff to the scene
         scene.add(background_mesh);
         scene.add(face_mesh);
-        scene.add(mouth_gltf.scene);
+        scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
 
         // prepare for rendering
         renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
         container.appendChild(renderer.domElement);
         renderer.setSize(window_width, window_height);
 
-        // TODO maybe this doesnt need to happen here
-        // update the shaders with the features and textures
-        // this takes the feature objects, and syncs their values
-        // to the uniforms in the shaders
-        //update_shaders();
-
-        // dont render anything yet, that should happen when the app
-        // actually specifies an image
-
         if (enable_controls) {
             controls = new THREE.OrbitControls(camera, renderer.domElement);
         }
+
+        // dont render anything yet, that should happen when the app
+        // actually specifies an image
 
         // tell client the webview is ready to create a puppet
         init_ready = 1;
@@ -439,11 +433,10 @@ async function create_puppet (img_url) {
 
         direct_render();
 
-
-
         puppet_ready = 1;
         log('puppet is now ready');
         animate();
+        head_sway(1, 1);
         return r(puppet_ready);
     });
 }
@@ -532,7 +525,7 @@ function update_shaders () {
 
 // use this to set feature locations from the app
 function set_position (key, x, y) {
-    log(`calling set_position(${key}, ${x}, ${y})`);
+    log(`calling set_position('${key}', ${x}, ${y})`);
     features[key] = new THREE.Vector2(x, y);
 
     // sync
