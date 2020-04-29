@@ -101,6 +101,9 @@ var ctx;
 // where the render canvas lives in the dom
 var container;
 
+// the loading spinner that shows before your first create puppet call
+var loading_spinner;
+
 // three js objects
 var scene;
 var camera;
@@ -138,6 +141,7 @@ var features = {
     headLeft:         new THREE.Vector2(-0.255, 0.301),
     headRight:        new THREE.Vector2(0.151, 0.334),
 };
+
 
 // mouth uses other feature locations to infer some things
 // i think its using eye distance and the scale here to determine size
@@ -293,6 +297,9 @@ async function init () {
         viewportAspect = window_width / window_height;
         log(`window width ${window_width} window height ${window_height}`);
 
+        loading_spinner = document.getElementById('loading-spinner');
+        // TODO position it actually in the middle
+
         // see fps and memory for debugging
         if (show_fps) {
             stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -398,12 +405,29 @@ async function init () {
 }
 
 
+async function fade_spinner (duration, opacity) {
+    return new Promise(async (r) => {
+        $(loading_spinner).fadeTo(duration, opacity, r);
+    });
+}
+
+
+async function fade_container (duration, opacity) {
+    return new Promise(async (r) => {
+        $(container).fadeTo(duration, opacity, r);
+    });
+}
+
+
 // create a puppet from an image url
 // the app will pass a base64 string encoding to this
 // TODO make the transition smooth looking
 async function create_puppet (img_url) {
     return new Promise(async (r) => {
         start_time = performance.now();
+
+        await fade_spinner(200, 0);
+        await fade_container(500, 0);
 
         stop_all_animations();
         cancelAnimationFrame(animation_frame);
@@ -436,7 +460,11 @@ async function create_puppet (img_url) {
         puppet_ready = 1;
         log('puppet is now ready');
         animate();
-        head_sway(1, 1);
+        head_sway(2, 1);
+
+        fade_spinner(500, 0);
+        await $(container).fadeTo(500, 1);
+
         return r(puppet_ready);
     });
 }
@@ -527,6 +555,12 @@ function update_shaders () {
 function set_position (key, x, y) {
     log(`calling set_position('${key}', ${x}, ${y})`);
     features[key] = new THREE.Vector2(x, y);
+
+    if (key == 'leftEyePosition' || key == 'rightEyePosition') {
+        if (features.leftEyePosition.x > features.rightEyePosition.x) {
+            log('WARNING: left eye x is greater than right eye x- left and right are from the viewers perspective');
+        }
+    }
 
     // sync
     sync_objects_to_features();
