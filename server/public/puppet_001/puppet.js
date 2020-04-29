@@ -112,7 +112,7 @@ var debug_face_mesh = false;
 var enable_controls = false;
 
 // show threejs stats about fps and mb
-var show_fps = true;
+var show_fps = false;
 var stats;
 
 // iOS webviews need 20 extra pixels
