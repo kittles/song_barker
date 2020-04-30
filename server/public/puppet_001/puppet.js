@@ -107,7 +107,7 @@ var renderer;
 // the id of the RAF loop if you want to cancel it
 var animation_frame;
 
-// shows the mesh for debugging
+// some vars for debugging
 var debug_face_mesh = false;
 var enable_controls = false;
 
@@ -201,14 +201,13 @@ var mouth_shader = {
 };
 
 
-// these are where the threejs objects live, in case 
-// you need to directly manipulate them for memory management or whatever
-var face_mesh;
+// make the threejs objects global, since we only create them once
+// and just change them when we make new puppets
 var background_mesh;
-var mouth_mesh; // TODO this should be mouth_mesh
-// the shader for the face mesh
+var face_mesh;
 var face_mesh_material;
 var mouth_gltf; // this is a "Group"
+var mouth_mesh; // this is the mesh that comes from the gltf
 var pet_image_texture;
 var pet_material;
 
@@ -233,6 +232,8 @@ function log (msg) {
         }
     } else {
         // a hack... the timing message goes with the log that directly preceeds it
+        // tovi string compares on some of the logs, so we cant just include the
+        // timing in them directly
         console.log('[puppet.js console.log] ' + msg);
         if (show_timing) {
             console.log(`[puppet.js timing] ${((performance.now() - start_time) / 1000).toFixed(2)} seconds`);
@@ -293,7 +294,6 @@ async function init () {
         log(`window width ${window_width} window height ${window_height}`);
 
         loading_spinner = document.getElementById('loading-spinner');
-        // TODO position it actually in the middle
 
         // see fps and memory for debugging
         if (show_fps) {
@@ -422,9 +422,9 @@ async function create_puppet (img_url) {
         start_time = performance.now();
 
         await fade_spinner(200, 0);
+        stop_all_animations();
         await fade_container(500, 0);
 
-        stop_all_animations();
         cancelAnimationFrame(animation_frame);
 
         img_url = (img_url === undefined ? await to_b64('dog3.jpg') : img_url);
@@ -470,11 +470,12 @@ async function create_puppet (img_url) {
 //
 
 function sync_objects_to_features () {
-    // now that the pet image texture exists, use it to set scales and ratios
+    // this only gets called when pet image texture exists, 
+    // so it can use it to set scales and ratios
     background_mesh.scale.x = pet_image_texture.image.width / pet_image_texture.image.height;
     face_animation_shader.uniforms.aspectRatio.value = pet_image_texture.image.width / pet_image_texture.image.height;
 
-    //// use the eye locations to deduce other feature locations and orientations
+    // use the eye locations to deduce other feature locations and orientations
     var leftEye = new THREE.Vector2(features.leftEyePosition.x, features.leftEyePosition.y);
     var rightEye = new THREE.Vector2(features.rightEyePosition.x, features.rightEyePosition.y);
 
