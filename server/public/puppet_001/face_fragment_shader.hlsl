@@ -4,9 +4,9 @@ varying vec2 uvCoords;
 varying vec4 debug;
 void main()
 {
-	vec4 color = texture2D(petImage, uvCoords);
-	//color += debug;
-	//color = debug;
-	//color.xyz = vec3(debug.x, debug.x, debug.x);
-	gl_FragColor = vec4(color.xyz, 1.0);
+    vec4 color = texture2D(petImage, uvCoords);
+    //color += debug;
+    //color = debug;
+    //color.xyz = vec3(debug.x, debug.x, debug.x);
+    gl_FragColor = vec4(color.xyz, 1.0);
 }

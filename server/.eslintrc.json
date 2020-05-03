@@ -1,0 +1,32 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true,
+        "node": true
+    },
+    "extends": [
+        "standard"
+    ],
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018
+    },
+    "rules": {
+        "semi": [2, "always"],
+        "camelcase": [0, {
+            "properties": "never"
+        }],
+        "no-multiple-empty-lines": [0, "always"],
+        "indent": [2, 4],
+        "comma-dangle": [2, {
+            "arrays": "only-multiline",
+            "objects": "only-multiline"
+        }],
+        "space-before-function-paren": ["error", "always"],
+        "key-spacing": [0, "always"],
+        "spaced-comment": [0, "always"]
+    }
+}

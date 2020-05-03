@@ -1,97 +1,9 @@
-/*
-** hey TOVI! look here! ***
-
-how to use: 
-
-wait until init_ready = 1, or listen for log
-call create_puppet with no arguments for default dog, or with a base64 image string
-wait until create_puppet logs that its ready
-
-if needed, set the position of features with set_position(key, x, y),
-where key is one of these strings:
-    'leftEyePosition'
-    'rightEyePosition'
-    'mouthPosition'
-    'headTop'
-    'headBottom'
-    'headLeft'
-    'headRight'
-this is just setting things in the features object
-
-when you are ready to start moving the puppet, call animate() to
-initiate the requestAnimationFrame loop
-note that nothing will move or change on the puppet until animate starts the loop.
-after animate has been called- the following will manipulate the puppet:
-
-to animate the features of the puppet directly, use the following:
-    blink_left (val)
-    blink_right (val)
-    blink (val)
-    eyebrow_left (val)
-    eyebrow_right (val)
-    mouth_open (val)
-these just set the position of the various features to whatever you tell it to.
-for instance, mouth_open(0.5) sets the mouth to 0.5 open
-
-there are also "prepackaged" animations:
-    left_brow_raise
-    right_brow_raise
-    left_brow_furrow
-    right_brow_furrow
-    left_blink_quick
-    left_blink_slow
-    right_blink_quick
-    right_blink_slow
-which take no arguments and do what animations. right_blink_slow() will make the right
-eye blink slowly as soon as you call it
-    
-there are these functions, which smoothly move from one position to another over n frames.
-start is the starting position, end is the ending position, so for instance,
-mouth_to_pos(0,1,100) is open mouth from closed to open over 100 frames
-
-    left_brow_to_pos (start, end, n)
-    right_brow_to_pos (start, end, n)
-    left_blink_to_pos (start, end, n)
-    right_blink_to_pos (start, end, n)
-    mouth_to_pos (start, end, n)
-
-there are these two functions which are more specialized
-
-    headSway (amplitude, speed)
-
-    colin's head swaying function- it may stop working after a bit, i need to
-    diagnose. while the animation is nice, i think it needs to be reimplemented
-    into the tick based animation framework im using.
-
-    mouth_track_sound (amplitudes)
-
-    mouth_track_sound expects an array of floats [0-1] that represent the
-    sound intensity over 1/60th of a second intervals. the mouth will animate
-    as soon as you call this. we need to see if the overhead of passing the 
-    argument to the webview is going to throw this out of sync with the music
-    too much or not
-
-to stop all current and future scheduled animations,
-use 
-
-    stop_all_animations ()
-
-the raf loop will still keep going, but scheduled animations get erased
-
-*/
+/* global _, Print, THREE, $, Stats */
 var fp = _.noConflict(); // lodash fp and lodash at the same time
-
-// these are for the app to check the state of things
-var init_ready = 0; // poll on this to know when you can start doing stuff
-var puppet_ready = 0; // poll on this to know when you can start doing stuff
 
 // for turning images into base64 strings, for testing
 var image_canvas;
 var image_ctx;
-
-// the actual render canvas
-var canvas;
-var ctx;
 
 // where the render canvas lives in the dom
 var container;
@@ -103,6 +15,9 @@ var loading_spinner;
 var scene;
 var camera;
 var renderer;
+
+// for inspecting the scene
+var controls;
 
 // the id of the RAF loop if you want to cancel it
 var animation_frame;
@@ -122,7 +37,7 @@ var iOS;
 // getting the window size is platform and version specific
 // store the results of that here
 var window_width;
-var window_height; 
+var window_height;
 
 // store the coordinates of the features here
 var features = {
@@ -210,10 +125,11 @@ var mouth_gltf; // this is a "Group"
 var mouth_mesh; // this is the mesh that comes from the gltf
 var pet_image_texture;
 var pet_material;
+var animation_noise_texture; // what head sway uses
 
 
 // just for checking how long the initialization process takes
-// set this to performance.now() at the beginning of something you want to 
+// set this to performance.now() at the beginning of something you want to
 // see durations for
 var start_time;
 // log messages include time since init
@@ -224,7 +140,7 @@ var show_timing = true;
 function log (msg) {
     // this gets picked up clientside through a "javascript channel"
     // if its in a webview in the app
-    if (typeof(Print) !== 'undefined') {
+    if (typeof Print !== 'undefined') {
         msg = '[puppet.js postMessage] ' + msg;
         Print.postMessage(msg);
         if (show_timing) {
@@ -251,166 +167,143 @@ $('document').ready(init);
 // nothing is rendered yet because that depends on
 // what image the app wants to use
 async function init () {
-    return new Promise(async (r) => {
-        start_time = performance.now();
-        log('puppet.js initializing');
+    start_time = performance.now();
+    log('puppet.js initializing');
 
-        stats = new Stats();
+    stats = new Stats();
 
-        // iOS webview sizing shim
-        // TODO figure out why webviews dimensions come out undersized on ios
-        iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        log(`navigator.userAgent: ${navigator.userAgent}`);
-        log(`iOS = ${iOS}`);
-        if (iOS) {
-            window_width = document.body.offsetWidth + 20;
-            window_height = document.body.offsetHeight + 20;
-        } else {
-            window_width = document.body.offsetWidth;
-            window_height = document.body.offsetHeight;
-        }
-        log(`WIDTH INFO: 
-        window.innerWidth: ${window.innerWidth}
-        document.body.offsetWidth: ${document.body.offsetWidth}
-        document.body.clientWidth: ${document.body.clientWidth}
-        USING:
-        window_width: ${window_width}
-        window_height: ${window_height}
-        `);
+    // iOS webview sizing shim
+    // TODO figure out why webviews dimensions come out undersized on ios
+    iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    log(`navigator.userAgent: ${navigator.userAgent}`);
+    log(`iOS = ${iOS}`);
+    if (iOS) {
+        window_width = document.body.offsetWidth + 20;
+        window_height = document.body.offsetHeight + 20;
+    } else {
+        window_width = document.body.offsetWidth;
+        window_height = document.body.offsetHeight;
+    }
+    log(`WIDTH INFO: 
+    window.innerWidth: ${window.innerWidth}
+    document.body.offsetWidth: ${document.body.offsetWidth}
+    document.body.clientWidth: ${document.body.clientWidth}
+    USING:
+    window_width: ${window_width}
+    window_height: ${window_height}
+    `);
 
-        // for turning images into b64
-        // this is just to help test in a browser
-        image_canvas = document.getElementById('image-canvas');
-        image_ctx = image_canvas.getContext('2d');
+    // for turning images into b64
+    // this is just to help test in a browser
+    image_canvas = document.getElementById('image-canvas');
+    image_ctx = image_canvas.getContext('2d');
 
-        // for rendering the actual puppet
-        canvas = document.createElement('canvas');
+    // this just holds the three.js render element
+    container = document.getElementById('container');
 
-        // this just holds the three.js render element
-        container = document.getElementById('container');
+    // Calculate the aspect ratio of the browser viewport
+    var viewport_aspect = window_width / window_height;
+    log(`window width ${window_width} window height ${window_height}`);
 
-        // Calculate the aspect ratio of the browser viewport
-        viewportAspect = window_width / window_height;
-        log(`window width ${window_width} window height ${window_height}`);
+    loading_spinner = document.getElementById('loading-spinner');
 
-        loading_spinner = document.getElementById('loading-spinner');
+    // see fps and memory for debugging
+    if (show_fps) {
+        stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        document.body.appendChild(stats.dom);
+        stats.dom.style.left = '120px';
+    }
 
-        // see fps and memory for debugging
-        if (show_fps) {
-            stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-            document.body.appendChild(stats.dom);
-            stats.dom.style.left = '120px';
-        }
+    // shader code lives in its on .hlsl files so they can be more easily
+    // syntax highlighted
+    // this loads the hlsl files, then populates the shader configs with the
+    // shader code
+    await load_shader_files();
 
-        // shader code lives in its on .hlsl files so they can be more easily
-        // syntax highlighted
-        // this loads the hlsl files, then populates the shader configs with the 
-        // shader code
-        await load_shader_files();
+    // this is an image that has red and green channels for x and y displacement
+    // of the head
+    animation_noise_texture = await load_texture('noise_2D.png');
 
-        // this is an image that has red and green channels for x and y displacement
-        // of the head
-        animation_noise_texture = await load_texture('noise_2D.png');
-        
-        //
-        // create the threejs geometry and materials for the scene
-        //
+    //
+    // create the threejs geometry and materials for the scene
+    //
 
-        scene = new THREE.Scene();
-        renderer = new THREE.WebGLRenderer();
-        scene.background = new THREE.Color(0x2E2E46);
+    scene = new THREE.Scene();
+    renderer = new THREE.WebGLRenderer();
+    scene.background = new THREE.Color(0x2E2E46);
 
-        // Camera left and right frustrum to make sure the camera size is the same as viewport size
-        camera = new THREE.OrthographicCamera(
-            -0.5 * viewportAspect,
-            0.5 * viewportAspect,
-            0.5,
-            -0.5,
-            0.001,
-            1000
-        );
-        camera.position.z = 1;
+    // Camera left and right frustrum to make sure the camera size is the same as viewport size
+    camera = new THREE.OrthographicCamera(
+        -0.5 * viewport_aspect,
+        0.5 * viewport_aspect,
+        0.5,
+        -0.5,
+        0.001,
+        1000
+    );
+    camera.position.z = 1;
 
-        // Create the background plane
-        // This is just the static pet image on the plane
-        // Draw this if we aren't debugging the face mesh
-        if (!debug_face_mesh) {
-            pet_material = new THREE.MeshBasicMaterial({
-                //map: pet_image_texture, this happens later, when we know what the pet image is
-            });
-            background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
-            background_mesh.scale.x = 1; // this will get set when we know what the pet image is
-            background_mesh.renderOrder = 0;
-        }
+    // Create the background plane
+    // This is just the static pet image on the plane
+    // Draw this if we aren't debugging the face mesh
+    if (!debug_face_mesh) {
+        pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
+        background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
+        background_mesh.scale.x = 1; // this will get set when we know what the pet image is
+        background_mesh.renderOrder = 0;
+    }
 
 
-        // create the face mesh
-        face_mesh_material = new THREE.ShaderMaterial({
-            uniforms:       face_animation_shader.uniforms,
-            vertexShader:   face_animation_shader.vertexShader,
-            fragmentShader: face_animation_shader.fragmentShader,
-            depthFunc:      debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
-            side:           THREE.DoubleSide,
-            wireframe:      debug_face_mesh,
-        });
-
-        // Adds the material to the geometry
-        face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, segments, segments), face_mesh_material);
-        
-        // This object renders on top of the background
-        face_mesh.renderOrder = 1;
-
-        // mouth sprite - this is a group in threejs lingo,
-        // the actual mouth mesh lives in mouth_mesh, a child of the group
-        mouth_gltf = await load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
-        mouth_mesh = mouth_gltf.scene.children[0].children[0];
-        mouth_mesh.material = new THREE.ShaderMaterial({ 
-            uniforms:       mouth_shader.uniforms,
-            vertexShader:   mouth_shader.vertexShader,
-            fragmentShader: mouth_shader.fragmentShader,
-            depthFunc:      THREE.AlwaysDepth,
-            side:           THREE.DoubleSide,
-            blending:       THREE.MultiplyBlending,
-            vertexColors:   true
-        });
-        mouth_mesh.renderOrder = 2;
-
-        // add the meshes and stuff to the scene
-        scene.add(background_mesh);
-        scene.add(face_mesh);
-        scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
-
-        // prepare for rendering
-        renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-        container.appendChild(renderer.domElement);
-        renderer.setSize(window_width, window_height);
-
-        if (enable_controls) {
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-        }
-
-        // dont render anything yet, that should happen when the app
-        // actually specifies an image
-
-        // tell client the webview is ready to create a puppet
-        init_ready = 1;
-        log('finished init');
-        r(init_ready);
+    // create the face mesh
+    face_mesh_material = new THREE.ShaderMaterial({
+        uniforms:       face_animation_shader.uniforms,
+        vertexShader:   face_animation_shader.vertexShader,
+        fragmentShader: face_animation_shader.fragmentShader,
+        depthFunc:      debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
+        side:           THREE.DoubleSide,
+        wireframe:      debug_face_mesh,
     });
-}
 
+    // Adds the material to the geometry
+    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, segments, segments), face_mesh_material);
 
-async function fade_spinner (duration, opacity) {
-    return new Promise(async (r) => {
-        $(loading_spinner).fadeTo(duration, opacity, r);
+    // This object renders on top of the background
+    face_mesh.renderOrder = 1;
+
+    // mouth sprite - this is a group in threejs lingo,
+    // the actual mouth mesh lives in mouth_mesh, a child of the group
+    mouth_gltf = await load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
+    mouth_mesh = mouth_gltf.scene.children[0].children[0];
+    mouth_mesh.material = new THREE.ShaderMaterial({
+        uniforms:       mouth_shader.uniforms,
+        vertexShader:   mouth_shader.vertexShader,
+        fragmentShader: mouth_shader.fragmentShader,
+        depthFunc:      THREE.AlwaysDepth,
+        side:           THREE.DoubleSide,
+        blending:       THREE.MultiplyBlending,
+        vertexColors:   true
     });
-}
+    mouth_mesh.renderOrder = 2;
 
+    // add the meshes and stuff to the scene
+    scene.add(background_mesh);
+    scene.add(face_mesh);
+    scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
 
-async function fade_container (duration, opacity) {
-    return new Promise(async (r) => {
-        $(container).fadeTo(duration, opacity, r);
-    });
+    // prepare for rendering
+    renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+    container.appendChild(renderer.domElement);
+    renderer.setSize(window_width, window_height);
+
+    if (enable_controls) {
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+    }
+
+    // dont render anything yet, that should happen when the app
+    // actually specifies an image
+
+    // tell client the webview is ready to create a puppet
+    log('finished init');
 }
 
 
@@ -418,50 +311,45 @@ async function fade_container (duration, opacity) {
 // the app will pass a base64 string encoding to this
 // TODO make the transition smooth looking
 async function create_puppet (img_url) {
-    return new Promise(async (r) => {
-        start_time = performance.now();
+    start_time = performance.now();
 
-        await fade_spinner(200, 0);
-        stop_all_animations();
-        await fade_container(500, 0);
+    await fade_spinner(200, 0);
+    stop_all_animations();
+    await fade_container(500, 0);
 
-        cancelAnimationFrame(animation_frame);
+    cancelAnimationFrame(animation_frame);
 
-        img_url = (img_url === undefined ? await to_b64('dog3.jpg') : img_url);
+    img_url = (img_url === undefined ? await to_b64('dog3.jpg') : img_url);
 
-        // need to do this so old three objects can be garbage collected
-        if (pet_image_texture) {
-            pet_image_texture.dispose();
-        }
+    // need to do this so old three objects can be garbage collected
+    if (pet_image_texture) {
+        pet_image_texture.dispose();
+    }
 
-        // set the pet image on the mesh and on the shader
-        pet_image_texture = await load_texture(img_url);
-        pet_material.map = pet_image_texture
-        face_animation_shader.uniforms['petImage'].value = pet_image_texture;
+    // set the pet image on the mesh and on the shader
+    pet_image_texture = await load_texture(img_url);
+    pet_material.map = pet_image_texture;
+    face_animation_shader.uniforms.petImage.value = pet_image_texture;
 
-        // TODO which of these is actually necessary
-        background_mesh.needsUpdate = true;
-        pet_material.needsUpdate = true;
-        face_mesh.needsUpdate = true;
-        face_mesh_material.needsUpdate = true;
+    // TODO which of these is actually necessary
+    background_mesh.needsUpdate = true;
+    pet_material.needsUpdate = true;
+    face_mesh.needsUpdate = true;
+    face_mesh_material.needsUpdate = true;
 
 
-        // use features to determine locations of stuff
-        sync_objects_to_features();
-        update_shaders();
+    // use features to determine locations of stuff
+    sync_objects_to_features();
+    update_shaders();
 
-        direct_render();
+    direct_render();
 
-        puppet_ready = 1;
-        log('puppet is now ready');
-        animate();
-        head_sway(2, 1);
+    log('puppet is now ready');
+    animate();
+    head_sway(2, 1);
 
-        fade_spinner(500, 0);
-        await $(container).fadeTo(500, 1);
-
-        return r(puppet_ready);
-    });
+    fade_spinner(500, 0);
+    await $(container).fadeTo(500, 1);
 }
 
 
@@ -470,8 +358,12 @@ async function create_puppet (img_url) {
 //
 
 function sync_objects_to_features () {
-    // this only gets called when pet image texture exists, 
+    // this should only get called when pet image texture exists,
     // so it can use it to set scales and ratios
+    if (!pet_image_texture) {
+        log('WARNING: pet_image_texture is undefined!');
+    }
+
     background_mesh.scale.x = pet_image_texture.image.width / pet_image_texture.image.height;
     face_animation_shader.uniforms.aspectRatio.value = pet_image_texture.image.width / pet_image_texture.image.height;
 
@@ -497,7 +389,7 @@ function sync_objects_to_features () {
     mouth_mesh.scale.set(eyeLineLength * mouth_scale, eyeLineLength * mouth_scale, eyeLineLength * mouth_scale);
 
     // Rotate the face and mouth mesh the same direction as the eyes
-    var rads = Math.atan(eyeLine.y / eyeLine.x);        
+    var rads = Math.atan(eyeLine.y / eyeLine.x);
     face_mesh.rotation.set(0, 0, 0);
     face_mesh.rotateZ(rads);
     mouth_mesh.rotation.y = -rads;
@@ -519,9 +411,9 @@ function sync_objects_to_features () {
     var ST_numerator = 0.3;
     var ellipseExtents = new THREE.Vector2(extentsX, extentsY);
     var faceEllipse_ST = new THREE.Vector4(
-        ST_numerator / ellipseExtents.x, 
+        ST_numerator / ellipseExtents.x,
         ST_numerator / ellipseExtents.y,
-        ellipseCenter.x, 
+        ellipseCenter.x,
         ellipseCenter.y
     );
     face_animation_shader.uniforms.faceEllipse_ST.value = faceEllipse_ST;
@@ -530,29 +422,30 @@ function sync_objects_to_features () {
 
 
 function update_shaders () {
-    face_animation_shader.uniforms['petImage'].value = pet_image_texture;
-    face_animation_shader.uniforms['animationNoise'].value = animation_noise_texture;
+    face_animation_shader.uniforms.petImage.value = pet_image_texture;
+    face_animation_shader.uniforms.animationNoise.value = animation_noise_texture;
     face_animation_shader.uniforms.resolution.value.x = window_width;
     face_animation_shader.uniforms.resolution.value.y = window_height;
     face_animation_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
     face_animation_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
     face_animation_shader.uniforms.mouthPosition.value = features.mouthPosition;
 
-    mouth_shader.uniforms['animationNoise'].value = animation_noise_texture;
+    mouth_shader.uniforms.animationNoise.value = animation_noise_texture;
     mouth_shader.uniforms.resolution.value.x = window.innerWidth;
     mouth_shader.uniforms.resolution.value.y = window.innerHeight;
     mouth_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
     mouth_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
-    mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;            
+    mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;
 }
 
 
 // use this to set feature locations from the app
-function set_position (key, x, y) {
+function set_position (key, x, y) { // eslint-disable-line no-unused-vars
+    // set the feature on the features object
     log(`calling set_position('${key}', ${x}, ${y})`);
     features[key] = new THREE.Vector2(x, y);
 
-    if (key == 'leftEyePosition' || key == 'rightEyePosition') {
+    if (key === 'leftEyePosition' || key === 'rightEyePosition') {
         if (features.leftEyePosition.x > features.rightEyePosition.x) {
             log('WARNING: left eye x is greater than right eye x- left and right are from the viewers perspective');
         }
@@ -561,44 +454,42 @@ function set_position (key, x, y) {
     // sync
     sync_objects_to_features();
     update_shaders();
-
     direct_render();
 }
 
 
-function blink_left (val) {
+function blink_left (val) { // eslint-disable-line no-unused-vars
     face_animation_shader.uniforms.blinkLeft.value = val;
     direct_render();
 }
 
 
-function blink_right (val) {
+function blink_right (val) { // eslint-disable-line no-unused-vars
     face_animation_shader.uniforms.blinkRight.value = val;
     direct_render();
 }
 
 
-function blink (val) {
+function blink (val) { // eslint-disable-line no-unused-vars
     face_animation_shader.uniforms.blinkRight.value = val;
     face_animation_shader.uniforms.blinkLeft.value = val;
     direct_render();
 }
 
 
-function eyebrow_left (val) {
+function eyebrow_left (val) { // eslint-disable-line no-unused-vars
     face_animation_shader.uniforms.eyebrowLeftOffset.value = val;
     direct_render();
 }
 
 
-function eyebrow_right (val) {
+function eyebrow_right (val) { // eslint-disable-line no-unused-vars
     face_animation_shader.uniforms.eyebrowRightOffset.value = val;
     direct_render();
 }
 
 
-function mouth_open (val) {
-    //var clamped = Math.min(Math.max(val, 0), 1);
+function mouth_open (val) { // eslint-disable-line no-unused-vars
     mouth_shader.uniforms.mouthOpen.value = val;
     face_animation_shader.uniforms.mouthOpen.value = val;
     direct_render();
@@ -608,39 +499,39 @@ function mouth_open (val) {
 // some prepackaged animations
 
 
-function left_brow_raise () {
-    left_brow_to_pos(0, 1, 15); 
+function left_brow_raise () { // eslint-disable-line no-unused-vars
+    left_brow_to_pos(0, 1, 15);
     setTimeout(() => {
-        left_brow_to_pos(1, 0, 15); 
+        left_brow_to_pos(1, 0, 15);
     }, 500);
 }
 
 
-function right_brow_raise () {
-    right_brow_to_pos(0, 1, 15); 
+function right_brow_raise () { // eslint-disable-line no-unused-vars
+    right_brow_to_pos(0, 1, 15);
     setTimeout(() => {
-        right_brow_to_pos(1, 0, 15); 
+        right_brow_to_pos(1, 0, 15);
     }, 500);
 }
 
 
-function left_brow_furrow () {
-    left_brow_to_pos(0, -1, 15); 
+function left_brow_furrow () { // eslint-disable-line no-unused-vars
+    left_brow_to_pos(0, -1, 15);
     setTimeout(() => {
-        left_brow_to_pos(-1, 0, 15); 
+        left_brow_to_pos(-1, 0, 15);
     }, 500);
 }
 
 
-function right_brow_furrow () {
-    right_brow_to_pos(0, -1, 15); 
+function right_brow_furrow () { // eslint-disable-line no-unused-vars
+    right_brow_to_pos(0, -1, 15);
     setTimeout(() => {
-        right_brow_to_pos(-1, 0, 15); 
+        right_brow_to_pos(-1, 0, 15);
     }, 500);
 }
 
 
-function left_blink_quick () {
+function left_blink_quick () { // eslint-disable-line no-unused-vars
     left_blink_to_pos(0, 1, 4, easings.easeInOutQuad);
     setTimeout(() => {
         left_blink_to_pos(1, 0, 8, easings.easeInOutQuad);
@@ -648,7 +539,7 @@ function left_blink_quick () {
 }
 
 
-function left_blink_slow () {
+function left_blink_slow () { // eslint-disable-line no-unused-vars
     left_blink_to_pos(0, 1, 15, easings.easeInOutQuad);
     setTimeout(() => {
         left_blink_to_pos(1, 0, 25, easings.easeInOutQuad);
@@ -656,7 +547,7 @@ function left_blink_slow () {
 }
 
 
-function right_blink_quick () {
+function right_blink_quick () { // eslint-disable-line no-unused-vars
     right_blink_to_pos(0, 1, 4, easings.easeInOutQuad);
     setTimeout(() => {
         right_blink_to_pos(1, 0, 8, easings.easeInOutQuad);
@@ -664,7 +555,7 @@ function right_blink_quick () {
 }
 
 
-function right_blink_slow () {
+function right_blink_slow () { // eslint-disable-line no-unused-vars
     right_blink_to_pos(0, 1, 15, easings.easeInOutQuad);
     setTimeout(() => {
         right_blink_to_pos(1, 0, 25, easings.easeInOutQuad);
@@ -673,12 +564,12 @@ function right_blink_slow () {
 
 
 // this is the one for having the mouth move along to a sound
-function mouth_track_sound (amplitudes) {
+function mouth_track_sound (amplitudes) { // eslint-disable-line no-unused-vars
     feature_tickers.mouth.add(amplitudes);
 }
 
 
-function head_displace (x, y) {
+function head_displace (x, y) { // eslint-disable-line no-unused-vars
     face_animation_shader.uniforms.head_displacement.value = new THREE.Vector2(x, y);
     mouth_shader.uniforms.head_displacement.value = new THREE.Vector2(x, y);
     // TODO update mouth_mesh position
@@ -721,7 +612,7 @@ function head_sway (amplitude, speed) {
 
 
 // if you want to see where you mouse is the coordinate space
-function screen_to_world_position (screen_pos) {
+function screen_to_world_position (screen_pos) { // eslint-disable-line no-unused-vars
     var cameraSize = new THREE.Vector2(Math.abs(camera.left) + Math.abs(camera.right), -1.0);
     var offset = new THREE.Vector2(camera.left, 0.5);
     var worldPos = screen_pos.multiply(cameraSize);
@@ -731,27 +622,27 @@ function screen_to_world_position (screen_pos) {
 
 // these move smoothly between two positions
 
-function left_brow_to_pos (start, end, n) {
+function left_brow_to_pos (start, end, n) { // eslint-disable-line no-unused-vars
     feature_tickers.left_brow.add(to_positions(start, end, n, easings.easeInOutQuad));
 }
 
 
-function right_brow_to_pos (start, end, n) {
+function right_brow_to_pos (start, end, n) { // eslint-disable-line no-unused-vars
     feature_tickers.right_brow.add(to_positions(start, end, n, easings.easeInOutQuad));
 }
 
 
-function left_blink_to_pos (start, end, n) {
+function left_blink_to_pos (start, end, n) { // eslint-disable-line no-unused-vars
     feature_tickers.left_blink.add(to_positions(start, end, n, easings.easeInOutQuad));
 }
 
 
-function right_blink_to_pos (start, end, n) {
+function right_blink_to_pos (start, end, n) { // eslint-disable-line no-unused-vars
     feature_tickers.right_blink.add(to_positions(start, end, n, easings.easeInOutQuad));
 }
 
 
-function mouth_to_pos (start, end, n) {
+function mouth_to_pos (start, end, n) { // eslint-disable-line no-unused-vars
     feature_tickers.mouth.add(to_positions(start, end, n, easings.easeInOutQuad));
 }
 
@@ -800,7 +691,7 @@ function direct_render () {
 
 // this starts the raf loop and manages its state
 function animate () {
-    if (enable_controls && controls != undefined) {
+    if (enable_controls && controls !== undefined) {
         controls.update();
     }
     cancelAnimationFrame(animation_frame);
@@ -811,11 +702,11 @@ function animate () {
 
         // Tell the shaders how many seconds have elapsed, this is for the headsway animation
         var elapsedMilliseconds = performance.now() - animation_start_time;
-        var elapsedSeconds = elapsedMilliseconds / 1000.;
+        var elapsedSeconds = elapsedMilliseconds / 1000.0;
         face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
         mouth_shader.uniforms.swayTime.value = elapsedSeconds;
 
-        //// step a tick in the motion handler
+        // step a tick in the motion handler
         //if (motion_handler_tick()) {
         //    // only render new frames when needed
         //    direct_render();
@@ -900,7 +791,7 @@ function to_range (start, end, xs) {
 
 function to_positions (start, end, n, easing) {
     // to generate an eased motion
-    var xs = unit_linspace(n); 
+    var xs = unit_linspace(n);
     xs = _.map(xs, easing);
     xs = to_range(start, end, xs);
     return xs;
@@ -909,18 +800,15 @@ function to_positions (start, end, n, easing) {
 
 var easings = {
     linear:         t => t,
-    easeInQuad:     t => t*t,
-    easeOutQuad:    t => t*(2-t),
-    easeInOutQuad:  t => t<.5 ? 2*t*t : -1+(4-2*t)*t,
-    easeInCubic:    t => t*t*t,
-    easeOutCubic:   t => (--t)*t*t+1,
-    easeInOutCubic: t => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1,
-    easeInQuart:    t => t*t*t*t,
-    easeOutQuart:   t => 1-(--t)*t*t*t,
-    easeInOutQuart: t => t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t,
-    easeInQuint:    t => t*t*t*t*t,
-    easeOutQuint:   t => 1+(--t)*t*t*t*t,
-    easeInOutQuint: t => t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t,
+    easeInQuad:     t => t * t,
+    easeOutQuad:    t => t * (2 - t),
+    easeInOutQuad:  t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+    easeInCubic:    t => t * t * t,
+    easeOutCubic:   t => (--t) * t * t + 1,
+    easeInOutCubic: t => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
+    easeInQuart:    t => t * t * t * t,
+    easeOutQuart:   t => 1 - (--t) * t * t * t,
+    easeInOutQuart: t => t < 0.5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t,
 };
 
 
@@ -931,47 +819,45 @@ var easings = {
 
 async function load_mouth_mesh (scene, model_path) {
     // Load the Mouth custom mesh
-    return new Promise(async (r) => { 
-        // dont make more than one
-        if (mouth_gltf) {
-            r(mouth_gltf);
-        } else {
-            mouth_gltf = await load_gltf(model_path);
-            r(mouth_gltf);
-        }
-    });
+    // dont make more than one
+    if (mouth_gltf) {
+        return mouth_gltf;
+    } else {
+        mouth_gltf = await load_gltf(model_path);
+        return mouth_gltf;
+    }
 }
 
 
 async function load_texture (img_src) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
         new THREE.TextureLoader().load(img_src, resolve);
     });
 }
 
 
 async function load_image (img_src) {
-    return new Promise((r) => { 
-        let i = new Image(); 
-        i.onload = () => r(i); 
-        i.src = img_src; 
+    return new Promise((resolve) => {
+        var i = new Image();
+        i.onload = () => resolve(i);
+        i.src = img_src;
     });
 }
 
 
 var gltf_memo = {};
 async function load_gltf (model_path) {
-    return new Promise((r) => { 
+    return new Promise((resolve) => {
         if (_.get(gltf_memo, model_path, false)) {
             log(`using cached gltf file: ${model_path}`);
-            r(gltf_memo[model_path]);
+            resolve(gltf_memo[model_path]);
         } else {
             var loader = new THREE.GLTFLoader();
             // Load a glTF resource
             loader.load(model_path, (gltf) => {
                 log(`gltf loaded: ${model_path}`);
                 gltf_memo[model_path] = gltf;
-                r(gltf);
+                resolve(gltf);
             }, () => {
                 log(`gltf file loading: ${model_path}`);
             }, (error) => {
@@ -991,26 +877,23 @@ async function load_hlsl_text (url) {
 
 
 async function load_shader_files () {
-    return new Promise(async (r) => {
-        if (face_animation_shader.fragmentShader == null) {
-            log('loading shader file: /puppet_001/face_fragment_shader.hlsl');
-            face_animation_shader.fragmentShader = await load_hlsl_text('/puppet_001/face_fragment_shader.hlsl');
-        }
-        if (face_animation_shader.vertexShader == null) {
-            log('loading shader file: /puppet_001/face_vertex_shader.hlsl');
-            face_animation_shader.vertexShader = await load_hlsl_text('/puppet_001/face_vertex_shader.hlsl');
-        }
-        if (mouth_shader.fragmentShader == null) {
-            log('loading shader file: /puppet_001/mouth_fragment_shader.hlsl');
-            mouth_shader.fragmentShader = await load_hlsl_text('/puppet_001/mouth_fragment_shader.hlsl'); 
-        }
-        if (mouth_shader.vertexShader == null) {
-            log('loading shader file: /puppet_001/mouth_vertex_shader.hlsl');
-            mouth_shader.vertexShader = await load_hlsl_text('/puppet_001/mouth_vertex_shader.hlsl');
-        }
-        log('finished loaded shader files');
-        r();
-    });
+    if (face_animation_shader.fragmentShader == null) {
+        log('loading shader file: /puppet_001/face_fragment_shader.hlsl');
+        face_animation_shader.fragmentShader = await load_hlsl_text('/puppet_001/face_fragment_shader.hlsl');
+    }
+    if (face_animation_shader.vertexShader == null) {
+        log('loading shader file: /puppet_001/face_vertex_shader.hlsl');
+        face_animation_shader.vertexShader = await load_hlsl_text('/puppet_001/face_vertex_shader.hlsl');
+    }
+    if (mouth_shader.fragmentShader == null) {
+        log('loading shader file: /puppet_001/mouth_fragment_shader.hlsl');
+        mouth_shader.fragmentShader = await load_hlsl_text('/puppet_001/mouth_fragment_shader.hlsl');
+    }
+    if (mouth_shader.vertexShader == null) {
+        log('loading shader file: /puppet_001/mouth_vertex_shader.hlsl');
+        mouth_shader.vertexShader = await load_hlsl_text('/puppet_001/mouth_vertex_shader.hlsl');
+    }
+    log('finished loaded shader files');
 }
 
 
@@ -1023,6 +906,24 @@ async function to_b64 (img_src) {
 }
 
 
+//
+// loading animations
+//
+
+
+async function fade_spinner (duration, opacity) {
+    return new Promise((resolve) => {
+        $(loading_spinner).fadeTo(duration, opacity, resolve);
+    });
+}
+
+
+async function fade_container (duration, opacity) {
+    return new Promise((resolve) => {
+        $(container).fadeTo(duration, opacity, resolve);
+    });
+}
+
 
 
 //
@@ -1032,38 +933,37 @@ async function to_b64 (img_src) {
 
 var feature_map = {
     'dog1.jpg': {
-       leftEyePosition: new THREE.Vector2(-0.094, 0.261),
-       rightEyePosition: new THREE.Vector2(0.165, 0.267),
-       mouthPosition: new THREE.Vector2(0.040, -0.089),
-       headTop: new THREE.Vector2(0.027, 0.475),
-       headBottom: new THREE.Vector2(0.042, -0.147),
-       headLeft: new THREE.Vector2(-0.304, 0.232),
-       headRight: new THREE.Vector2(0.394, 0.260),
+        leftEyePosition:  new THREE.Vector2(-0.094, 0.261),
+        rightEyePosition: new THREE.Vector2(0.165, 0.267),
+        mouthPosition:    new THREE.Vector2(0.040, -0.089),
+        headTop:          new THREE.Vector2(0.027, 0.475),
+        headBottom:       new THREE.Vector2(0.042, -0.147),
+        headLeft:         new THREE.Vector2(-0.304, 0.232),
+        headRight:        new THREE.Vector2(0.394, 0.260),
     },
     'dog2.jpg': {
-        leftEyePosition: new THREE.Vector2(-0.048, 0.217),
+        leftEyePosition:  new THREE.Vector2(-0.048, 0.217),
         rightEyePosition: new THREE.Vector2(0.091, 0.131),
-        mouthPosition: new THREE.Vector2(-0.109, -0.027),
-        headTop: new THREE.Vector2(0.131, 0.359),
-        headBottom: new THREE.Vector2(-0.122, -0.087),
-        headLeft: new THREE.Vector2(-0.170, 0.287),
-        headRight: new THREE.Vector2(0.252, 0.072),
+        mouthPosition:    new THREE.Vector2(-0.109, -0.027),
+        headTop:          new THREE.Vector2(0.131, 0.359),
+        headBottom:       new THREE.Vector2(-0.122, -0.087),
+        headLeft:         new THREE.Vector2(-0.170, 0.287),
+        headRight:        new THREE.Vector2(0.252, 0.072),
     },
     'dog3.jpg': {
-        leftEyePosition: new THREE.Vector2(-0.126, 0.308),
+        leftEyePosition:  new THREE.Vector2(-0.126, 0.308),
         rightEyePosition: new THREE.Vector2(0.007, 0.314),
-        mouthPosition: new THREE.Vector2(-0.058, 0.163),
-        headTop: new THREE.Vector2(-0.062, 0.438),
-        headBottom: new THREE.Vector2(-0.056, 0.117),
-        headLeft: new THREE.Vector2(-0.255, 0.301),
-        headRight: new THREE.Vector2(0.151, 0.334),
+        mouthPosition:    new THREE.Vector2(-0.058, 0.163),
+        headTop:          new THREE.Vector2(-0.062, 0.438),
+        headBottom:       new THREE.Vector2(-0.056, 0.117),
+        headLeft:         new THREE.Vector2(-0.255, 0.301),
+        headRight:        new THREE.Vector2(0.151, 0.334),
     },
 };
 
 
 var anims = [];
-async function test (img_url) {
-
+async function test (img_url) { // eslint-disable-line no-unused-vars
     _.map(anims, clearInterval);
     img_url = (img_url === undefined ? 'dog3.jpg' : img_url);
     await create_puppet(img_url);
@@ -1075,11 +975,11 @@ async function test (img_url) {
     left_blink_slow();
     right_blink_slow();
     feature_tickers.mouth.add(_.map(_.range(60 * 60), (i) => {
-        return  (1 + Math.sin(i / 5))/2;
+        return (1 + Math.sin(i / 5)) / 2;
     }));
     anims.push(setInterval(left_blink_quick, 500));
     anims.push(setInterval(right_blink_quick, 800));
     anims.push(setInterval(left_brow_furrow, 900));
     anims.push(setInterval(right_brow_furrow, 700));
-    head_sway(3,1);
+    head_sway(3, 1);
 }

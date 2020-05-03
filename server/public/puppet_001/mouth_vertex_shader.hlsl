@@ -3,7 +3,7 @@ uniform vec2 rightEyePosition;//in worldSpace
 uniform vec2 mouthPosition;//in worldSpace
 uniform float mouthOpen;
 uniform vec2 head_displacement;
-    
+
 uniform vec4 faceEllipse_ST;
 uniform float swayTime;
 uniform float swaySpeed;
@@ -22,7 +22,7 @@ float pow3(float x)
 vec2 Rescale(vec2 coordinates, float scale, float offset)
 {
     return coordinates * scale + offset;
-}	
+}
 vec2 lerp(vec2 b, vec2 t, float s)
 {
     return b + s * (t-b);
@@ -57,7 +57,7 @@ vec2 AnimateHeadSway(vec2 positionOS, float scale)//scale = ipd
     #endif
     vec2 noise = noiseTextureSample.xy * 2.0 - 1.0;
     noise *= swayAmplitude * (1.0 / scale);
-    
+
     vec2 animatedPositionOS = positionOS + noise * scale * faceMask;
     return animatedPositionOS;
 }
@@ -69,7 +69,7 @@ vec2 DisplaceHead(vec2 positionOS, float scale) {
     vec2 animatedPositionOS = positionOS + head_displacement * faceMask * scale;
     return animatedPositionOS;
 }
-    
+
 vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float blinkR, float talk)
 {
     vec2 animatedPositionOS = positionOS;
@@ -90,12 +90,12 @@ void main()
 {
     alpha = 1.0 - (clamp((1.0 - color.z) * 1.0, 0.0, 1.0) * clamp(mouthOpen * 16.0, 0.0, 1.0));
     float horizontalFalloff = clamp(sqr(abs(position.x * 2.0)), 0.0, 1.0);
-    
+
     //alpha = horizontalFalloff;
     vec2 mouthClosedOS = vec2(color.x - 0.5, color.y - 0.65) * 0.8;
     //alpha = abs(mouthClosedOS.y);
     //alpha = abs(position.z);
-    
+
     //alpha = 0.5;
     //gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, position.y, position.z, 1.0);
     vec2 animatedPositionOS = lerp(mouthClosedOS.xy, position.xz, (mouthOpen - (horizontalFalloff * 0.4)) * 0.7);
@@ -103,9 +103,9 @@ void main()
     //animatedPositionOS.y *= 1.0 - clamp(-animatedPositionOS.y * 10.0 * (1.0 - mouthOpen) * horizontalFalloff, 0.0, 1.0);
     //animatedPositionOS.y *= (1.0 - ((1.0 - mouthOpen) * horizontalFalloff)) * 0.5;
     //animatedPositionOS *= clamp(mouthOpen * 2.0 + 0.6, 0.0, 1.0);
-    
+
     vec2 positionWS = (modelMatrix * vec4(animatedPositionOS.x, position.y, animatedPositionOS.y, 1.0)).xy;
     animatedPositionOS = AnimatePositionOS(animatedPositionOS, positionWS, 0.0, 0.0, mouthOpen);
-            
+
     gl_Position = projectionMatrix * modelViewMatrix * vec4(animatedPositionOS.x, position.y, animatedPositionOS.y, 1.0);
 }

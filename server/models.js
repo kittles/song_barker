@@ -1,9 +1,9 @@
 exports.models = [
     {
-        table_name:  'users',
+        table_name: 'users',
         obj_type: 'user',
-		primary_key: 'user_id',
-		user_owned: false,
+        primary_key: 'user_id',
+        user_owned: false,
         schema: {
             columns: [
                 {
@@ -30,10 +30,10 @@ exports.models = [
         },
     },
     {
-        table_name:  'raws',
+        table_name: 'raws',
         obj_type: 'raw',
-		primary_key: 'uuid',
-		user_owned: true,
+        primary_key: 'uuid',
+        user_owned: true,
         schema: {
             columns: [
                 {
@@ -75,10 +75,10 @@ exports.models = [
         },
     },
     {
-        table_name:  'songs',
+        table_name: 'songs',
         obj_type: 'song',
-		primary_key: 'id',
-		user_owned: false,
+        primary_key: 'id',
+        user_owned: false,
         schema: {
             columns: [
                 {
@@ -140,11 +140,11 @@ exports.models = [
         },
     },
     {
-        table_name:  'images',
+        table_name: 'images',
         obj_type: 'image',
-		primary_key: 'uuid',
-		order_by: 'created',
-		user_owned: true,
+        primary_key: 'uuid',
+        order_by: 'created',
+        user_owned: true,
         schema: {
             columns: [
                 {
@@ -189,18 +189,18 @@ exports.models = [
                 },
                 {
                     name: 'created',
-					type: 'integer DEFAULT CURRENT_TIMESTAMP',
+                    type: 'integer DEFAULT CURRENT_TIMESTAMP',
                     desc: 'when this object was created',
                 },
             ],
         },
     },
     {
-        table_name:  'crops',
+        table_name: 'crops',
         obj_type: 'crop',
-		primary_key: 'uuid',
-		order_by: 'created',
-		user_owned: true,
+        primary_key: 'uuid',
+        order_by: 'created',
+        user_owned: true,
         schema: {
             columns: [
                 {
@@ -245,18 +245,18 @@ exports.models = [
                 },
                 {
                     name: 'created',
-					type: 'integer DEFAULT CURRENT_TIMESTAMP',
+                    type: 'integer DEFAULT CURRENT_TIMESTAMP',
                     desc: 'when this object was created',
                 },
             ],
         },
     },
     {
-        table_name:  'sequences',
+        table_name: 'sequences',
         obj_type: 'sequence',
-		primary_key: 'uuid',
-		order_by: 'created',
-		user_owned: true,
+        primary_key: 'uuid',
+        order_by: 'created',
+        user_owned: true,
         schema: {
             columns: [
                 {
@@ -292,7 +292,7 @@ exports.models = [
                 {
                     name: 'backing_track_fp',
                     type: 'text',
-					desc: 'the relative path (to bucket root) of the audio file in the bucket',
+                    desc: 'the relative path (to bucket root) of the audio file in the bucket',
                 },
                 {
                     name: 'bucket_url',
@@ -316,7 +316,7 @@ exports.models = [
                 },
                 {
                     name: 'created',
-					type: 'integer DEFAULT CURRENT_TIMESTAMP',
+                    type: 'integer DEFAULT CURRENT_TIMESTAMP',
                     desc: 'when this object was created',
                 },
             ],
