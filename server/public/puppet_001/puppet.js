@@ -184,7 +184,7 @@ async function init () {
         window_width = document.body.offsetWidth;
         window_height = document.body.offsetHeight;
     }
-    log(`WIDTH INFO: 
+    log(`WIDTH INFO:
     window.innerWidth: ${window.innerWidth}
     document.body.offsetWidth: ${document.body.offsetWidth}
     document.body.clientWidth: ${document.body.clientWidth}
@@ -350,6 +350,7 @@ async function create_puppet (img_url) {
 
     fade_spinner(500, 0);
     await $(container).fadeTo(500, 1);
+    log('create_puppet finished');
 }
 
 

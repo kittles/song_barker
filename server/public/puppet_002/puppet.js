@@ -350,6 +350,7 @@ async function create_puppet (img_url) {
 
     fade_spinner(500, 0);
     await $(container).fadeTo(500, 1);
+    log('create_puppet finished');
 }
 
 
