@@ -1,0 +1,10 @@
+hey colin!
+
+basic structure here is puppet.html loads all the js dependencies in head
+and then puppet.js is where the action happens. im just curling dependencies
+into this dir, so if you want to add other libs, throw em in here.
+
+im just adding things below as i think of them:
+
+- if you want to try some different puppets, you can just cp -r this dir, i figure that gives
+tovi more flexibility to A/B puppets

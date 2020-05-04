@@ -68,7 +68,7 @@ app.get('/describe', (req, res) => {
 
 // process raw audio into cropped pieces
 app.post('/to_crops', async function (req, res) {
-    // TODO sanitize input
+    // TODO check input against db, use db result for command string
     exec(`
         cd ../audio_processing &&
         source .env/bin/activate &&
@@ -107,7 +107,7 @@ app.post('/to_crops', async function (req, res) {
 
 // sequence audio into a song
 app.post('/to_sequence', async function (req, res) {
-    // TODO sanitize input
+    // TODO check input against db, use db result for command string
     var uuids_string = _.join(req.body.uuids, ' ');
     exec(`
         cd ../audio_processing &&
