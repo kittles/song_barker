@@ -282,7 +282,10 @@ async function init () {
         fragmentShader: mouth_shader.fragmentShader,
         depthFunc:      THREE.AlwaysDepth,
         side:           THREE.DoubleSide,
-        blending:       THREE.MultiplyBlending,
+        blending:       THREE.CustomBlending,
+        blendEquation:  THREE.AddEquation,
+        blendSrc:       THREE.SrcAlphaFactor,
+        blendDst:       THREE.OneMinusSrcAlphaFactor,
         vertexColors:   true
     });
     mouth_mesh.renderOrder = 2;
