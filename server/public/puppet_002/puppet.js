@@ -101,8 +101,13 @@ var mouth_shader = {
         resolution:        { type: 'v2', value: new THREE.Vector2() },
         leftEyePosition:   { type: 'v2', value: new THREE.Vector2() },
         rightEyePosition:  { type: 'v2', value: new THREE.Vector2() },
+
         mouthPosition:     { type: 'v2', value: new THREE.Vector2() },
+        mouthLeft:         { type: 'v2', value: new THREE.Vector2() },
+        mouthRight:        { type: 'v2', value: new THREE.Vector2() },
         mouthOpen:         { type: 'f', value: 0.0 },
+        mouthColor: { type: "v3", value: new THREE.Vector3()},
+
         // Head Sway
         head_displacement: { type: 'v2', value: new THREE.Vector2() },
         faceEllipse_ST:    { type: 'v4', value: new THREE.Vector4() },
@@ -442,6 +447,10 @@ function update_shaders () {
     mouth_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
     mouth_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
     mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;
+    mouth_shader.uniforms.mouthLeft.value = features.mouthLeft;
+    mouth_shader.uniforms.mouthRight.value = features.mouthRight;
+
+    mouth_shader.uniforms.mouthColor.value = new THREE.Vector3(1,0,0);
 }
 
 
@@ -501,6 +510,11 @@ function mouth_open (val) { // eslint-disable-line no-unused-vars
     direct_render();
 }
 
+
+function mouth_color(fr, fg, fb) {
+    mouth_shader.uniforms.mouthColor.value = new THREE.Vector3(fr, fg, fb);
+    direct_render();
+}
 
 // some prepackaged animations
 
