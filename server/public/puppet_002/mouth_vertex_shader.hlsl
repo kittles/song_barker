@@ -79,7 +79,7 @@ vec2 AnimateHeadSway(vec2 positionOS, float scale)//scale = ipd
 {
     vec2 ellipse = (positionOS / scale) * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
     float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
-    faceMask = 0.8;
+    faceMask = 0.9;
 
     float P_x = mod(swaySpeed * swayTime, 1.0);
 
@@ -98,7 +98,7 @@ vec2 AnimateHeadSway(vec2 positionOS, float scale)//scale = ipd
 vec2 DisplaceHead(vec2 positionOS, float scale) {
     vec2 ellipse = positionOS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
     float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
-    faceMask = 0.75;
+    faceMask = 0.9;
     vec2 animatedPositionOS = positionOS + head_displacement * faceMask * scale;
     return animatedPositionOS;
 }	
