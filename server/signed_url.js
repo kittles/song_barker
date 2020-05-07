@@ -52,3 +52,13 @@ async function to_signed_playback_url (filename) {
     return (url);
 }
 exports.to_signed_playback_url = to_signed_playback_url;
+
+
+async function upload (local_fp, bucket_fp) {
+    // Uploads a local file to the bucket
+    return await storage.bucket(bucketName).upload(local_fp, {
+        gzip: true,
+        destination: bucket_fp,
+    });
+}
+exports.upload = upload;

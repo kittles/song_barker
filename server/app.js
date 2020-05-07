@@ -1,4 +1,5 @@
 var express = require('express');
+var fileUpload = require('express-fileupload');
 var _ = require('lodash');
 var exec = require('child_process').exec;
 var morgan = require('morgan');
@@ -8,6 +9,7 @@ var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
 var signed = require('./signed_url.js');
+var spawn = require('child_process');
 
 var port = process.env.PORT || 3000;
 
@@ -18,11 +20,51 @@ app.use(express.json({
 app.set('json spaces', 2);
 app.use(morgan('combined')); // logging
 app.use(express.static('./public'));
+app.use(fileUpload({
+    createParentPath: true
+}));
 
 
 //
 // routes
 //
+
+// admin
+function local_fp (file) {
+    return './uploads/' + file.name;
+}
+
+app.post('/admin/create_new_song', async (req, res) => {
+    // should receive a midi file and backing track
+    console.log(req.body);
+    console.log(req.files);
+
+    //// upload midi file
+    //var midi_file = req.files.midi_file;
+
+    // clear uploads
+    // TODO probably want to handle multiple users uploading...
+    spawn.execSync('rm ./uploads/*');
+
+    //midi_file.mv(local_fp(midi_file));
+
+    _.each(req.files, (file) => {
+        file.mv(local_fp(file));
+    });
+
+    //var bucket_fp = 'midi_files/' + midi_file.name; // used to determine where it lives in the bucket
+    //await signed.upload(local_fp, bucket_fp);
+
+    //
+
+    //send response
+    res.send({
+        status: true,
+        message: 'ok',
+    });
+
+    // create backing track in all keys
+});
 
 
 // index
@@ -52,6 +94,7 @@ app.get('/performance', (req, res) => {
 
 // signed urls for uploads
 app.post('/upload_url', async (req, res) => {
+    console.log(req.body);
     var url = await signed.to_signed_upload_url(req.body.filename);
     res.json({ url: url });
 });
