@@ -1,9 +1,12 @@
+
 uniform vec2 leftEyePosition;//in worldSpace
 uniform vec2 rightEyePosition;//in worldSpace
 uniform vec2 mouthPosition;//in worldSpace
 uniform vec2 mouthLeft;
 uniform vec2 mouthRight;
+
 uniform float mouthOpen;
+
 uniform vec2 head_displacement;
 uniform vec4 faceEllipse_ST;
 uniform float swayTime;
@@ -158,7 +161,6 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
 
     animatedPositionOS = AnimateHeadSway(animatedPositionOS, ipd);
     animatedPositionOS = DisplaceHead(animatedPositionOS, ipd);
-
     return animatedPositionOS;
 }
 

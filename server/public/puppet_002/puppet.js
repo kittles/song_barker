@@ -106,7 +106,7 @@ var mouth_shader = {
         mouthLeft:         { type: 'v2', value: new THREE.Vector2() },
         mouthRight:        { type: 'v2', value: new THREE.Vector2() },
         mouthOpen:         { type: 'f', value: 0.0 },
-        mouthColor: { type: "v3", value: new THREE.Vector3()},
+        mouthColor:        { type: "v3", value: new THREE.Vector3()},
 
         // Head Sway
         head_displacement: { type: 'v2', value: new THREE.Vector2() },
@@ -449,8 +449,6 @@ function update_shaders () {
     mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;
     mouth_shader.uniforms.mouthLeft.value = features.mouthLeft;
     mouth_shader.uniforms.mouthRight.value = features.mouthRight;
-
-    mouth_shader.uniforms.mouthColor.value = new THREE.Vector3(1,0,0);
 }
 
 
@@ -899,20 +897,20 @@ async function load_hlsl_text (url) {
 
 async function load_shader_files () {
     if (face_animation_shader.fragmentShader == null) {
-        log('loading shader file: /puppet_001/face_fragment_shader.hlsl');
-        face_animation_shader.fragmentShader = await load_hlsl_text('/puppet_001/face_fragment_shader.hlsl');
+        log('loading shader file: /puppet_002/face_fragment_shader.hlsl');
+        face_animation_shader.fragmentShader = await load_hlsl_text('/puppet_002/face_fragment_shader.hlsl');
     }
     if (face_animation_shader.vertexShader == null) {
-        log('loading shader file: /puppet_001/face_vertex_shader.hlsl');
-        face_animation_shader.vertexShader = await load_hlsl_text('/puppet_001/face_vertex_shader.hlsl');
+        log('loading shader file: /puppet_002/face_vertex_shader.hlsl');
+        face_animation_shader.vertexShader = await load_hlsl_text('/puppet_002/face_vertex_shader.hlsl');
     }
     if (mouth_shader.fragmentShader == null) {
-        log('loading shader file: /puppet_001/mouth_fragment_shader.hlsl');
-        mouth_shader.fragmentShader = await load_hlsl_text('/puppet_001/mouth_fragment_shader.hlsl');
+        log('loading shader file: /puppet_002/mouth_fragment_shader.hlsl');
+        mouth_shader.fragmentShader = await load_hlsl_text('/puppet_002/mouth_fragment_shader.hlsl');
     }
     if (mouth_shader.vertexShader == null) {
-        log('loading shader file: /puppet_001/mouth_vertex_shader.hlsl');
-        mouth_shader.vertexShader = await load_hlsl_text('/puppet_001/mouth_vertex_shader.hlsl');
+        log('loading shader file: /puppet_002/mouth_vertex_shader.hlsl');
+        mouth_shader.vertexShader = await load_hlsl_text('/puppet_002/mouth_vertex_shader.hlsl');
     }
     log('finished loaded shader files');
 }

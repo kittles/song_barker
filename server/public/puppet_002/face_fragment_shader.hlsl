@@ -1,5 +1,6 @@
 uniform vec2 resolution;
 uniform sampler2D petImage;
+
 varying vec2 uvCoords;
 varying vec4 debug;
 
