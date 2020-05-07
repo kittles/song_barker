@@ -1,9 +1,19 @@
-uniform vec2 resolution;//set from game code, controls clip coordinates probably
-varying float alpha;
+	uniform vec2 resolution;
+	uniform vec3 mouthColor;
 
-void main()
-{
-    vec3 mouthColor = vec3(0.783, 0.543, 0.543);//TODO
+    uniform vec2 mouthPosition;//in worldSpace
+	uniform vec2 mouthLeft;
+	uniform vec2 mouthRight;
+	
+	varying float alpha;
+	varying vec4 debug;
+	
+	void main()
+	{		
+		//float distance = distance(debug.xy, mouthLeft) * 16.0;
 
-    gl_FragColor = vec4(alpha, alpha, alpha, 1.0);
-}
+		gl_FragColor = vec4(mouthColor, alpha);
+		//gl_FragColor = vec4(alpha, alpha, alpha, 1.0);
+		//gl_FragColor = vec4(distance, distance, distance, 1.0);
+		//gl_FragColor = vec4(debug.x, debug.y, debug.z, alpha);
+	}
