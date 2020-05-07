@@ -66,13 +66,13 @@
             "byteOffset": 0,
             "min": [
                 -0.496544152498245,
-                -7.37225747116099e-08,
-                -0.787027478218079
+                -7.37225818170373e-08,
+                -0.41264745593071
             ],
             "max": [
                 0.496544152498245,
-                7.62296252787564e-08,
-                0.0118443109095097
+                7.62296323841838e-08,
+                0.0811650156974792
             ]
         },
         {
@@ -99,8 +99,8 @@
     ],
     "images": [
         {
-            "name": "MouthMorphTexture.png",
-            "uri": "MouthMorphTexture.png"
+            "name": "MouthMorphTexture2.png",
+            "uri": "MouthMorphTexture2.png"
         }
     ],
     "samplers": [
