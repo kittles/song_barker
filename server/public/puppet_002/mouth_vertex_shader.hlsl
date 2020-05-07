@@ -81,16 +81,17 @@ vec2 AnimateHeadSway(vec2 positionOS, float scale)//scale = ipd
     float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
     faceMask = 0.8;
 
-    #if defined(GLES3)
-        vec4 noiseTextureSample = textureLod(animationNoise, vec2(swaySpeed * swayTime, 0.5), 0.0);
-    #else
-        vec4 noiseTextureSample = texture2DLod(animationNoise, vec2(swaySpeed * swayTime, 0.5), 0.0);
-    #endif
+    float P_x = mod(swaySpeed * swayTime, 1.0);
 
+    #if defined(GLES3)
+        vec4 noiseTextureSample = textureLod(animationNoise, vec2(P_x, 0.5), 0.0);
+    #else
+        vec4 noiseTextureSample = texture2DLod(animationNoise, vec2(P_x, 0.5), 0.0);
+    #endif
     vec2 noise = noiseTextureSample.xy * 2.0 - 1.0;
-    noise *= swayAmplitude * scale;
-    
-    vec2 animatedPositionOS = positionOS + (noise * faceMask) / scale;
+    noise *= swayAmplitude * (1.0 / scale);
+
+    vec2 animatedPositionOS = positionOS + noise * scale * faceMask;
     return animatedPositionOS;
 }
     
