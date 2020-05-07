@@ -754,6 +754,7 @@ function stop_all_animations () {
     eyebrow_left(0);
     eyebrow_right(0);
     mouth_open(0);
+    mouth_color(0,0,0);
 }
 
 
