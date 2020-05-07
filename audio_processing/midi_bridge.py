@@ -125,11 +125,11 @@ class MidiBridge (object):
     def track_count (self):
         return len(self.tracks)
 
-    
+
     def ticks_to_samples (self, ticks, samplerate):
         return int(samplerate * (ticks * self.tick_duration_ms) / 1000)
 
-    
+
     def ticks_to_seconds (self, ticks):
         return (ticks * self.tick_duration_ms) / 1000
 
