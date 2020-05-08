@@ -28,7 +28,7 @@ var inputs = {
                 message: 'no backing tracks specified',
             },
             // TODO validate backing track key names
-            // TODO validate audio format
+            // TODO validate audio format (only aac!)
         ],
         error: [],
     },
