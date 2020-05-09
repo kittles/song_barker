@@ -195,7 +195,7 @@ async function init () {
         window_width = document.body.offsetWidth;
         window_height = document.body.offsetHeight;
     }
-    log(`WIDTH INFO: 
+    log(`WIDTH INFO:
     window.innerWidth: ${window.innerWidth}
     document.body.offsetWidth: ${document.body.offsetWidth}
     document.body.clientWidth: ${document.body.clientWidth}
@@ -367,7 +367,6 @@ async function create_puppet (img_url) {
 
     direct_render();
 
-    log('puppet is now ready');
     animate();
     head_sway(2, 1);
 
@@ -756,7 +755,7 @@ function stop_all_animations () {
     eyebrow_left(0);
     eyebrow_right(0);
     mouth_open(0);
-    mouth_color(0,0,0);
+    mouth_color(0, 0, 0);
 }
 
 
