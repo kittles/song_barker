@@ -276,7 +276,7 @@ async function init () {
     });
 
     // Adds the material to the geometry
-    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, segments, segments), face_mesh_material);
+    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
 
     // This object renders on top of the background
     face_mesh.renderOrder = 1;
