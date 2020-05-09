@@ -11,6 +11,8 @@ var _db = require('./database.js');
 var signed = require('./signed_url.js');
 var spawn = require('child_process');
 var uuid = require('uuid');
+var gsutil_cmd = require('./gsutil_wrapper.js').gsutil_cmd;
+
 
 var port = process.env.PORT || 3000;
 
@@ -31,9 +33,6 @@ app.use(fileUpload({
 //
 
 // admin
-function local_fp (file) {
-    return './uploads/' + file.name;
-}
 
 var key_map = {
     c: 0,
@@ -69,69 +68,78 @@ var key_map = {
 };
 
 
-var backing_track_prefix = 'backing_track_';
-
-
 app.post('/admin/create_new_song', async (req, res) => {
-    // should receive a midi file and backing track
+    // should receive a midi file and backing tracks
 
     var db_insert_info = {
         name: req.body.name,
-        //bucket_url: "gs://song_barker_sequences/midi_files/happy_birthday_graig_1_semitone.mid",
-        //bucket_fp: "midi_files/happy_birthday_graig_1_semitone.mid",
-        //track_count: 3,
-        //bpm: 120,
-        //key: 4,
         price: req.body.price,
         category: req.body.category,
         song_family: req.body.song_family,
-        //backing_track: "happy_birthday",
+        //bucket_url: comes from below,
+        //bucket_fp: comes from below,
+        //backing_track: comes from below,
     };
 
 
     // clear uploads
     // TODO probably want to handle multiple users uploading...
-    // should put a lock on the dir
-    spawn.execSync('rm ./uploads/*');
+    // should put a lock on the dir or make a temp dir each time
+    spawn.execSync('rm -rf ./uploads/*');
 
-    var backing_remote_dir = uuid.v4();
-    db_insert_info.backing_track = backing_remote_dir;
+    var backing_dir_uuid = uuid.v4();
 
-    _.each(req.files, async (file, k) => {
-        file.mv(local_fp(file));
+    db_insert_info.backing_track = backing_dir_uuid;
+
+    var local_fp;
+    var moves = _.map(req.files, (file, k) => {
         if (k === 'midi_file') {
+            local_fp = `./uploads/${file.name}`;
             var remote_fp = `midi_files/${file.name}`;
             db_insert_info.bucket_fp = remote_fp;
             db_insert_info.bucket_url = 'gs://song_barker_sequences/' + remote_fp;
-            console.log('uploading midi');
-            await signed.upload(local_fp(file), remote_fp);
+            file.mv(local_fp, () => {
+                gsutil_cmd(`cp ${local_fp} ${db_insert_info.bucket_url}`);
+                // get some info
+            });
+            return Promise.resolve();
         } else {
-            // if backing track, convert name to integer key and upload
+            // move all backing tracks to a dir and rename them
             var fname = _.split(file.name, '.')[0];
+            var extension = _.split(file.name, '.')[1];
             var key_name = _.get(key_map, _.toLower(fname), 0);
-            console.log(fname, key_name, `backing_tracks/${backing_remote_dir}/${key_name}.aac`);
-            console.log('uploading backing track');
-            await signed.upload(local_fp(file), `backing_tracks/${backing_remote_dir}/${key_name}.aac`);
+            local_fp = `./uploads/${backing_dir_uuid}/${key_name}.${extension}`;
+            return new Promise((resolve, reject) => {
+                file.mv(local_fp, resolve);
+            });
         }
     });
 
-    //console.log(db_insert_info);
+    Promise.all(moves).then(() => {
+        console.log('uploading backing tracks');
+        gsutil_cmd(`-m cp -r ./uploads/${backing_dir_uuid} gs://song_barker_sequences/backing_tracks`);
+    });
 
-    // backing tracks are all prefixed with "backing_track_"
-    // make a backing track dir (uuid)
+    var db = await _db.dbPromise;
+    console.log(db_insert_info);
+    db.run(`
+        INSERT into songs (
+            name, price, category, song_family, bucket_url, bucket_fp, backing_track
+        ) values (?, ?, ?, ?, ?, ?, ?)
+    `, [
+        db_insert_info.name,
+        db_insert_info.price,
+        db_insert_info.category,
+        db_insert_info.song_family,
+        db_insert_info.bucket_url,
+        db_insert_info.bucket_fp,
+        db_insert_info.backing_track,
+    ]);
 
-    // need to format backing tracks to 0-11 names
-
-    // need to generate bucker_url and bucket_fp for midi file
-    // need bpm and key in integer
-
-    //send response
     res.send({
         status: true,
         message: 'ok',
     });
-
-    // create backing track in all keys
 });
 
 

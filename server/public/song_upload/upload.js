@@ -27,10 +27,20 @@ var inputs = {
                 f: el => el.length,
                 message: 'no backing tracks specified',
             },
+        ],
+        error: [
             // TODO validate backing track key names
             // TODO validate audio format (only aac!)
+            {
+                f: files => {
+                    return _.map(files, (file) => {
+                        var extension = _.split(file.name, '.')[1];
+                        return _.toLower(extension) === 'aac';
+                    }).every(_.identity);
+                },
+                message: 'backing tracks must be aac',
+            },
         ],
-        error: [],
     },
     name: {
         sel: '#name-input',
@@ -113,13 +123,21 @@ function validate_input () {
     _.map(inputs, (input, k) => {
         var val = get_val(k);
         _.each(input.warn, (w) => {
-            if (!w.f(val)) {
-                warnings.push(w.message);
+            try {
+                if (!w.f(val)) {
+                    warnings.push(w.message);
+                }
+            } catch (err) {
+                console.log(err);
             }
         });
         _.each(input.error, (e) => {
-            if (!e.f(val)) {
-                errors.push(e.message);
+            try {
+                if (!e.f(val)) {
+                    errors.push(e.message);
+                }
+            } catch (err) {
+                console.log(err);
             }
         });
     });
@@ -132,8 +150,10 @@ function validate_input () {
     if (errors.length) {
         $('#errors').html(_.join(errors, '<br>'));
         $('#error-container').show();
+        $('#upload-button').prop('disabled', true);
     } else {
         $('#error-container').hide();
+        $('#upload-button').prop('disabled', false);
     }
     return errors.length === 0;
 }
@@ -308,7 +328,7 @@ function is_float (val) {
 }
 
 
-function create_song () {
+async function create_song () {
     if (!validate_input()) {
         // alert
         return;
@@ -324,10 +344,22 @@ function create_song () {
         form_data.append(`backing_track_${track.name}`, track);
     });
 
-    fetch('/admin/create_new_song', {
+    var response = await fetch('/admin/create_new_song', {
         method: 'POST',
         body: form_data,
     });
+
+    if (response.status === 200) {
+        alert(`
+            song creation succeeded
+            give it a couple minutes for the server 
+            to put all the files where they need to be...
+        `);
+    } else {
+        alert(`
+            song creation failed
+        `);
+    };
 }
 
 
