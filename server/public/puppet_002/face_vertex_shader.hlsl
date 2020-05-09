@@ -1,13 +1,18 @@
+
 uniform mat4 worldToFaceMatrix;
+
 uniform vec2 leftEyePosition;//in worldSpace
 uniform vec2 rightEyePosition;//in worldSpace
 uniform vec2 mouthPosition;//in worldSpace
+
 uniform float blinkLeft;
 uniform float blinkRight;
 uniform float mouthOpen;
 uniform float aspectRatio;
+
 uniform float eyebrowLeftOffset;
 uniform float eyebrowRightOffset;
+
 uniform vec2 head_displacement;
 uniform vec4 faceEllipse_ST;
 uniform float swayTime;
@@ -32,6 +37,7 @@ vec2 lerp(vec2 b, vec2 t, float s)
 {
     return b + s * (t-b);
 }
+
 
 #define EYE_INFLUENCE 0.35
 #define MOUTH_INFLUENCE 0.6
@@ -165,4 +171,5 @@ void main()
     
     //gl_Position = projectionMatrix * modelViewMatrix * vec4(position.xy,  -1.0, 1.0);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(animatedPositionOS, -1.0, 1.0);
+
 }

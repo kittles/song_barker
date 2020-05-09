@@ -1,9 +1,12 @@
+
 uniform vec2 leftEyePosition;//in worldSpace
 uniform vec2 rightEyePosition;//in worldSpace
 uniform vec2 mouthPosition;//in worldSpace
 uniform vec2 mouthLeft;
 uniform vec2 mouthRight;
+
 uniform float mouthOpen;
+
 uniform vec2 head_displacement;
 uniform vec4 faceEllipse_ST;
 uniform float swayTime;
@@ -76,25 +79,26 @@ vec2 AnimateHeadSway(vec2 positionOS, float scale)//scale = ipd
 {
     vec2 ellipse = (positionOS / scale) * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
     float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
-    faceMask = 0.8;
+    faceMask = 0.9;
+
+    float P_x = mod(swaySpeed * swayTime, 1.0);
 
     #if defined(GLES3)
-        vec4 noiseTextureSample = textureLod(animationNoise, vec2(swaySpeed * swayTime, 0.5), 0.0);
+        vec4 noiseTextureSample = textureLod(animationNoise, vec2(P_x, 0.5), 0.0);
     #else
-        vec4 noiseTextureSample = texture2DLod(animationNoise, vec2(swaySpeed * swayTime, 0.5), 0.0);
+        vec4 noiseTextureSample = texture2DLod(animationNoise, vec2(P_x, 0.5), 0.0);
     #endif
-
     vec2 noise = noiseTextureSample.xy * 2.0 - 1.0;
-    noise *= swayAmplitude * scale;
-    
-    vec2 animatedPositionOS = positionOS + (noise * faceMask) / scale;
+    noise *= swayAmplitude * (1.0 / scale);
+
+    vec2 animatedPositionOS = positionOS + noise * scale * faceMask;
     return animatedPositionOS;
 }
     
 vec2 DisplaceHead(vec2 positionOS, float scale) {
     vec2 ellipse = positionOS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
     float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
-    faceMask = 0.75;
+    faceMask = 0.9;
     vec2 animatedPositionOS = positionOS + head_displacement * faceMask * scale;
     return animatedPositionOS;
 }	
@@ -158,7 +162,6 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
 
     animatedPositionOS = AnimateHeadSway(animatedPositionOS, ipd);
     animatedPositionOS = DisplaceHead(animatedPositionOS, ipd);
-
     return animatedPositionOS;
 }
 

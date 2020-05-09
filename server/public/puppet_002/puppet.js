@@ -47,7 +47,7 @@ var features = {
     rightEyePosition: new THREE.Vector2(0.007, 0.314),
     mouthPosition:    new THREE.Vector2(-0.058, 0.160),
     mouthLeft:        new THREE.Vector2(-0.103, 0.143),
-    mouthRight:       new THREE.Vector2(-0.0108, 0.135),    
+    mouthRight:       new THREE.Vector2(-0.0108, 0.135),
     headTop:          new THREE.Vector2(-0.062, 0.438),
     headBottom:       new THREE.Vector2(-0.056, 0.117),
     headLeft:         new THREE.Vector2(-0.255, 0.301),
@@ -101,8 +101,13 @@ var mouth_shader = {
         resolution:        { type: 'v2', value: new THREE.Vector2() },
         leftEyePosition:   { type: 'v2', value: new THREE.Vector2() },
         rightEyePosition:  { type: 'v2', value: new THREE.Vector2() },
+
         mouthPosition:     { type: 'v2', value: new THREE.Vector2() },
+        mouthLeft:         { type: 'v2', value: new THREE.Vector2() },
+        mouthRight:        { type: 'v2', value: new THREE.Vector2() },
         mouthOpen:         { type: 'f', value: 0.0 },
+        mouthColor:        { type: 'v3', value: new THREE.Vector3() },
+
         // Head Sway
         head_displacement: { type: 'v2', value: new THREE.Vector2() },
         faceEllipse_ST:    { type: 'v4', value: new THREE.Vector4() },
@@ -136,6 +141,10 @@ var animation_noise_texture; // what head sway uses
 var start_time;
 // log messages include time since init
 var show_timing = true;
+
+// set to true if you want to see mouse position in three coordinate space
+// for setting features etc
+var log_mouse_position = true;
 
 
 // wrap output so it can be sent to the app through a javascript channel
@@ -304,6 +313,15 @@ async function init () {
         controls = new THREE.OrbitControls(camera, renderer.domElement);
     }
 
+    if (log_mouse_position) {
+        window.addEventListener('click', (e) => {
+            var normalized_x = e.clientX / window.innerWidth;
+            var normalized_y = e.clientY / window.innerHeight;
+            var worldPos = screen_to_world_position(new THREE.Vector2(normalized_x, normalized_y));
+            console.log(`worldPos: ${worldPos.x}, ${worldPos.y}`);
+        });
+    }
+
     // dont render anything yet, that should happen when the app
     // actually specifies an image
 
@@ -442,6 +460,8 @@ function update_shaders () {
     mouth_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
     mouth_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
     mouth_shader.uniforms.mouthPosition.value = features.mouthPosition;
+    mouth_shader.uniforms.mouthLeft.value = features.mouthLeft;
+    mouth_shader.uniforms.mouthRight.value = features.mouthRight;
 }
 
 
@@ -501,6 +521,11 @@ function mouth_open (val) { // eslint-disable-line no-unused-vars
     direct_render();
 }
 
+
+function mouth_color (fr, fg, fb) {
+    mouth_shader.uniforms.mouthColor.value = new THREE.Vector3(fr, fg, fb);
+    direct_render();
+}
 
 // some prepackaged animations
 
@@ -617,15 +642,6 @@ function head_sway (amplitude, speed) {
 }
 
 
-// if you want to see where you mouse is the coordinate space
-function screen_to_world_position (screen_pos) { // eslint-disable-line no-unused-vars
-    var cameraSize = new THREE.Vector2(Math.abs(camera.left) + Math.abs(camera.right), -1.0);
-    var offset = new THREE.Vector2(camera.left, 0.5);
-    var worldPos = screen_pos.multiply(cameraSize);
-    return worldPos.add(offset);
-}
-
-
 // these move smoothly between two positions
 
 function left_brow_to_pos (start, end, n) { // eslint-disable-line no-unused-vars
@@ -655,7 +671,7 @@ function mouth_to_pos (start, end, n) { // eslint-disable-line no-unused-vars
 
 // animation framework
 
-// this holds the future positions of features
+// this holds the future positions of features.
 // the animation loop with ask each of these for the next
 // position for each, should there be one.
 // adding motions is done by adding an array of positions
@@ -740,6 +756,7 @@ function stop_all_animations () {
     eyebrow_left(0);
     eyebrow_right(0);
     mouth_open(0);
+    mouth_color(0,0,0);
 }
 
 
@@ -884,20 +901,20 @@ async function load_hlsl_text (url) {
 
 async function load_shader_files () {
     if (face_animation_shader.fragmentShader == null) {
-        log('loading shader file: /puppet_001/face_fragment_shader.hlsl');
-        face_animation_shader.fragmentShader = await load_hlsl_text('/puppet_001/face_fragment_shader.hlsl');
+        log('loading shader file: /puppet_002/face_fragment_shader.hlsl');
+        face_animation_shader.fragmentShader = await load_hlsl_text('/puppet_002/face_fragment_shader.hlsl');
     }
     if (face_animation_shader.vertexShader == null) {
-        log('loading shader file: /puppet_001/face_vertex_shader.hlsl');
-        face_animation_shader.vertexShader = await load_hlsl_text('/puppet_001/face_vertex_shader.hlsl');
+        log('loading shader file: /puppet_002/face_vertex_shader.hlsl');
+        face_animation_shader.vertexShader = await load_hlsl_text('/puppet_002/face_vertex_shader.hlsl');
     }
     if (mouth_shader.fragmentShader == null) {
-        log('loading shader file: /puppet_001/mouth_fragment_shader.hlsl');
-        mouth_shader.fragmentShader = await load_hlsl_text('/puppet_001/mouth_fragment_shader.hlsl');
+        log('loading shader file: /puppet_002/mouth_fragment_shader.hlsl');
+        mouth_shader.fragmentShader = await load_hlsl_text('/puppet_002/mouth_fragment_shader.hlsl');
     }
     if (mouth_shader.vertexShader == null) {
-        log('loading shader file: /puppet_001/mouth_vertex_shader.hlsl');
-        mouth_shader.vertexShader = await load_hlsl_text('/puppet_001/mouth_vertex_shader.hlsl');
+        log('loading shader file: /puppet_002/mouth_vertex_shader.hlsl');
+        mouth_shader.vertexShader = await load_hlsl_text('/puppet_002/mouth_vertex_shader.hlsl');
     }
     log('finished loaded shader files');
 }
@@ -937,43 +954,63 @@ async function fade_container (duration, opacity) {
 //
 
 
+function screen_to_world_position (screen_pos) {
+    var cameraSize = new THREE.Vector2(Math.abs(camera.left) + Math.abs(camera.right), -1.0);
+    var offset = new THREE.Vector2(camera.left, 0.5);
+    var worldPos = screen_pos.multiply(cameraSize);
+    return worldPos.add(offset);
+}
+
+
 var feature_map = {
     'dog1.jpg': {
-        leftEyePosition: new THREE.Vector2(-0.094, 0.261), 
-        rightEyePosition: new THREE.Vector2(0.165, 0.267), 
-        mouthPosition: new THREE.Vector2(0.040, -0.089),
-        mouthLeft: new THREE.Vector2(-0.04, -0.1091),
-        mouthRight: new THREE.Vector2(0.134, -0.1060),
-        headTop: new THREE.Vector2(0.027, 0.475),
-        headBottom: new THREE.Vector2(0.042, -0.147),
-        headLeft: new THREE.Vector2(-0.304, 0.232),
-        headRight: new THREE.Vector2(0.394, 0.260),
+        leftEyePosition:  new THREE.Vector2(-0.094, 0.261),
+        rightEyePosition: new THREE.Vector2(0.165, 0.267),
+        mouthPosition:    new THREE.Vector2(0.040, -0.089),
+        mouthLeft:        new THREE.Vector2(-0.04, -0.1091),
+        mouthRight:       new THREE.Vector2(0.134, -0.1060),
+        headTop:          new THREE.Vector2(0.027, 0.475),
+        headBottom:       new THREE.Vector2(0.042, -0.147),
+        headLeft:         new THREE.Vector2(-0.304, 0.232),
+        headRight:        new THREE.Vector2(0.394, 0.260),
     },
     'dog2.jpg': {
-        leftEyePosition: new THREE.Vector2(-0.048, 0.217), 
-        rightEyePosition: new THREE.Vector2(0.091, 0.131), 
-        mouthPosition: new THREE.Vector2(-0.109, -0.027),
-        mouthLeft: new THREE.Vector2(-0.171, -0.023),
-        mouthRight: new THREE.Vector2(-0.0601, -0.0666),
-        headTop: new THREE.Vector2(0.131, 0.359),
-        headBottom: new THREE.Vector2(-0.122, -0.087),
-        headLeft: new THREE.Vector2(-0.170, 0.287),
-        headRight: new THREE.Vector2(0.252, 0.072),
+        leftEyePosition:  new THREE.Vector2(-0.048, 0.217),
+        rightEyePosition: new THREE.Vector2(0.091, 0.131),
+        mouthPosition:    new THREE.Vector2(-0.109, -0.027),
+        mouthLeft:        new THREE.Vector2(-0.171, -0.023),
+        mouthRight:       new THREE.Vector2(-0.0601, -0.0666),
+        headTop:          new THREE.Vector2(0.131, 0.359),
+        headBottom:       new THREE.Vector2(-0.122, -0.087),
+        headLeft:         new THREE.Vector2(-0.170, 0.287),
+        headRight:        new THREE.Vector2(0.252, 0.072),
     },
     'dog3.jpg': {
-        leftEyePosition: new THREE.Vector2(-0.126, 0.308), 
-        rightEyePosition: new THREE.Vector2(0.007, 0.314), 
-        mouthPosition: new THREE.Vector2(-0.058, 0.163),
-        mouthLeft: new THREE.Vector2(-0.103, 0.143),
-        mouthRight: new THREE.Vector2(-0.0108, 0.135),
-        headTop: new THREE.Vector2(-0.062, 0.438),
-        headBottom: new THREE.Vector2(-0.056, 0.117),
-        headLeft: new THREE.Vector2(-0.255, 0.301),
-        headRight: new THREE.Vector2(0.151, 0.334),
+        leftEyePosition:  new THREE.Vector2(-0.126, 0.308),
+        rightEyePosition: new THREE.Vector2(0.007, 0.314),
+        mouthPosition:    new THREE.Vector2(-0.058, 0.163),
+        mouthLeft:        new THREE.Vector2(-0.103, 0.143),
+        mouthRight:       new THREE.Vector2(-0.0108, 0.135),
+        headTop:          new THREE.Vector2(-0.062, 0.438),
+        headBottom:       new THREE.Vector2(-0.056, 0.117),
+        headLeft:         new THREE.Vector2(-0.255, 0.301),
+        headRight:        new THREE.Vector2(0.151, 0.334),
+    },
+    'dog4.jpg': {
+        leftEyePosition:  new THREE.Vector2(-0.196, 0.191),
+        rightEyePosition: new THREE.Vector2(0.191, 0.235),
+        mouthPosition:    new THREE.Vector2(-0.017, -0.245),
+        mouthLeft:        new THREE.Vector2(-0.090, -0.361),
+        mouthRight:       new THREE.Vector2(0.135, -0.304),
+        headTop:          new THREE.Vector2(-0.006, 0.400),
+        headBottom:       new THREE.Vector2(-0.056, -0.117),
+        headLeft:         new THREE.Vector2(-0.282, 0.087),
+        headRight:        new THREE.Vector2(0.304, 0.142),
     },
 };
 
 
+// this will load a dog and animate it like its having a stroke
 var anims = [];
 async function test (img_url) { // eslint-disable-line no-unused-vars
     _.map(anims, clearInterval);
@@ -994,4 +1031,13 @@ async function test (img_url) { // eslint-disable-line no-unused-vars
     anims.push(setInterval(left_brow_furrow, 900));
     anims.push(setInterval(right_brow_furrow, 700));
     head_sway(3, 1);
+}
+
+
+// use this to load a dog and have it sit still for feature assignment
+async function find_features (img_url) { // eslint-disable-line no-unused-vars
+    _.map(anims, clearInterval);
+    img_url = (img_url === undefined ? 'dog3.jpg' : img_url);
+    await create_puppet(img_url);
+    head_sway(0, 0);
 }
