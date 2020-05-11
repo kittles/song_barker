@@ -22,7 +22,7 @@ async function handle_create_new_song (req, res) {
     // temp directory for holding files on the server
     // before uploading to bucket
     var tmp_uuid = uuid.v4();
-    var tmp_dir = `./uploads/${tmp_uuid}`;
+    var tmp_dir = `${__dirname}/uploads/${tmp_uuid}`;
     spawn.execSync(`mkdir ${tmp_dir}`);
 
     // backing track dir on bucket
