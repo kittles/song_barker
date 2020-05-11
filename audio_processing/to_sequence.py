@@ -21,7 +21,7 @@ import audio_conversion as ac
 from crop_sampler import CropSampler
 
 samplerate = 44100
-log = logger.log_fn(os.path.basename(__file__)) 
+log = logger.log_fn(os.path.basename(__file__))
 
 
 def to_sequence (user_id, song_id, crops, debug=False, output=None):
@@ -90,7 +90,7 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
                     song.get('backing_track'),
                     (song.get('key') + backing_shift) % 12
                 )
-            
+
 
         # generate the actual audio for each track
         track_sequences = []
@@ -132,7 +132,7 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
                 peak_time = crop.peak()
                 duration = crop.duration
 
-                # scale it by the duration of the sample
+                # get the relative spot of the peak
                 peak_pct = peak_time / duration
 
                 # get the number of samples from the beginning of the audio data to the peak
@@ -165,13 +165,8 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
             sequence[0:len(track)] += track
         sequence /= sequence.max()
 
-        # crop beginning silence
-        start_idx = 0
-        for s in sequence:
-            start_idx += 1
-            if s > 0:
-                break
-        sequence = sequence[start_idx:]
+        # unshift audio padding
+        sequence = sequence[audio_padding:]
 
         # write to file
         wavfile.write(sequence_fp, samplerate, sequence)
@@ -221,12 +216,12 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
                     output
                 )
                 sp.call(cmd, shell=True)
-                
+
 
         # return some data for api response
         print(sequence_uuid, remote_sequence_url)
         log(' '.join(crops), 'finished')
-           
+
 
 if __name__ == '__main__':
 

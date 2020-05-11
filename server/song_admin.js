@@ -7,12 +7,14 @@ var gsutil = require('./gsutil_wrapper.js');
 
 async function handle_create_new_song (req, res) {
     // store info here for the song in the db
+    console.log(req.body);
     var db_insert_info = {
         name: req.body.name,
         price: req.body.price,
         category: req.body.category,
         song_family: req.body.song_family,
-        //bucket_url: comes from below,
+        track_count: req.body.track_count,
+        key: req.body.key,
         //bucket_fp: comes from below,
         //backing_track: comes from below,
     };
@@ -126,8 +128,8 @@ async function insert_song_to_db (db_insert_info) {
     console.log(db_insert_info);
     db.run(`
         INSERT into songs (
-            name, price, category, song_family, bucket_url, bucket_fp, backing_track
-        ) values (?, ?, ?, ?, ?, ?, ?)
+            name, price, category, song_family, bucket_url, bucket_fp, backing_track, track_count, key
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
         db_insert_info.name,
         db_insert_info.price,
@@ -136,5 +138,7 @@ async function insert_song_to_db (db_insert_info) {
         db_insert_info.bucket_url,
         db_insert_info.bucket_fp,
         db_insert_info.backing_track,
+        db_insert_info.track_count,
+        db_insert_info.key,
     ]);
 }

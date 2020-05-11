@@ -75,8 +75,14 @@ class CropSampler (object):
         xs = intensity.xs()
         ivs = intensity.values[0]
         chunks = [np.sum(ivs[i:i+3]) for i in range(len(ivs) - 5)]
-        peak = np.max(chunks)
-        peak_idx = chunks.index(peak)
+        peak_idx = 0
+        chunk_range = max(chunks) - min(chunks)
+        for idx, chunk in enumerate(chunks):
+            if chunk > (min(chunks) + (0.5 * chunk_range)):
+                peak_idx = idx
+                break
+        #peak = np.max(chunks)
+        #peak_idx = chunks.index(peak)
         return xs[peak_idx]
 
 
@@ -238,7 +244,7 @@ if __name__ == '__main__':
         #    except Exception as e:
         #        print('\n*** \n\n !!!! FAILED {} \n\n***'.format(fp))
         #        print(e)
-        fp = './fixture_assets/crops/graig_dog_2.aac'
+        fp = './fixture_assets/crops/one.aac'
         tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
         shutil.copyfile(fp, tmp_fp)
         fp = ac.aac_to_wav(tmp_fp)

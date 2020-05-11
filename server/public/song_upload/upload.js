@@ -340,6 +340,8 @@ async function create_song () {
             form_data.append(k, get_val(k));
         }
     });
+    // TODO unhardcode this
+    form_data.append('track_count', 3);
     _.each(get_val('backing_tracks'), (track) => {
         form_data.append(`backing_track_${track.name}`, track);
     });
