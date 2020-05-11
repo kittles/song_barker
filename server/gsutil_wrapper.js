@@ -5,9 +5,11 @@ var cp = require('child_process');
 function gsutil_cmd (cmd, cb) {
     // check if gsutil is available
     if (commandExistsSync('gsutil')) {
-        console.log('uploading to bucket');
-        return cp.exec('gsutil ' + cmd, (err) => {
+        var gsutil_cmd = 'gsutil ' + cmd;
+        console.log(`executing command: \`${gsutil_cmd}\``);
+        return cp.exec(gsutil_cmd, (err) => {
             console.log('gsutil finished', err);
+            cb();
         });
     } else {
         console.log('gsutil missing from command line, install and initialize it');
@@ -16,4 +18,13 @@ function gsutil_cmd (cmd, cb) {
 exports.gsutil_cmd = gsutil_cmd;
 
 
-//gsutil_cmd('ls gs://song_barker_sequences', (a,b,c) => console.log(a,b,c));
+function upload_file (src, dest, cb) {
+    return gsutil_cmd(`cp "${src}" "${dest}"`, cb);
+}
+exports.upload_file = upload_file;
+
+
+function upload_dir (src, dest, cb) {
+    return gsutil_cmd(`-m cp -r "${src}" "${dest}"`, cb);
+}
+exports.upload_dir = upload_dir;
