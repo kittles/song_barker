@@ -1,4 +1,3 @@
-import datetime as dt
 import bucket_client as bc
 import logger
 import sqlite3
@@ -128,12 +127,8 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
                     )
 
                 # calculate sample offset so peak intesity falls on beat
-                # start with initial crop's peak
-                peak_time = crop.peak()
-                duration = crop.duration
-
                 # get the relative spot of the peak
-                peak_pct = peak_time / duration
+                peak_pct = crop.peak()
 
                 # get the number of samples from the beginning of the audio data to the peak
                 peak_offset = int(len(audio_data) * peak_pct)
@@ -184,7 +179,7 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
             'uuid': str(sequence_uuid),
             'song_id': song_id,
             'crop_id': ' '.join(crops),
-            'user_id': user_id, 
+            'user_id': user_id,
             'name': '{} {}'.format(song_name, sequence_count + 1),
             'bucket_url': remote_sequence_url,
             'bucket_fp': remote_sequence_fp,
