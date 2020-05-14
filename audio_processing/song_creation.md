@@ -21,8 +21,7 @@ ideally, youd send me a folder with the following items:
     * song.mid
     * C.aac, Db.aac ... etc
 
-info.json should be a valid json file with the following info:
-
+* info.json should be a valid json file with the following info:
 ```json
 {
     "track_count": 3,
@@ -34,6 +33,5 @@ info.json should be a valid json file with the following info:
     "song_family": "Jingle Bells"
 }
 ```
-
-the midi file should always be called `song.mid`
-the backing tracks should conform to the naming convention mentioned earlier
+* the midi file should always be called `song.mid`
+* the backing tracks should conform to the naming convention mentioned earlier
