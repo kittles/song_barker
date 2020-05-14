@@ -71,7 +71,7 @@ async function handle_create_new_song (req, res) {
     Promise.all(moves).then(() => {
         console.log('uploading backing tracks');
         gsutil.upload_dir(`${tmp_dir}/${backing_dir_uuid}`, 'gs://song_barker_sequences/backing_tracks', () => {
-            console.log('finished uploading backing tracks');
+            console.log('finished uploading backing tracks', arguments);
             // TODO callback to remove temp dir when done
         });
     });

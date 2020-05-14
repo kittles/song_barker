@@ -9,7 +9,6 @@ var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
 var signed = require('./signed_url.js');
-var handle_create_new_song = require('./song_admin.js').handle_create_new_song;
 
 
 var port = process.env.PORT || 3000;
@@ -30,8 +29,6 @@ app.use(fileUpload({
 // routes
 //
 
-// admin
-app.post('/admin/create_new_song', handle_create_new_song);
 
 // index
 app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));

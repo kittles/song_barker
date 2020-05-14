@@ -3,18 +3,20 @@ from scipy.io import wavfile
 from matplotlib import pyplot as plt
 from scipy import signal
 import numpy as np
+import audio_conversion as ac
 
 
 # TODO argument parser
 
 #midi_fp = '/home/patrick/Desktop/songs_for_songbarker/Happy Birthday Rock 4_4/MIDI/happy birthday nopitch.mid'
-midi_fp = '/home/patrick/Downloads/jingle_bells_nopitch.mid'
-audio_fp = '/home/patrick/Downloads/jingle bells backing tracks/A.wav'
+midi_fp = '../songs/happy_birthday_pitched/happy_birthday_pitched.mid'
+audio_fp = '../songs/happy_birthday_pitched/A.aac'
 output_audio_fp = '/home/patrick/Desktop/with_indicators.wav'
 
+wav_fp = ac.aac_to_wav(audio_fp)
 
 # get a mono 44100 audio
-rate, audio_data = wavfile.read(audio_fp)
+rate, audio_data = wavfile.read(wav_fp)
 if audio_data.ndim == 2:
     audio_data = audio_data.sum(axis=1) / 2
 # resample
