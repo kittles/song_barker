@@ -17,11 +17,12 @@ this might include making the midi region start at the same place as the audio t
 
 ## how to structure the whole thing
 ideally, youd send me a folder with the following items:
-    * info.json
-    * song.mid
-    * C.aac, Db.aac ... etc
+* info.json
+* song.mid
+* C.aac, Db.aac ... etc
 
-* info.json should be a valid json file with the following info:
+### info.json
+info.json should be a valid json file with the following info:
 ```json
 {
     "track_count": 3,
@@ -33,5 +34,10 @@ ideally, youd send me a folder with the following items:
     "song_family": "Jingle Bells"
 }
 ```
-* the midi file should always be called `song.mid`
-* the backing tracks should conform to the naming convention mentioned earlier
+
+### midi file
+the midi file should always be called `song.mid`
+
+
+### backing tracks
+the backing tracks should conform to the naming convention of a letter to denote key, and an optional `#` or `b` to denote sharp and flat.
