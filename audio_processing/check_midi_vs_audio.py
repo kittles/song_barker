@@ -1,3 +1,4 @@
+import os
 from midi_bridge import MidiBridge
 from scipy.io import wavfile
 from matplotlib import pyplot as plt
@@ -7,11 +8,13 @@ import audio_conversion as ac
 
 
 # TODO argument parser
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
-#midi_fp = '/home/patrick/Desktop/songs_for_songbarker/Happy Birthday Rock 4_4/MIDI/happy birthday nopitch.mid'
-midi_fp = '../songs/happy_birthday_pitched/happy_birthday_pitched.mid'
-audio_fp = '../songs/happy_birthday_pitched/A.aac'
-output_audio_fp = '/home/patrick/Desktop/with_indicators.wav'
+song_dirname = 'timing_check'
+
+midi_fp = os.path.join(dir_path, '../songs/{}/song.mid'.format(song_dirname))
+audio_fp = os.path.join(dir_path, '../songs/{}/A.aac'.format(song_dirname))
+output_audio_fp = '/home/patrick/Desktop/check_song.wav'
 
 wav_fp = ac.aac_to_wav(audio_fp)
 
@@ -59,3 +62,4 @@ for x in midi_xs:
 
 audio_data /= max(audio_data)
 wavfile.write(output_audio_fp, 44100, audio_data)
+os.remove(wav_fp)
