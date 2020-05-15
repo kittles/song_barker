@@ -224,6 +224,7 @@ class CropSampler (object):
         xs = intensity.xs()
         ys = intensity.values[0]
         smooth_xs, smooth_ys = self.smooth_intensity(xs, ys, 10)
+        smooth_ys /= max(smooth_ys)
         for x, y in zip(smooth_xs, smooth_ys):
             if y > 0.7:
                 peak_pct = x / self.duration
@@ -244,8 +245,10 @@ class CropSampler (object):
         smooth_xs = self.normalize_arr(smooth_xs) * len(self.audio_data)
         smooth_ys = self.normalize_arr(smooth_ys)
 
+
         #plt.plot(xs, ys)
         plt.plot(smooth_xs, smooth_ys)
+        plt.axvline(self.peak() * len(self.audio_data), color='red')
         if save:
             plt.savefig(save)
         else:
@@ -286,15 +289,26 @@ if __name__ == '__main__':
         #    except Exception as e:
         #        print('\n*** \n\n !!!! FAILED {} \n\n***'.format(fp))
         #        print(e)
-        for fp in glob.glob('./fixture_assets/crops/*.aac'):
-            #fp = './fixture_assets/crops/three.aac'
-            fname = fp.split('/')[-1].replace('.aac', '')
-            print(fname)
-            tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
-            shutil.copyfile(fp, tmp_fp)
-            fp = ac.aac_to_wav(tmp_fp)
-            cs = CropSampler(fp, tmp_dir)
-            print(cs.peak())
-            #cs.plot_audio('./plots/' + fname + '.png')
-        #cs.play_original()
-        #print(cs.nearest_concert_freq())
+        #for fp in glob.glob('./fixture_assets/crops/*.aac'):
+        #    #fp = './fixture_assets/crops/three.aac'
+        #    fname = fp.split('/')[-1].replace('.aac', '')
+        #    print(fname)
+        #    tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
+        #    shutil.copyfile(fp, tmp_fp)
+        #    fp = ac.aac_to_wav(tmp_fp)
+        #    cs = CropSampler(fp, tmp_dir)
+        #    print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
+        #    #cs.plot_audio('./plots/' + fname + '.png')
+        ##cs.play_original()
+        ##print(cs.nearest_concert_freq())
+        fp = './fixture_assets/crops/one.aac'
+        fname = fp.split('/')[-1].replace('.aac', '')
+        print(fname)
+        tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
+        shutil.copyfile(fp, tmp_fp)
+        fp = ac.aac_to_wav(tmp_fp)
+        cs = CropSampler(fp, tmp_dir)
+        print(cs.audio_data.shape)
+        print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
+        cs.plot_audio()
+        #cs.plot_audio('./plots/' + fname + '.png')
