@@ -23,6 +23,9 @@ to use the current example.
 to summarize- the server sends a cookie with a session id, and the client needs to hold on to that and include it in all subsequent requests to the server as a cookie.
 the client never has access to the session, just the session id.
 
+i dont know which dart libraries are good for handling cookies, but i would expect there are some http request libraries that should handle setting cookies automatically. either way, its good
+to know whats going on.
+
 
 ## client log in
 the first time a user uses the app, they wont be logged in. the client needs to use an oauth2 library to make a requests to a 3rd party server for a token.
@@ -69,11 +72,11 @@ the function above can be used like below:
 ```dart
     // inside some auth flow function
 
-    var client_id = '885484185769-05vl2rnlup9a9hdkrs78ao1jvmn1804t.apps.googleusercontent.com';
+    var client_id = '<platform specific client id>';
     var token = await authenticate(client_id, ['email', 'openid', 'profile']);
 
     var response = await http.post(
-        'http://192.168.1.4:3000/openid-token',
+        '<server ip>/openid-token',
         body: json.encode(token),
         headers: {
             'Content-type': 'application/json',
@@ -85,8 +88,8 @@ the function above can be used like below:
 `client_id` is the id oauth2 credential that comes from a 3rd party when i set this up. it will depend on which
 third party (google, facebook, etc) is used. currently, there are just two, both for google:
 
-ios_client_id: `885484185769-b78ks9n5vlka0enrl33p6hkmahhg5o7i.apps.googleusercontent.com`
-android_client_id: `885484185769-05vl2rnlup9a9hdkrs78ao1jvmn1804t.apps.googleusercontent.com`
+* ios_client_id: `885484185769-b78ks9n5vlka0enrl33p6hkmahhg5o7i.apps.googleusercontent.com`
+* android_client_id: `885484185769-05vl2rnlup9a9hdkrs78ao1jvmn1804t.apps.googleusercontent.com`
 
 the `authenticate` function accepts an array of scopes as well. id just pass the three in the example above.
 when called, `authenticate` will open a browser (webviews are apparently deprecated for doing oauth now) where the user
