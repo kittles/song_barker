@@ -13,10 +13,12 @@ var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var user_sess = require('./user_from_session.js');
 
+//
+// server config
+//
 
 var port = process.env.PORT || 3000;
 
-// server config
 app.use(express.json({
     type: 'application/json',
 }));
@@ -29,7 +31,7 @@ app.use(fileUpload({
 app.use(
     session({
         store: new FileStore(),
-        secret: 'keyboard cat', // TODO come from env
+        secret: 'bireli', // TODO come from env
         resave: true,
         saveUninitialized: true,
         cookie: {
@@ -38,11 +40,9 @@ app.use(
     })
 );
 
-
 //
 // routes
 //
-
 
 // index
 app.get('/', (req, res) => {
@@ -70,6 +70,11 @@ app.post('/openid-token', async (req, res) => {
     return res.json(payload);
 });
 
+// disassociate user id from session
+app.get('/logout', (req, res) => {
+    delete req.session.user_id;
+    res.json({ success: true });
+});
 
 // oauth consent screens
 app.get('/openid-home', (req, res) => {
