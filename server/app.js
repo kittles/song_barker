@@ -51,9 +51,15 @@ app.get('/', (req, res) => {
 });
 
 // openid user creation
-app.post('/openid-token', async (req, res) => {
+app.post('/openid-token/:platform', async (req, res) => {
     // TODO can you tell if its android or ios from the body?
-    var payload = await verify.android_verify(req.body);
+    var payload;
+    if (req.params.platform === 'android') {
+        payload = await verify.android_verify(req.body);
+    }
+    if (req.params.platform === 'ios') {
+        payload = await verify.ios_verify(req.body);
+    }
     req.session.openid_profile = payload;
     // see if an account with the payload's email as user_id exists
     var user = await user_sess.get_user(payload.email);
