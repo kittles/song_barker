@@ -16,4 +16,5 @@ cd ..
 cd server
 node -e 'require("./database.js").initialize_db()'
 
-# make sure gsutil is available and logged in so server can upload that way as well
+
+echo 'dont forget to set nginx up for static files in /server/public'
