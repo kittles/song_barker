@@ -71,6 +71,24 @@ app.post('/openid-token', async (req, res) => {
     return res.json(payload);
 });
 
+// for checking if logged in
+app.get('/is-logged-in', async (req, res) => {
+    var state = {
+        logged_in: false,
+    };
+    if (!_.get(req.session, 'user_id', false)) {
+        state.user_id = false;
+        res.json(state);
+    }
+    const db = await _db.dbPromise;
+    var is_user = await db.get('select 1 from users where user_id = ?', req.session.user_id);
+    if (_.get(is_user, '1', false)) {
+        state.logged_in = true;
+        state.user_id = req.session.user_id;
+    }
+    res.json(state);
+});
+
 // disassociate user id from session
 app.get('/logout', (req, res) => {
     delete req.session.user_id;
