@@ -17,7 +17,7 @@ function check_authentication (req, res) {
     if (req.session.user_id) {
         return true;
     } else {
-        res.status(401).send('[rest api error] your must have a valid user_id to access this resource');
+        res.status(401).send('[rest api error] you must have a valid user_id to access this resource');
     }
 }
 
@@ -40,7 +40,9 @@ function obj_rest_api (def, db) {
             handler: async (req, res) => {
                 // auth
                 if (def.user_owned) {
-                    check_authentication(req, res);
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
                 }
 
                 // query
@@ -64,11 +66,16 @@ function obj_rest_api (def, db) {
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
                 // auth
-                check_uuid(req, res, req.params.primary_key);
+                if (!check_uuid(req, res, req.params.primary_key)) {
+                    return; 
+                }
                 if (def.user_owned) {
-                    check_authentication(req, res);
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
                     if (!user_owns_resource(req.params.primary_key)) {
                         res.status(401).send('[rest api error] user doesnt own this resource');
+                        return;
                     }
                 }
 
@@ -86,7 +93,9 @@ function obj_rest_api (def, db) {
             handler: async (req, res) => {
                 // auth
                 if (def.user_owned) {
-                    check_authentication(req, res);
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
                 }
 
                 // query
@@ -103,11 +112,16 @@ function obj_rest_api (def, db) {
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
                 // auth
-                check_uuid(req, res, req.params.primary_key);
+                if (!check_uuid(req, res, req.params.primary_key)) {
+                    return;
+                }
                 if (def.user_owned) {
-                    check_authentication(req, res);
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
                     if (!user_owns_resource(req.params.primary_key)) {
                         res.status(401).send('[rest api error] user doesnt own this resource');
+                        return;
                     }
                 }
 
@@ -130,11 +144,16 @@ function obj_rest_api (def, db) {
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
                 // auth
-                check_uuid(req, res, req.params.primary_key);
+                if (!check_uuid(req, res, req.params.primary_key)) {
+                    return;
+                }
                 if (def.user_owned) {
-                    check_authentication(req, res);
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
                     if (!user_owns_resource(req.params.primary_key)) {
                         res.status(401).send('[rest api error] user doesnt own this resource');
+                        return;
                     }
                 }
 

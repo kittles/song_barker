@@ -12,6 +12,7 @@ var verify = require('./google_oauth_handler.js');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var user_sess = require('./user_from_session.js');
+var uuid_validate = require('uuid-validate')
 
 //
 // server config
@@ -109,22 +110,55 @@ app.get('/describe', (req, res) => {
     res.json(models);
 });
 
+
 // process raw audio into cropped pieces
-// TODO check auth
 app.post('/to_crops', async function (req, res) {
+    // auth
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    // check that raw exists
+    if (!uuid_validate(req.body.uuid)) {
+        res.status(400).send('malformed raw uuid');
+        return;
+    }
+    var raw_exists = await db.get('select 1 from raws where uuid = ? and user_id = ?', [
+        req.body.uuid,
+        req.session.user_id,
+    ]);
+    if (!_.get(raw_exists, '1', false)) {
+        res.status(400).send('raw object not found');
+        return;
+    }
+    // check that image exists
+    if (!uuid_validate(req.body.image_id)) {
+        res.status(400).send('malformed image uuid');
+        return;
+    }
+    var image_exists = await db.get('select 1 from images where uuid = ? and user_id = ?', [
+        req.body.image_id,
+        req.session.user_id,
+    ]);
+    if (!_.get(image_exists, '1', false)) {
+        res.status(400).send('image object not found');
+        return;
+    }
+
     // TODO check input against db, use db result for command string
     exec(`
         cd ../audio_processing &&
         source .env/bin/activate &&
         export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-        python to_crops.py -i ${req.body.uuid} -u ${req.body.user_id} -m ${req.body.image_id}
+        python to_crops.py -i ${req.body.uuid} -u ${req.session.user_id} -m ${req.body.image_id}
     `, {
         shell: '/bin/bash',
     }, async (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
             res.json({
-                error: 'there was an error',
+                error: 'there was an error creating the crops',
             });
         } else {
             var output = stdout.split(/\r?\n/); // split by line and strip
@@ -152,13 +186,41 @@ app.post('/to_crops', async function (req, res) {
 // sequence audio into a song
 // TODO check auth
 app.post('/to_sequence', async function (req, res) {
-    // TODO check input against db, use db result for command string
+    // auth
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    // check crops
+    var is_uuid = _.map(req.body.uuids, (uuid) => {
+        return uuid_validate(uuid); // it doesnt work just mapping uuid_validate directly for some reason
+    });
+    if (is_uuid.includes(false)) {
+        res.status(400).send('malformed crop uuids');
+        return;
+    }
+    var qs = _.map(req.body.uuids, () => { return '?'; }).join(', ');
+    var crops_exist = await db.get(`select count(1) from crops where uuid in (${qs}) and user_id = ?`,
+        req.body.uuids.concat(req.session.user_id));
+    console.log(crops_exist);
+    if (crops_exist['count(1)'] !== req.body.uuids.length) {
+        res.status(400).send('crops not found');
+    }
+    // check song
+    var song_exists = await db.get('select 1 from songs where id = ?', req.body.song_id);
+    if (!_.get(song_exists, '1', false)) {
+        res.status(400).send('song not found');
+        return;
+    }
+
+    // generate sequence
     var uuids_string = _.join(req.body.uuids, ' ');
     exec(`
         cd ../audio_processing &&
         source .env/bin/activate &&
         export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-        python to_sequence.py -c ${uuids_string} -u "${req.body.user_id}" -s "${req.body.song_id}"
+        python to_sequence.py -c ${uuids_string} -u "${req.session.user_id}" -s "${req.body.song_id}"
     `, {
         shell: '/bin/bash',
     }, async (error, stdout, stderr) => {
