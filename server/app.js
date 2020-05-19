@@ -8,7 +8,7 @@ var app = express();
 var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
-var google_verify = require('./google_oauth_handler.js').verify;
+var verify = require('./google_oauth_handler.js');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var user_sess = require('./user_from_session.js');
@@ -29,9 +29,12 @@ app.use(fileUpload({
 app.use(
     session({
         store: new FileStore(),
-        secret: 'keyboard cat',
+        secret: 'keyboard cat', // TODO come from env
         resave: true,
-        saveUninitialized: true
+        saveUninitialized: true,
+        cookie: {
+            maxAge: 1000 * 60 * 60 * 24 * 30,
+        }
     })
 );
 
@@ -47,10 +50,9 @@ app.get('/', (req, res) => {
 });
 
 // openid user creation
-// TODO generalize to more than just google
-// TODO google ios handler
 app.post('/openid-token', async (req, res) => {
-    var payload = await google_verify(req.body);
+    // TODO can you tell if its android or ios from the body?
+    var payload = await verify.android_verify(req.body);
     req.session.openid_profile = payload;
     // see if an account with the payload's email as user_id exists
     var user = await user_sess.get_user(payload.email);
@@ -66,6 +68,18 @@ app.post('/openid-token', async (req, res) => {
         req.session.user_id = payload.email;
     }
     return res.json(payload);
+});
+
+
+// oauth consent screens
+app.get('/openid-home', (req, res) => {
+    res.send('Welcome to SongBarker!');
+});
+app.get('/openid-privacy', (req, res) => {
+    res.send('We share no information with anyone!');
+});
+app.get('/openid-tos', (req, res) => {
+    res.send('terms of service');
 });
 
 // puppet

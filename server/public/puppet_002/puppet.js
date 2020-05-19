@@ -901,19 +901,19 @@ async function load_hlsl_text (url) {
 async function load_shader_files () {
     if (face_animation_shader.fragmentShader == null) {
         log('loading shader file: /puppet_002/face_fragment_shader.hlsl');
-        face_animation_shader.fragmentShader = await load_hlsl_text('/puppet_002/face_fragment_shader.hlsl');
+        face_animation_shader.fragmentShader = await load_hlsl_text('face_fragment_shader.hlsl');
     }
     if (face_animation_shader.vertexShader == null) {
         log('loading shader file: /puppet_002/face_vertex_shader.hlsl');
-        face_animation_shader.vertexShader = await load_hlsl_text('/puppet_002/face_vertex_shader.hlsl');
+        face_animation_shader.vertexShader = await load_hlsl_text('face_vertex_shader.hlsl');
     }
     if (mouth_shader.fragmentShader == null) {
         log('loading shader file: /puppet_002/mouth_fragment_shader.hlsl');
-        mouth_shader.fragmentShader = await load_hlsl_text('/puppet_002/mouth_fragment_shader.hlsl');
+        mouth_shader.fragmentShader = await load_hlsl_text('mouth_fragment_shader.hlsl');
     }
     if (mouth_shader.vertexShader == null) {
         log('loading shader file: /puppet_002/mouth_vertex_shader.hlsl');
-        mouth_shader.vertexShader = await load_hlsl_text('/puppet_002/mouth_vertex_shader.hlsl');
+        mouth_shader.vertexShader = await load_hlsl_text('mouth_vertex_shader.hlsl');
     }
     log('finished loaded shader files');
 }
