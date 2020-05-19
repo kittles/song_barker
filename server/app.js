@@ -8,7 +8,10 @@ var app = express();
 var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
-var signed = require('./signed_url.js');
+var google_verify = require('./google_oauth_handler.js').verify;
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
+var user_sess = require('./user_from_session.js');
 
 
 var port = process.env.PORT || 3000;
@@ -23,6 +26,14 @@ app.use(express.static('./public'));
 app.use(fileUpload({
     createParentPath: true
 }));
+app.use(
+    session({
+        store: new FileStore(),
+        secret: 'keyboard cat',
+        resave: true,
+        saveUninitialized: true
+    })
+);
 
 
 //
@@ -31,16 +42,35 @@ app.use(fileUpload({
 
 
 // index
-app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
+app.get('/', (req, res) => {
+    res.send(`sessionID: ${req.sessionID}, user_id: ${req.session.user_id}`);
+});
+
+// openid user creation
+// TODO generalize to more than just google
+// TODO google ios handler
+app.post('/openid-token', async (req, res) => {
+    var payload = await google_verify(req.body);
+    req.session.openid_profile = payload;
+    // see if an account with the payload's email as user_id exists
+    var user = await user_sess.get_user(payload.email);
+    if (user) {
+        console.log('user exists');
+        // attach the user_id to the session
+        req.session.user_id = payload.email;
+    } else {
+        // create a new user object
+        console.log('create new user');
+        await user_sess.add_user(payload.email, payload.name, payload.email);
+        // should verify that db insert worked
+        req.session.user_id = payload.email;
+    }
+    return res.json(payload);
+});
 
 // puppet
 app.get('/puppet', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/puppet_001/puppet.html'));
-});
-
-// test fps
-app.get('/performance', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/puppet_000/performance.html'));
 });
 
 // rest api
@@ -55,24 +85,13 @@ app.get('/performance', (req, res) => {
     });
 })();
 
-// signed urls for uploads
-app.post('/upload_url', async (req, res) => {
-    console.log(req.body);
-    var url = await signed.to_signed_upload_url(req.body.filename);
-    res.json({ url: url });
-});
-
-app.post('/playback_url', async (req, res) => {
-    var url = await signed.to_signed_playback_url(req.body.filename);
-    res.json({ url: url });
-});
-
 // model descriptions
 app.get('/describe', (req, res) => {
     res.json(models);
 });
 
 // process raw audio into cropped pieces
+// TODO check auth
 app.post('/to_crops', async function (req, res) {
     // TODO check input against db, use db result for command string
     exec(`
@@ -112,6 +131,7 @@ app.post('/to_crops', async function (req, res) {
 });
 
 // sequence audio into a song
+// TODO check auth
 app.post('/to_sequence', async function (req, res) {
     // TODO check input against db, use db result for command string
     var uuids_string = _.join(req.body.uuids, ' ');
