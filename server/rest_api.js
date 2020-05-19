@@ -67,7 +67,7 @@ function obj_rest_api (def, db) {
             handler: async (req, res) => {
                 // auth
                 if (!check_uuid(req, res, req.params.primary_key)) {
-                    return; 
+                    return;
                 }
                 if (def.user_owned) {
                     if (!check_authentication(req, res)) {
@@ -96,6 +96,7 @@ function obj_rest_api (def, db) {
                     if (!check_authentication(req, res)) {
                         return;
                     }
+                    req.body.user_id = req.session.user_id; // overwrite body param (should be unset but just in case)
                 }
 
                 // query

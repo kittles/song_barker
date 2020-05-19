@@ -52,29 +52,32 @@ app.get('/', (req, res) => {
 
 // openid user creation
 app.post('/openid-token/:platform', async (req, res) => {
-    // TODO can you tell if its android or ios from the body?
-    var payload;
-    if (req.params.platform === 'android') {
-        payload = await verify.android_verify(req.body);
+    try {
+        var payload;
+        if (req.params.platform === 'android') {
+            payload = await verify.android_verify(req.body);
+        }
+        if (req.params.platform === 'ios') {
+            payload = await verify.ios_verify(req.body);
+        }
+        req.session.openid_profile = payload;
+        // see if an account with the payload's email as user_id exists
+        var user = await user_sess.get_user(payload.email);
+        if (user) {
+            console.log('user exists');
+            // attach the user_id to the session
+            req.session.user_id = payload.email;
+        } else {
+            // create a new user object
+            console.log('create new user');
+            await user_sess.add_user(payload.email, payload.name, payload.email);
+            // should verify that db insert worked
+            req.session.user_id = payload.email;
+        }
+        return res.json({ success: true, err: null, payload: payload});
+    } catch (err) {
+        return res.json({ success: false, err: err, payload: null});
     }
-    if (req.params.platform === 'ios') {
-        payload = await verify.ios_verify(req.body);
-    }
-    req.session.openid_profile = payload;
-    // see if an account with the payload's email as user_id exists
-    var user = await user_sess.get_user(payload.email);
-    if (user) {
-        console.log('user exists');
-        // attach the user_id to the session
-        req.session.user_id = payload.email;
-    } else {
-        // create a new user object
-        console.log('create new user');
-        await user_sess.add_user(payload.email, payload.name, payload.email);
-        // should verify that db insert worked
-        req.session.user_id = payload.email;
-    }
-    return res.json(payload);
 });
 
 // for checking if logged in
