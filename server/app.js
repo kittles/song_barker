@@ -151,14 +151,7 @@ app.post('/to_crops', async function (req, res) {
         res.status(400).send('malformed raw uuid');
         return;
     }
-    var raw_exists = await db.get('select 1 from raws where uuid = ? and user_id = ?', [
-        req.body.uuid,
-        req.session.user_id,
-    ]);
-    if (!_.get(raw_exists, '1', false)) {
-        res.status(400).send('raw object not found');
-        return;
-    }
+    // NOTE raw object is created in the python script below
     if (req.body.image_id) {
         // check that image exists
         if (!uuid_validate(req.body.image_id)) {
