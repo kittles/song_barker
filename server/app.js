@@ -12,7 +12,7 @@ var verify = require('./google_oauth_handler.js');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var user_sess = require('./user_from_session.js');
-var uuid_validate = require('uuid-validate')
+var uuid_validate = require('uuid-validate');
 
 //
 // server config
@@ -74,9 +74,9 @@ app.post('/openid-token/:platform', async (req, res) => {
             // should verify that db insert worked
             req.session.user_id = payload.email;
         }
-        return res.json({ success: true, err: null, payload: payload});
+        return res.json({ success: true, err: null, payload: payload });
     } catch (err) {
-        return res.json({ success: false, err: err, payload: null});
+        return res.json({ success: false, err: err, payload: null });
     }
 });
 
@@ -159,21 +159,24 @@ app.post('/to_crops', async function (req, res) {
         res.status(400).send('raw object not found');
         return;
     }
-    // check that image exists
-    if (!uuid_validate(req.body.image_id)) {
-        res.status(400).send('malformed image uuid');
-        return;
+    if (req.body.image_id) {
+        // check that image exists
+        if (!uuid_validate(req.body.image_id)) {
+            res.status(400).send('malformed image uuid');
+            return;
+        }
+        var image_exists = await db.get('select 1 from images where uuid = ? and user_id = ?', [
+            req.body.image_id,
+            req.session.user_id,
+        ]);
+        if (!_.get(image_exists, '1', false)) {
+            res.status(400).send('image object not found');
+            return;
+        }
     }
-    var image_exists = await db.get('select 1 from images where uuid = ? and user_id = ?', [
-        req.body.image_id,
-        req.session.user_id,
-    ]);
-    if (!_.get(image_exists, '1', false)) {
-        res.status(400).send('image object not found');
-        return;
-    }
+    // TODO image_id == undefined works, but only because db has no images with user_id == 'undefined'
+    // kind of a hack...
 
-    // TODO check input against db, use db result for command string
     exec(`
         cd ../audio_processing &&
         source .env/bin/activate &&
