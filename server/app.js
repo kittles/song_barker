@@ -207,7 +207,6 @@ app.post('/to_crops', async function (req, res) {
 });
 
 // sequence audio into a song
-// TODO check auth
 app.post('/to_sequence', async function (req, res) {
     // auth
     if (!req.session.user_id) {
@@ -223,12 +222,20 @@ app.post('/to_sequence', async function (req, res) {
         res.status(400).send('malformed crop uuids');
         return;
     }
-    var qs = _.map(req.body.uuids, () => { return '?'; }).join(', ');
-    var crops_exist = await db.get(`select count(1) from crops where uuid in (${qs}) and user_id = ?`,
-        req.body.uuids.concat(req.session.user_id));
-    console.log(crops_exist);
-    if (crops_exist['count(1)'] !== req.body.uuids.length) {
-        res.status(400).send('crops not found');
+    var crops_exist = _.map(req.body.uuids, async (uuid) => {
+        var crop_exists = await db.get('select 1 from crops where uuid = ? and user_id = ?', [
+            uuid,
+            req.session.user_id,
+        ]);
+        if (!_.get(crop_exists, '1', false)) {
+            return false;
+        } else {
+            return true;
+        }
+    });
+    if (crops_exist.includes(false)) {
+        res.status(400).send('crop object not found');
+        return;
     }
     // check song
     var song_exists = await db.get('select 1 from songs where id = ?', req.body.song_id);
