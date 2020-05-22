@@ -6,39 +6,45 @@
     "scene": 0,
     "buffers": [
         {
-            "byteLength": 4308,
+            "byteLength": 8396,
             "uri": "buffer.bin"
         }
     ],
     "bufferViews": [
         {
             "buffer": 0,
-            "byteLength": 372,
+            "byteLength": 444,
             "byteOffset": 0,
             "target": 34963
         },
         {
             "buffer": 0,
-            "byteLength": 984,
-            "byteOffset": 372,
+            "byteLength": 1704,
+            "byteOffset": 444,
             "target": 34962
         },
         {
             "buffer": 0,
-            "byteLength": 984,
-            "byteOffset": 1356,
+            "byteLength": 1704,
+            "byteOffset": 2148,
             "target": 34962
         },
         {
             "buffer": 0,
-            "byteLength": 1312,
-            "byteOffset": 2340,
+            "byteLength": 2272,
+            "byteOffset": 3852,
             "target": 34962
         },
         {
             "buffer": 0,
-            "byteLength": 656,
-            "byteOffset": 3652,
+            "byteLength": 1136,
+            "byteOffset": 6124,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 1136,
+            "byteOffset": 7260,
             "target": 34962
         }
     ],
@@ -54,20 +60,20 @@
         {
             "componentType": 5123,
             "type": "SCALAR",
-            "count": 186,
+            "count": 222,
             "bufferView": 0,
             "byteOffset": 0
         },
         {
             "componentType": 5126,
             "type": "VEC3",
-            "count": 82,
+            "count": 142,
             "bufferView": 1,
             "byteOffset": 0,
             "min": [
                 -0.496544152498245,
                 -7.37225818170373e-08,
-                -0.41264745593071
+                -0.382962256669998
             ],
             "max": [
                 0.496544152498245,
@@ -78,29 +84,36 @@
         {
             "componentType": 5126,
             "type": "VEC3",
-            "count": 82,
+            "count": 142,
             "bufferView": 2,
             "byteOffset": 0
         },
         {
             "componentType": 5126,
             "type": "VEC4",
-            "count": 82,
+            "count": 142,
             "bufferView": 3,
             "byteOffset": 0
         },
         {
             "componentType": 5126,
             "type": "VEC2",
-            "count": 82,
+            "count": 142,
             "bufferView": 4,
+            "byteOffset": 0
+        },
+        {
+            "componentType": 5126,
+            "type": "VEC2",
+            "count": 142,
+            "bufferView": 5,
             "byteOffset": 0
         }
     ],
     "images": [
         {
-            "name": "MouthMorphTexture2.png",
-            "uri": "MouthMorphTexture2.png"
+            "name": "why.png",
+            "uri": "why.png"
         }
     ],
     "samplers": [
@@ -150,7 +163,8 @@
                         "COLOR_0": 3,
                         "NORMAL": 2,
                         "POSITION": 1,
-                        "TEXCOORD_0": 4
+                        "TEXCOORD_0": 4,
+                        "TEXCOORD_1": 5
                     },
                     "indices": 0
                 }
