@@ -276,7 +276,7 @@ async function init () {
     });
 
     // Adds the material to the geometry
-    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, segments, segments), face_mesh_material);
+    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
 
     // This object renders on top of the background
     face_mesh.renderOrder = 1;
@@ -416,6 +416,16 @@ function sync_objects_to_features () {
     var rads = Math.atan(eyeLine.y / eyeLine.x);
     face_mesh.rotation.set(0, 0, 0);
     face_mesh.rotateZ(rads);
+
+    // Rotate the mouth mesh the same direction as the eyes, ease a bit with the moutline
+    var leftMouth = new THREE.Vector2(features.mouthLeft.x, features.mouthLeft.y);
+    var rightMouth = new THREE.Vector2(features.mouthRight.x, features.mouthRight.y);
+    var mouthLine = rightMouth.sub(leftMouth);
+
+    rads = 
+        Math.atan(mouthLine.y / mouthLine.x) * 0.5 +
+        Math.atan(eyeLine.y / eyeLine.x) * 0.5;        
+    mouth_mesh.rotateY(-rads);
     mouth_mesh.rotation.y = -rads;
 
     // update the head ellipse
@@ -988,7 +998,7 @@ var feature_map = {
     'dog3.jpg': {
         leftEyePosition:  new THREE.Vector2(-0.126, 0.308),
         rightEyePosition: new THREE.Vector2(0.007, 0.314),
-        mouthPosition:    new THREE.Vector2(-0.058, 0.163),
+        mouthPosition:    new THREE.Vector2(-0.058, 0.171),
         mouthLeft:        new THREE.Vector2(-0.103, 0.143),
         mouthRight:       new THREE.Vector2(-0.0108, 0.135),
         headTop:          new THREE.Vector2(-0.062, 0.438),
@@ -999,9 +1009,9 @@ var feature_map = {
     'dog4.jpg': {
         leftEyePosition:  new THREE.Vector2(-0.196, 0.191),
         rightEyePosition: new THREE.Vector2(0.191, 0.235),
-        mouthPosition:    new THREE.Vector2(-0.017, -0.245),
-        mouthLeft:        new THREE.Vector2(-0.090, -0.361),
-        mouthRight:       new THREE.Vector2(0.135, -0.304),
+        mouthPosition:    new THREE.Vector2(0.015, -0.242),
+        mouthLeft:        new THREE.Vector2(-0.086, -0.348),
+        mouthRight:       new THREE.Vector2(0.168, -0.345),
         headTop:          new THREE.Vector2(-0.006, 0.400),
         headBottom:       new THREE.Vector2(-0.056, -0.117),
         headLeft:         new THREE.Vector2(-0.282, 0.087),
