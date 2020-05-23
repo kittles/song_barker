@@ -3,6 +3,7 @@ exports.models = [
         table_name: 'users',
         obj_type: 'user',
         primary_key: 'user_id',
+        primary_key_is_uuid: false,
         user_owned: false,
         schema: {
             columns: [
@@ -33,6 +34,7 @@ exports.models = [
         table_name: 'raws',
         obj_type: 'raw',
         primary_key: 'uuid',
+        primary_key_is_uuid: true,
         user_owned: true,
         schema: {
             columns: [
@@ -78,6 +80,7 @@ exports.models = [
         table_name: 'songs',
         obj_type: 'song',
         primary_key: 'id',
+        primary_key_is_uuid: false,
         user_owned: false,
         schema: {
             columns: [
@@ -143,6 +146,7 @@ exports.models = [
         table_name: 'images',
         obj_type: 'image',
         primary_key: 'uuid',
+        primary_key_is_uuid: true,
         order_by: 'created',
         user_owned: true,
         schema: {
@@ -199,6 +203,7 @@ exports.models = [
         table_name: 'crops',
         obj_type: 'crop',
         primary_key: 'uuid',
+        primary_key_is_uuid: true,
         order_by: 'created',
         user_owned: true,
         schema: {
@@ -255,6 +260,7 @@ exports.models = [
         table_name: 'sequences',
         obj_type: 'sequence',
         primary_key: 'uuid',
+        primary_key_is_uuid: true,
         order_by: 'created',
         user_owned: true,
         schema: {

@@ -2,6 +2,7 @@ import glob
 import os
 import bucket_client as bc
 import mido
+from collections import defaultdict
 
 
 def to_pd (note):
@@ -15,9 +16,12 @@ def midi_message_to_dict ():
     '''
     turns midi events into note dictionaries with intuitive
     duration and time
+
+    when on events with the same pitch happen before an off event,
+    assume that the first off event corresponds to the first on event
     '''
-    _notes = {}
-    _time = 0
+    _notes = defaultdict(list) # keep track of events in here as we iterate through them
+    _time = 0 # time of events is relative to last event, so increment here
 
     def handle_message (msg):
         nonlocal _notes
@@ -25,14 +29,18 @@ def midi_message_to_dict ():
         _time += msg.time
         try:
             if msg.type == 'note_on':
-                _notes[msg.note] = {
+                _notes[msg.note].append({
                     'pitch': msg.note,
                     'velocity': msg.velocity,
                     'time': _time,
                     'duration': 0,
-                }
+                })
             if msg.type == 'note_off':
-                note = _notes[msg.note]
+                note_arr = _notes[msg.note]
+                if len(note_arr) < 1:
+                    # must be a phantom off event, just let it pass
+                    pass
+                note = note_arr.pop(0) # take the earliest on event
                 note['duration'] = _time - note['time']
                 del _notes[msg.note]
                 return note
@@ -137,7 +145,7 @@ class MidiBridge (object):
     def total_ticks (self):
         return max([
             max([
-                note['duration'] + note['time'] for note in track['notes']  
+                note['duration'] + note['time'] for note in track['notes']
             ])
             for track in self.tracks
         ])
@@ -158,10 +166,11 @@ class MidiBridge (object):
 if __name__ == '__main__':
     import tempfile
     with tempfile.TemporaryDirectory() as tmp_dir:
-        midi_fp = 'ssb_pitched.mid'
+        midi_fp = '../songs/jingle_bells_harmonized/song.mid'
         mb = MidiBridge(midi_fp, tmp_dir, False)
         print(mb.first_note_sample_offset())
         for track in mb.tracks:
             print(track['name'])
             print([mb.ticks_to_seconds(note['time']) for note in track['notes']])
+            print('total notes', len(track['notes']))
 

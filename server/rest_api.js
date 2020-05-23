@@ -66,8 +66,10 @@ function obj_rest_api (def, db) {
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
                 // auth
-                if (!check_uuid(req, res, req.params.primary_key)) {
-                    return;
+                if (def.primary_key_is_uuid) {
+                    if (!check_uuid(req, res, req.params.primary_key)) {
+                        return;
+                    }
                 }
                 if (def.user_owned) {
                     if (!check_authentication(req, res)) {
@@ -113,8 +115,10 @@ function obj_rest_api (def, db) {
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
                 // auth
-                if (!check_uuid(req, res, req.params.primary_key)) {
-                    return;
+                if (def.primary_key_is_uuid) {
+                    if (!check_uuid(req, res, req.params.primary_key)) {
+                        return;
+                    }
                 }
                 if (def.user_owned) {
                     if (!check_authentication(req, res)) {
@@ -145,8 +149,10 @@ function obj_rest_api (def, db) {
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
                 // auth
-                if (!check_uuid(req, res, req.params.primary_key)) {
-                    return;
+                if (def.primary_key_is_uuid) {
+                    if (!check_uuid(req, res, req.params.primary_key)) {
+                        return;
+                    }
                 }
                 if (def.user_owned) {
                     if (!check_authentication(req, res)) {
@@ -171,6 +177,7 @@ function obj_rest_api (def, db) {
     _.each(rest_api, (api) => {
         api.handler = error_wrapper(api.handler, 500);
     });
+    // TODO restrict http methods based on models.js
     return rest_api;
 
 
