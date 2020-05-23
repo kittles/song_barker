@@ -17,7 +17,7 @@ import audio_conversion as ac
 
 THRESHOLD = 200
 
-log = logger.log_fn(os.path.basename(__file__)) 
+log = logger.log_fn(os.path.basename(__file__))
 
 
 def to_crops (raw_uuid, user_id, image_id, debug=False):
@@ -45,7 +45,7 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
             samplerate, data = wavfile.read(local_fp_wav)
             print('raw file sample rate', samplerate, 'data shape', data.shape)
             print('data min', min(data), 'max', max(data))
-            
+
 
         # split with sox
         split_cmd = 'sox {in_fp} {out_fp_prefix} silence 1 0.3 0.001% 1 0.1 1% : newfile : restart'
