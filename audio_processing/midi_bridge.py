@@ -148,11 +148,19 @@ class MidiBridge (object):
         return int(self.ticks_to_seconds(self.total_ticks()) * samplerate)
 
 
+    def first_note_sample_offset (self):
+        mins = []
+        for track in self.tracks:
+            mins.append(min([note['time'] for note in track['notes']]))
+        return self.ticks_to_samples(min(mins), 44100)
+
+
 if __name__ == '__main__':
     import tempfile
     with tempfile.TemporaryDirectory() as tmp_dir:
-        midi_fp = './fixture_assets/songs/happy_birthday_tovi.mid'
+        midi_fp = 'ssb_pitched.mid'
         mb = MidiBridge(midi_fp, tmp_dir, False)
+        print(mb.first_note_sample_offset())
         for track in mb.tracks:
             print(track['name'])
             print([mb.ticks_to_seconds(note['time']) for note in track['notes']])

@@ -8,13 +8,18 @@ var app = express();
 var rest_api = require('./rest_api.js');
 var models = require('./models.js').models;
 var _db = require('./database.js');
-var signed = require('./signed_url.js');
-var spawn = require('child_process');
-var uuid = require('uuid');
+var verify = require('./google_oauth_handler.js');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
+var user_sess = require('./user_from_session.js');
+var uuid_validate = require('uuid-validate');
+
+//
+// server config
+//
 
 var port = process.env.PORT || 3000;
 
-// server config
 app.use(express.json({
     type: 'application/json',
 }));
@@ -24,128 +29,95 @@ app.use(express.static('./public'));
 app.use(fileUpload({
     createParentPath: true
 }));
-
+app.use(
+    session({
+        store: new FileStore(),
+        secret: 'bireli', // TODO come from env
+        resave: true,
+        saveUninitialized: true,
+        cookie: {
+            maxAge: 1000 * 60 * 60 * 24 * 30,
+        }
+    })
+);
 
 //
 // routes
 //
 
-// admin
-function local_fp (file) {
-    return './uploads/' + file.name;
-}
-
-var key_map = {
-    c: 0,
-
-    db: 1,
-    'c#': 1,
-
-    d: 2,
-
-    'd#': 3,
-    eb: 3,
-
-    e: 4,
-
-    'e#': 5,
-    f: 5,
-
-    'f#': 6,
-    gb: 6,
-
-    g: 7,
-
-    'g#': 8,
-    ab: 8,
-
-    a: 9,
-
-    'a#': 10,
-    bb: 10,
-
-    b: 11,
-    cb: 11,
-};
-
-
-var backing_track_prefix = 'backing_track_';
-
-
-app.post('/admin/create_new_song', async (req, res) => {
-    // should receive a midi file and backing track
-
-    var db_insert_info = {
-        name: req.body.name,
-        //bucket_url: "gs://song_barker_sequences/midi_files/happy_birthday_graig_1_semitone.mid",
-        //bucket_fp: "midi_files/happy_birthday_graig_1_semitone.mid",
-        //track_count: 3,
-        //bpm: 120,
-        //key: 4,
-        price: req.body.price,
-        category: req.body.category,
-        song_family: req.body.song_family,
-        //backing_track: "happy_birthday",
-    };
-
-
-    // clear uploads
-    // TODO probably want to handle multiple users uploading...
-    // should put a lock on the dir
-    spawn.execSync('rm ./uploads/*');
-
-    var backing_remote_dir = uuid.v4();
-    db_insert_info.backing_track = backing_remote_dir;
-
-    _.each(req.files, async (file, k) => {
-        file.mv(local_fp(file));
-        if (k === 'midi_file') {
-            var remote_fp = `midi_files/${file.name}`;
-            db_insert_info.bucket_fp = remote_fp;
-            db_insert_info.bucket_url = 'gs://song_barker_sequences/' + remote_fp;
-            console.log('uploading midi');
-            await signed.upload(local_fp(file), remote_fp);
-        } else {
-            // if backing track, convert name to integer key and upload
-            var fname = _.split(file.name, '.')[0];
-            var key_name = _.get(key_map, _.toLower(fname), 0);
-            console.log(fname, key_name, `backing_tracks/${backing_remote_dir}/${key_name}.aac`);
-            console.log('uploading backing track');
-            await signed.upload(local_fp(file), `backing_tracks/${backing_remote_dir}/${key_name}.aac`);
-        }
-    });
-
-    //console.log(db_insert_info);
-
-    // backing tracks are all prefixed with "backing_track_"
-    // make a backing track dir (uuid)
-
-    // need to format backing tracks to 0-11 names
-
-    // need to generate bucker_url and bucket_fp for midi file
-    // need bpm and key in integer
-
-    //send response
-    res.send({
-        status: true,
-        message: 'ok',
-    });
-
-    // create backing track in all keys
+// index
+app.get('/', (req, res) => {
+    res.send(`sessionID: ${req.sessionID}, user_id: ${req.session.user_id}`);
 });
 
+// openid user creation
+app.post('/openid-token/:platform', async (req, res) => {
+    try {
+        var payload;
+        if (req.params.platform === 'android') {
+            payload = await verify.android_verify(req.body);
+        }
+        if (req.params.platform === 'ios') {
+            payload = await verify.ios_verify(req.body);
+        }
+        req.session.openid_profile = payload;
+        // see if an account with the payload's email as user_id exists
+        var user = await user_sess.get_user(payload.email);
+        if (user) {
+            console.log('user exists');
+            // attach the user_id to the session
+            req.session.user_id = payload.email;
+        } else {
+            // create a new user object
+            console.log('create new user');
+            await user_sess.add_user(payload.email, payload.name, payload.email);
+            // should verify that db insert worked
+            req.session.user_id = payload.email;
+        }
+        return res.json({ success: true, err: null, payload: payload });
+    } catch (err) {
+        return res.json({ success: false, err: err, payload: null });
+    }
+});
 
-// index
-app.get('/', (req, res) => res.send('barkin\' songs, makin\'n friends'));
+// for checking if logged in
+app.get('/is-logged-in', async (req, res) => {
+    var state = {
+        logged_in: false,
+    };
+    if (!_.get(req.session, 'user_id', false)) {
+        state.user_id = false;
+        res.json(state);
+    }
+    const db = await _db.dbPromise;
+    var is_user = await db.get('select 1 from users where user_id = ?', req.session.user_id);
+    if (_.get(is_user, '1', false)) {
+        state.logged_in = true;
+        state.user_id = req.session.user_id;
+    }
+    res.json(state);
+});
+
+// disassociate user id from session
+app.get('/logout', (req, res) => {
+    delete req.session.user_id;
+    res.json({ success: true });
+});
+
+// oauth consent screens
+app.get('/openid-home', (req, res) => {
+    res.send('Welcome to SongBarker!');
+});
+app.get('/openid-privacy', (req, res) => {
+    res.send('We share no information with anyone!');
+});
+app.get('/openid-tos', (req, res) => {
+    res.send('terms of service');
+});
 
 // puppet
 app.get('/puppet', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/puppet_001/puppet.html'));
-});
-
-// test fps
-app.get('/performance', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/puppet_000/performance.html'));
 });
 
 // rest api
@@ -160,38 +132,56 @@ app.get('/performance', (req, res) => {
     });
 })();
 
-// signed urls for uploads
-app.post('/upload_url', async (req, res) => {
-    console.log(req.body);
-    var url = await signed.to_signed_upload_url(req.body.filename);
-    res.json({ url: url });
-});
-
-app.post('/playback_url', async (req, res) => {
-    var url = await signed.to_signed_playback_url(req.body.filename);
-    res.json({ url: url });
-});
-
 // model descriptions
 app.get('/describe', (req, res) => {
     res.json(models);
 });
 
+
 // process raw audio into cropped pieces
 app.post('/to_crops', async function (req, res) {
-    // TODO check input against db, use db result for command string
+    // auth
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    // check that raw exists
+    if (!uuid_validate(req.body.uuid)) {
+        res.status(400).send('malformed raw uuid');
+        return;
+    }
+    // NOTE raw object is created in the python script below
+    if (req.body.image_id) {
+        // check that image exists
+        if (!uuid_validate(req.body.image_id)) {
+            res.status(400).send('malformed image uuid');
+            return;
+        }
+        var image_exists = await db.get('select 1 from images where uuid = ? and user_id = ?', [
+            req.body.image_id,
+            req.session.user_id,
+        ]);
+        if (!_.get(image_exists, '1', false)) {
+            res.status(400).send('image object not found');
+            return;
+        }
+    }
+    // TODO image_id == undefined works, but only because db has no images with user_id == 'undefined'
+    // kind of a hack...
+
     exec(`
         cd ../audio_processing &&
         source .env/bin/activate &&
         export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-        python to_crops.py -i ${req.body.uuid} -u ${req.body.user_id} -m ${req.body.image_id}
+        python to_crops.py -i ${req.body.uuid} -u ${req.session.user_id} -m ${req.body.image_id}
     `, {
         shell: '/bin/bash',
     }, async (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
             res.json({
-                error: 'there was an error',
+                error: 'there was an error creating the crops',
             });
         } else {
             var output = stdout.split(/\r?\n/); // split by line and strip
@@ -218,13 +208,49 @@ app.post('/to_crops', async function (req, res) {
 
 // sequence audio into a song
 app.post('/to_sequence', async function (req, res) {
-    // TODO check input against db, use db result for command string
+    // auth
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    // check crops
+    var is_uuid = _.map(req.body.uuids, (uuid) => {
+        return uuid_validate(uuid); // it doesnt work just mapping uuid_validate directly for some reason
+    });
+    if (is_uuid.includes(false)) {
+        res.status(400).send('malformed crop uuids');
+        return;
+    }
+    var crops_exist = _.map(req.body.uuids, async (uuid) => {
+        var crop_exists = await db.get('select 1 from crops where uuid = ? and user_id = ?', [
+            uuid,
+            req.session.user_id,
+        ]);
+        if (!_.get(crop_exists, '1', false)) {
+            return false;
+        } else {
+            return true;
+        }
+    });
+    if (crops_exist.includes(false)) {
+        res.status(400).send('crop object not found');
+        return;
+    }
+    // check song
+    var song_exists = await db.get('select 1 from songs where id = ?', req.body.song_id);
+    if (!_.get(song_exists, '1', false)) {
+        res.status(400).send('song not found');
+        return;
+    }
+
+    // generate sequence
     var uuids_string = _.join(req.body.uuids, ' ');
     exec(`
         cd ../audio_processing &&
         source .env/bin/activate &&
         export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-        python to_sequence.py -c ${uuids_string} -u "${req.body.user_id}" -s "${req.body.song_id}"
+        python to_sequence.py -c ${uuids_string} -u "${req.session.user_id}" -s "${req.body.song_id}"
     `, {
         shell: '/bin/bash',
     }, async (error, stdout, stderr) => {

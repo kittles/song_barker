@@ -1,31 +1,32 @@
-from memoize import memoize
-import audio_conversion as ac
+''' used for pitch shifting and time stretching audio crops
+'''
 import glob
-import datetime as dt
 import os
+import tempfile
+import warnings
+import logger
+import parselmouth
+import datetime as dt
+import audio_conversion as ac
+from memoize import memoize
 from scipy.io import wavfile
 from scipy import signal
+from matplotlib import pyplot as plt
 import numpy as np
-import tempfile
 import subprocess as sp
-import warnings
-import parselmouth
-import wave
-import contextlib
-import logger
 
 
 warnings.filterwarnings('ignore')
-log = logger.log_fn(os.path.basename(__file__)) 
+log = logger.log_fn(os.path.basename(__file__))
 
 
 repr_string = '''
-<Crop Object> 
+<Crop Object>
     - file: {}
     - samplerate: {}
-    - duration: {:.2f} 
+    - duration: {:.2f}
     - peak: {:.2f}
-    - freq: {:.2f} 
+    - freq: {:.2f}
     - nearest_freq: {:.2f}
     - nearest_pitch: {}
 </Crop Object>
@@ -65,19 +66,6 @@ class CropSampler (object):
             self.tuning_offset = self.steps_between_freqs(self.original_hz, self.nearest_hz)
         # TODO check to see how long these things stick around...
         self.tmp_dir = tmp_dir
-
-
-    def peak (self):
-        # TODO handle bad samples
-        # seconds
-        snd = parselmouth.Sound(self.wav_fp)
-        intensity = snd.to_intensity()
-        xs = intensity.xs()
-        ivs = intensity.values[0]
-        chunks = [np.sum(ivs[i:i+3]) for i in range(len(ivs) - 5)]
-        peak = np.max(chunks)
-        peak_idx = chunks.index(peak)
-        return xs[peak_idx]
 
 
     def get_freq (self):
@@ -204,6 +192,69 @@ class CropSampler (object):
         print('done')
 
 
+    def to_intensity (self):
+        snd = parselmouth.Sound(self.wav_fp)
+        try:
+            return snd.to_intensity()
+        except:
+            # probably a silent audio
+            return None
+
+
+    def smooth_intensity (self, xs, ys, chunk_size):
+        smoothed_xs = []
+        smoothed_ys = []
+        # slide a chunk_size window across the data
+        for idx in range(len(xs - chunk_size)):
+            smoothed_xs.append(np.average(xs[idx:idx + chunk_size]))
+            smoothed_ys.append(np.average(ys[idx:idx + chunk_size]))
+        return smoothed_xs, smoothed_ys
+
+
+    def normalize_arr (self, arr):
+        return arr / max(arr)
+
+
+    def peak (self):
+        ''' returns the percent through the crop that the peak occurs '''
+        peak_pct = 0
+        intensity = self.to_intensity()
+        if intensity is None:
+            return peak_pct # just say the beginning of the clip is the peak
+        xs = intensity.xs()
+        ys = intensity.values[0]
+        smooth_xs, smooth_ys = self.smooth_intensity(xs, ys, 10)
+        smooth_ys /= max(smooth_ys)
+        for x, y in zip(smooth_xs, smooth_ys):
+            if y > 0.7:
+                peak_pct = x / self.duration
+                break
+        return peak_pct
+
+
+    def plot_audio (self, save=False):
+        plt.clf()
+        plt.plot(self.audio_data)
+        intensity = self.to_intensity()
+        if intensity is None:
+            return
+        xs = intensity.xs()
+        ys = intensity.values[0]
+        smooth_xs, smooth_ys = self.smooth_intensity(xs, ys, 10)
+        # transform intensity to sample space
+        smooth_xs = self.normalize_arr(smooth_xs) * len(self.audio_data)
+        smooth_ys = self.normalize_arr(smooth_ys)
+
+
+        #plt.plot(xs, ys)
+        plt.plot(smooth_xs, smooth_ys)
+        plt.axvline(self.peak() * len(self.audio_data), color='red')
+        if save:
+            plt.savefig(save)
+        else:
+            plt.show()
+
+
     def __repr__ (self):
         return repr_string.format(
             self.wav_fp.split('/')[-1],
@@ -238,10 +289,26 @@ if __name__ == '__main__':
         #    except Exception as e:
         #        print('\n*** \n\n !!!! FAILED {} \n\n***'.format(fp))
         #        print(e)
-        fp = './fixture_assets/crops/graig_dog_2.aac'
+        #for fp in glob.glob('./fixture_assets/crops/*.aac'):
+        #    #fp = './fixture_assets/crops/three.aac'
+        #    fname = fp.split('/')[-1].replace('.aac', '')
+        #    print(fname)
+        #    tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
+        #    shutil.copyfile(fp, tmp_fp)
+        #    fp = ac.aac_to_wav(tmp_fp)
+        #    cs = CropSampler(fp, tmp_dir)
+        #    print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
+        #    #cs.plot_audio('./plots/' + fname + '.png')
+        ##cs.play_original()
+        ##print(cs.nearest_concert_freq())
+        fp = './fixture_assets/crops/one.aac'
+        fname = fp.split('/')[-1].replace('.aac', '')
+        print(fname)
         tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
         shutil.copyfile(fp, tmp_fp)
         fp = ac.aac_to_wav(tmp_fp)
         cs = CropSampler(fp, tmp_dir)
-        cs.play_original()
-        print(cs.nearest_concert_freq())
+        print(cs.audio_data.shape)
+        print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
+        cs.plot_audio()
+        #cs.plot_audio('./plots/' + fname + '.png')

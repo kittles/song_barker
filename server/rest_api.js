@@ -1,29 +1,54 @@
 var _ = require('lodash');
+var uuid_validate = require('uuid-validate')
 
 
-function error_wrapper (fn) {
+function error_wrapper (fn, status) {
     return async (req, res) => {
         try {
             return await fn(req, res);
         } catch (err) {
-            return res.status(500).send(`[rest api error] ${err}`);
+            return res.status(status).send(`[rest api error] ${err}`);
         }
     };
 }
 
 
+function check_authentication (req, res) {
+    if (req.session.user_id) {
+        return true;
+    } else {
+        res.status(401).send('[rest api error] you must have a valid user_id to access this resource');
+    }
+}
+
+
+function check_uuid (req, res, test_str) {
+    if (uuid_validate(test_str)) {
+        return true;
+    } else {
+        res.status(400).send('[rest api error] malformed uuid');
+    }
+}
+
+
+
 function obj_rest_api (def, db) {
-    // generate rest endpoints for an object
-    // TODO make sure primary keys are immutable
-    // TODO refactor for sql injection at some point...
     var rest_api = {
         get_all: {
             request_method: 'get',
-            endpoint: `/all/${def.obj_type}` + (def.user_owned ? '/:user_id' : ''),
+            endpoint: `/all/${def.obj_type}`,
             handler: async (req, res) => {
+                // auth
+                if (def.user_owned) {
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
+                }
+
+                // query
                 var sql = `SELECT * from ${def.table_name}\n`;
                 if (def.user_owned) {
-                    sql += `    where user_id = "${req.params.user_id}"\n`;
+                    sql += `    where user_id = "${req.session.user_id}"\n`;
                 }
                 if (def.order_by) {
                     sql += `    order by ${def.order_by} ASC\n`;
@@ -40,6 +65,21 @@ function obj_rest_api (def, db) {
             request_method: 'get',
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
+                // auth
+                if (!check_uuid(req, res, req.params.primary_key)) {
+                    return;
+                }
+                if (def.user_owned) {
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
+                    if (!user_owns_resource(req.params.primary_key)) {
+                        res.status(401).send('[rest api error] user doesnt own this resource');
+                        return;
+                    }
+                }
+
+                // query
                 var sql = `SELECT * from ${def.table_name}\n`;
                 sql += `    where ${def.primary_key} = "${req.params.primary_key}";`;
                 var row = await db.get(sql);
@@ -51,6 +91,15 @@ function obj_rest_api (def, db) {
             request_method: 'post',
             endpoint: `/${def.obj_type}`,
             handler: async (req, res) => {
+                // auth
+                if (def.user_owned) {
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
+                    req.body.user_id = req.session.user_id; // overwrite body param (should be unset but just in case)
+                }
+
+                // query
                 var sql_obj = obj_to_sql(req.body);
                 var sql = `INSERT INTO ${def.table_name} ${sql_obj.columns} VALUES ${sql_obj.placeholders};`;
                 var db_response = await db.run(sql, prefix_obj(req.body));
@@ -63,6 +112,21 @@ function obj_rest_api (def, db) {
             request_method: 'patch',
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
+                // auth
+                if (!check_uuid(req, res, req.params.primary_key)) {
+                    return;
+                }
+                if (def.user_owned) {
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
+                    if (!user_owns_resource(req.params.primary_key)) {
+                        res.status(401).send('[rest api error] user doesnt own this resource');
+                        return;
+                    }
+                }
+
+                // query
                 var columns = _.keys(req.body);
                 var sql = `UPDATE ${def.table_name} SET\n`;
                 sql += _.join(_.map(_.initial(columns), (column) => {
@@ -80,6 +144,21 @@ function obj_rest_api (def, db) {
             request_method: 'delete',
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
+                // auth
+                if (!check_uuid(req, res, req.params.primary_key)) {
+                    return;
+                }
+                if (def.user_owned) {
+                    if (!check_authentication(req, res)) {
+                        return;
+                    }
+                    if (!user_owns_resource(req.params.primary_key)) {
+                        res.status(401).send('[rest api error] user doesnt own this resource');
+                        return;
+                    }
+                }
+
+                // query
                 var sql = `UPDATE ${def.table_name}\n`;
                 sql += `    set hidden = 1 where ${def.primary_key} = "${req.params.primary_key}";`;
                 await db.run(sql);
@@ -90,14 +169,23 @@ function obj_rest_api (def, db) {
         },
     };
     _.each(rest_api, (api) => {
-        api.handler = error_wrapper(api.handler);
+        api.handler = error_wrapper(api.handler, 500);
     });
     return rest_api;
+
+
+    async function user_owns_resource (pk) {
+        var sql = `SELECT 1 from ${def.table_name}\n`;
+        sql += `    where ${def.primary_key} = "${pk}";`;
+        var row = await db.get(sql);
+        return row['1'];
+    }
 }
 exports.obj_rest_api = obj_rest_api;
 
 
 function obj_to_sql (obj) {
+    // TODO sql escaping columns
     var keys = _.keys(obj);
 
     var cols = '(\n';

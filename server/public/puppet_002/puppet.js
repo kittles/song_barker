@@ -195,7 +195,7 @@ async function init () {
         window_width = document.body.offsetWidth;
         window_height = document.body.offsetHeight;
     }
-    log(`WIDTH INFO: 
+    log(`WIDTH INFO:
     window.innerWidth: ${window.innerWidth}
     document.body.offsetWidth: ${document.body.offsetWidth}
     document.body.clientWidth: ${document.body.clientWidth}
@@ -367,7 +367,6 @@ async function create_puppet (img_url) {
 
     direct_render();
 
-    log('puppet is now ready');
     animate();
     head_sway(2, 1);
 
@@ -766,7 +765,7 @@ function stop_all_animations () {
     eyebrow_left(0);
     eyebrow_right(0);
     mouth_open(0);
-    mouth_color(0,0,0);
+    mouth_color(0, 0, 0);
 }
 
 
@@ -912,19 +911,19 @@ async function load_hlsl_text (url) {
 async function load_shader_files () {
     if (face_animation_shader.fragmentShader == null) {
         log('loading shader file: /puppet_002/face_fragment_shader.hlsl');
-        face_animation_shader.fragmentShader = await load_hlsl_text('/puppet_002/face_fragment_shader.hlsl');
+        face_animation_shader.fragmentShader = await load_hlsl_text('face_fragment_shader.hlsl');
     }
     if (face_animation_shader.vertexShader == null) {
         log('loading shader file: /puppet_002/face_vertex_shader.hlsl');
-        face_animation_shader.vertexShader = await load_hlsl_text('/puppet_002/face_vertex_shader.hlsl');
+        face_animation_shader.vertexShader = await load_hlsl_text('face_vertex_shader.hlsl');
     }
     if (mouth_shader.fragmentShader == null) {
         log('loading shader file: /puppet_002/mouth_fragment_shader.hlsl');
-        mouth_shader.fragmentShader = await load_hlsl_text('/puppet_002/mouth_fragment_shader.hlsl');
+        mouth_shader.fragmentShader = await load_hlsl_text('mouth_fragment_shader.hlsl');
     }
     if (mouth_shader.vertexShader == null) {
         log('loading shader file: /puppet_002/mouth_vertex_shader.hlsl');
-        mouth_shader.vertexShader = await load_hlsl_text('/puppet_002/mouth_vertex_shader.hlsl');
+        mouth_shader.vertexShader = await load_hlsl_text('mouth_vertex_shader.hlsl');
     }
     log('finished loaded shader files');
 }

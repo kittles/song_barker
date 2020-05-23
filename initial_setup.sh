@@ -16,3 +16,5 @@ cd ..
 cd server
 node -e 'require("./database.js").initialize_db()'
 
+
+echo 'dont forget to set nginx up for static files in /server/public'

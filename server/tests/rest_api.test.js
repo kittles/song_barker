@@ -1,4 +1,5 @@
 /* global describe, it, expect, beforeEach, afterEach, it */
+// TODO rework for auth
 var request = require('supertest');
 var models = require('../models').models;
 var _ = require('lodash');
