@@ -54,12 +54,6 @@ var features = {
     headRight:        new THREE.Vector2(0.151, 0.334),
 };
 
-
-// mouth uses other feature locations to infer some things
-// i think its using eye distance and the scale here to determine size
-// TODO check this
-var mouth_scale = 1.5;
-
 // Segments for the deformation mesh
 // NOTE this can be lowered to around 50 for less memory use, but the
 // quality seems to drop off a bit
@@ -397,7 +391,6 @@ function sync_objects_to_features () {
     // We need to center this geometry at the face
     var eyeCenter = leftEye.add(rightEye).multiplyScalar(0.5);
     var eyeLine = rightEye.sub(leftEye);
-    var eyeLineLength = eyeLine.length();
     var mouthPosition = new THREE.Vector2(features.mouthPosition.x, features.mouthPosition.y);
 
     // Center the face mesh's position on the eyes
@@ -413,7 +406,7 @@ function sync_objects_to_features () {
     var rightMouth = new THREE.Vector2(features.mouthRight.x, features.mouthRight.y);
     var mouthLine = rightMouth.sub(leftMouth);
     var mouthWidth = mouthLine.length();
-    
+
     // scale the mouth mesh by the distance between eyes
     mouth_mesh.scale.set(mouthWidth, mouthWidth, mouthWidth);
 
@@ -422,9 +415,9 @@ function sync_objects_to_features () {
     face_mesh.rotation.set(0, 0, 0);
     face_mesh.rotateZ(rads);
 
-    rads = 
+    rads =
         Math.atan(mouthLine.y / mouthLine.x) * 0.5 +
-        Math.atan(eyeLine.y / eyeLine.x) * 0.5;        
+        Math.atan(eyeLine.y / eyeLine.x) * 0.5;
     mouth_mesh.rotateY(-rads);
     mouth_mesh.rotation.y = -rads;
 
@@ -996,10 +989,10 @@ var feature_map = {
         headRight:        new THREE.Vector2(0.252, 0.072),
     },
     'dog3.jpg': {
-        //leftEyePosition:  new THREE.Vector2(-0.126, 0.308),
-        leftEyePosition:  new THREE.Vector2(-0.18448098663926, 0.30565552699228793),
-        //rightEyePosition: new THREE.Vector2(0.007, 0.314),
-        rightEyePosition: new THREE.Vector2(0.06474820143884885, 0.31645244215938306),
+        leftEyePosition:  new THREE.Vector2(-0.126, 0.308),
+        //leftEyePosition:  new THREE.Vector2(-0.18448098663926, 0.30565552699228793),
+        rightEyePosition: new THREE.Vector2(0.007, 0.314),
+        //rightEyePosition: new THREE.Vector2(0.06474820143884885, 0.31645244215938306),
         mouthPosition:    new THREE.Vector2(-0.058, 0.171),
         mouthLeft:        new THREE.Vector2(-0.103, 0.143),
         mouthRight:       new THREE.Vector2(-0.0108, 0.135),
@@ -1015,7 +1008,7 @@ var feature_map = {
         mouthLeft:        new THREE.Vector2(-0.086, -0.348),
         mouthRight:       new THREE.Vector2(0.168, -0.345),
         headTop:          new THREE.Vector2(-0.006, 0.400),
-        headBottom:       new THREE.Vector2(-0.056, -0.117),
+        headBottom:       new THREE.Vector2(0.035, -0.417),
         headLeft:         new THREE.Vector2(-0.282, 0.087),
         headRight:        new THREE.Vector2(0.304, 0.142),
     },
