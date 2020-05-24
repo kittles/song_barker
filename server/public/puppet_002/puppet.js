@@ -421,9 +421,9 @@ function sync_objects_to_features () {
     var rightMouth = new THREE.Vector2(features.mouthRight.x, features.mouthRight.y);
     var mouthLine = rightMouth.sub(leftMouth);
 
-    rads = 
+    rads =
         Math.atan(mouthLine.y / mouthLine.x) * 0.5 +
-        Math.atan(eyeLine.y / eyeLine.x) * 0.5;        
+        Math.atan(eyeLine.y / eyeLine.x) * 0.5;
     mouth_mesh.rotateY(-rads);
     mouth_mesh.rotation.y = -rads;
 
