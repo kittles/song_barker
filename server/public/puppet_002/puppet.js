@@ -409,18 +409,19 @@ function sync_objects_to_features () {
     mouth_mesh.position.x = mouthPosition.x;
     mouth_mesh.position.y = mouthPosition.y;
 
+    // Rotate the mouth mesh the same direction as the eyes, ease a bit with the moutline
+    var leftMouth = new THREE.Vector2(features.mouthLeft.x, features.mouthLeft.y);
+    var rightMouth = new THREE.Vector2(features.mouthRight.x, features.mouthRight.y);
+    var mouthLine = rightMouth.sub(leftMouth);
+    var mouthWidth = mouthLine.length();
+    
     // scale the mouth mesh by the distance between eyes
-    mouth_mesh.scale.set(eyeLineLength * mouth_scale, eyeLineLength * mouth_scale, eyeLineLength * mouth_scale);
+    mouth_mesh.scale.set(mouthWidth, mouthWidth, mouthWidth);
 
     // Rotate the face and mouth mesh the same direction as the eyes
     var rads = Math.atan(eyeLine.y / eyeLine.x);
     face_mesh.rotation.set(0, 0, 0);
     face_mesh.rotateZ(rads);
-
-    // Rotate the mouth mesh the same direction as the eyes, ease a bit with the moutline
-    var leftMouth = new THREE.Vector2(features.mouthLeft.x, features.mouthLeft.y);
-    var rightMouth = new THREE.Vector2(features.mouthRight.x, features.mouthRight.y);
-    var mouthLine = rightMouth.sub(leftMouth);
 
     rads = 
         Math.atan(mouthLine.y / mouthLine.x) * 0.5 +
@@ -996,8 +997,10 @@ var feature_map = {
         headRight:        new THREE.Vector2(0.252, 0.072),
     },
     'dog3.jpg': {
-        leftEyePosition:  new THREE.Vector2(-0.126, 0.308),
-        rightEyePosition: new THREE.Vector2(0.007, 0.314),
+        //leftEyePosition:  new THREE.Vector2(-0.126, 0.308),
+        leftEyePosition:  new THREE.Vector2(-0.18448098663926, 0.30565552699228793),
+        //rightEyePosition: new THREE.Vector2(0.007, 0.314),
+        rightEyePosition: new THREE.Vector2(0.06474820143884885, 0.31645244215938306),
         mouthPosition:    new THREE.Vector2(-0.058, 0.171),
         mouthLeft:        new THREE.Vector2(-0.103, 0.143),
         mouthRight:       new THREE.Vector2(-0.0108, 0.135),
