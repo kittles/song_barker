@@ -2,7 +2,14 @@
 
 ## basic animation
 load the puppet in a browser and pop open the console. call `test(<dog image>);` to load a dog image (which should be in the same
-directory as the puppet assets) and have it do a bunch of animations simultaneously.
+directory as the puppet assets) and have it do a bunch of animations simultaneously. currently there are the following image options already set up (pass these strings as the argument to the `test` function:
+```javascript
+'dog1.jpg'
+'dog2.jpg'
+'dog3.jpg'
+'dog4.jpg'
+'chihuahua.png'
+```
 
 ## find features
 to run the above test on a dog image, it first needs to have all the features points specified. use `find_features(<dog image>);` from the console
