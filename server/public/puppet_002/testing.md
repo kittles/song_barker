@@ -1,5 +1,35 @@
 # testing the puppet
 
+## testing "api" summary
+here are the basic functions available, subsequently explained in a bit more detail:
+```javascript
+// loading / prep
+find_features(<image_path>) // click on image to get coordinates
+
+// basic testing
+test(<image_path>) // load a dog and watch it move around
+stop_test_animation() // call this to stop it
+
+// static positioning
+// use these to set open/close / displace features as they would
+// be during the course of an animation
+leftEyePosition(<float>)
+rightEyePosition(<float>)
+mouthPosition(<float>)
+mouthLeft(<float>)
+mouthRight(<float>)
+headTop(<float>)
+headBottom(<float>)
+headLeft(<float>)
+headRight(<float>)
+
+// adjusting feature coordinates
+set_position(<feature key string>, <new_x>, <new_y>)
+
+// head sway
+head_sway(<float>, <float>) // this ones gotta be animated for now
+```
+
 ## basic animation
 load the puppet in a browser and pop open the console. call `test(<dog image>);` to load a dog image (which should be in the same
 directory as the puppet assets) and have it do a bunch of animations simultaneously. currently there are the following image options already set up (pass these strings as the argument to the `test` function:
