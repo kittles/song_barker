@@ -1,4 +1,4 @@
-/* global _, Print, THREE, $, Stats */
+/* global _, Print, THREE, $, Stats, CCapture */
 var fp = _.noConflict(); // lodash fp and lodash at the same time
 
 // for turning images into base64 strings, for testing
@@ -7,6 +7,10 @@ var image_ctx;
 
 // where the render canvas lives in the dom
 var container;
+
+// for turning animations in to videos for sharing
+var capturer;
+var should_capture = false;
 
 // the loading spinner that shows before your first create puppet call
 var loading_spinner;
@@ -315,6 +319,9 @@ async function init () {
             console.log(`worldPos: ${worldPos.x}, ${worldPos.y}`);
         });
     }
+
+    // set the capturer up for making videos, should the user request them
+    capturer = new CCapture({ format: 'webm' });
 
     // dont render anything yet, that should happen when the app
     // actually specifies an image
@@ -741,6 +748,10 @@ function animate () {
         motion_handler_tick();
         direct_render();
 
+        if (should_capture) {
+            capturer.capture(renderer.domElement);
+        }
+
         stats.end();
         animation_frame = requestAnimationFrame(do_animate);
     }
@@ -753,7 +764,8 @@ function stop_all_animations () {
     _.each(feature_tickers, (t, key) => {
         t.cancel();
     });
-    // reset the dog to neutral position
+    // TODO smooth reset the dog to neutral position
+    head_sway(0, 0);
     blink_left(0);
     blink_right(0);
     eyebrow_left(0);
@@ -1012,11 +1024,30 @@ var feature_map = {
         headLeft:         new THREE.Vector2(-0.282, 0.087),
         headRight:        new THREE.Vector2(0.304, 0.142),
     },
+    'chihuahua.png': {
+        leftEyePosition:  new THREE.Vector2(-0.20290964777947934, -0.05130168453292494),
+        rightEyePosition: new THREE.Vector2(0.13935681470137828, -0.07120980091883611),
+        mouthPosition:    new THREE.Vector2(-0.05283307810107196, -0.3131699846860643),
+        mouthLeft:        new THREE.Vector2(-0.13935681470137826, -0.31929555895865236),
+        mouthRight:       new THREE.Vector2(0.017611026033690635, -0.3208269525267994),
+        headTop:          new THREE.Vector2(-0.03062787136294029, 0.2549770290964778),
+        headBottom:       new THREE.Vector2(-0.05283307810107196, -0.44869831546707506),
+        headLeft:         new THREE.Vector2(-0.3281010719754977, -0.01225114854517606),
+        headRight:        new THREE.Vector2(0.2676110260336907, -0.03369065849923425),
+    },
 };
 
 
-// this will load a dog and animate it like its having a stroke
 var anims = [];
+
+
+function stop_test_animation () { // eslint-disable-line no-unused-vars
+    _.map(anims, clearInterval);
+    stop_all_animations();
+}
+
+
+// this will load a dog and animate it like its having a stroke
 async function test (img_url) { // eslint-disable-line no-unused-vars
     _.map(anims, clearInterval);
     img_url = (img_url === undefined ? 'dog3.jpg' : img_url);
@@ -1036,6 +1067,35 @@ async function test (img_url) { // eslint-disable-line no-unused-vars
     anims.push(setInterval(left_brow_furrow, 900));
     anims.push(setInterval(right_brow_furrow, 700));
     head_sway(3, 1);
+}
+
+
+async function test_capture (img_url) { // eslint-disable-line no-unused-vars
+    _.map(anims, clearInterval);
+    img_url = (img_url === undefined ? 'dog3.jpg' : img_url);
+    await create_puppet(img_url);
+    should_capture = true;
+    capturer.start();
+    features = feature_map[img_url];
+    sync_objects_to_features();
+    update_shaders();
+
+    // do some animations
+    left_blink_slow();
+    right_blink_slow();
+    feature_tickers.mouth.add(_.map(_.range(60 * 60), (i) => {
+        return (1 + Math.sin(i / 5)) / 2;
+    }));
+    anims.push(setInterval(left_blink_quick, 500));
+    anims.push(setInterval(right_blink_quick, 800));
+    anims.push(setInterval(left_brow_furrow, 900));
+    anims.push(setInterval(right_brow_furrow, 700));
+    head_sway(3, 1);
+    setTimeout(() => {
+        capturer.stop();
+        capturer.save();
+        should_capture = false;
+    }, 4000);
 }
 
 
