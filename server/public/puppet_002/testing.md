@@ -1,3 +1,27 @@
+# exporting to video
+here is a first experiment to see if we can get decent performance exporting videos directly from the webview.
+this works by stepping through the frames one by one, saving the canvas output as a webp each time, and then
+compiling all those images in to a video blob that gets attached to an anchor element's src attribute.
+
+i have it set to downsample the mouth positions from 60fps (what you pass the function) to 20fps. youll notice on the
+video that its a bit choppier. im also compressing the images slightly so the video may look slightly lower quality than the 
+normal puppet.
+
+as a first test, you can try the following- this generates its own mouth positions just for testing sake, 5 seconds
+of a mouth opening and closing sinusoidally:
+
+* evaluate `test_render()` in the webview
+* listen for a post message that says "video ready"
+* there should now be a src attribute on the <a> tag with id 'video-download' that is a url to the video blob
+* im not sure what is the convenient way to get that on to the user's phone, thats where you come in
+* ill also log the url in a post message, in the format "video url: <the url>", if you dont mind a little string manipulation that
+might be a little better.
+* hopefully theres a fairly non intrusive way to get the video from the webview to the app's storage.
+
+the speed depends highly on the resolution of the render element. i get about 100ms a frame with a canvas that is 800 x 1100 pixels, but thats
+on my desktop. thats the main purpose of this- to just ballpark how fast we might be able to render video. if it seems like we can do it this way,
+then we can talk about how to set the api up to work best.
+
 # testing the puppet
 
 ## testing "api" summary

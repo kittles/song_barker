@@ -8,7 +8,7 @@
     <script src="stats.min.js"></script>
     <script src="raf.js"></script>
     <script src="performance.js"></script>
-    <script src="CCapture.all.min.js"></script>
+    <script src="whammy.js"></script>
     <link rel="stylesheet" type="text/css" href="spinners.css">
     <style>
     body {
@@ -28,6 +28,9 @@
         margin-top: -100px; /* Negative half of height. */
         margin-left: -100px;
     }
+    #video {
+        visibility: hidden;
+    }
     </style>
 </head>
 <body>
@@ -41,6 +44,8 @@
 
     <!-- this is just for turning images into base64, for testing -->
     <canvas id="image-canvas"></canvas>
+
+    <a id="video-download" download="dog.webm" href="">you shouldnt see this</a>
 
     <script src="puppet.js"></script>
 </body>
