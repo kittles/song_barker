@@ -69,12 +69,22 @@ vec2 RotateVector(vec2 inVector, float sinTheta, float cosTheta)
     float y2 = sinTheta * inVector.x + cosTheta * inVector.y;
     return vec2(x2, y2);
 }
-
-vec2 AnimateHeadSway(vec2 positionOS, float scale)//scale = ipd
-{
-    vec2 ellipse = (positionOS / scale) * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
+    
+vec2 DisplaceHead(vec2 positionOS, vec2 positionWS, float scale) {
+    vec2 ellipse = positionWS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
     float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
-    faceMask = 0.9;
+
+    vec2 animatedPositionOS = positionOS + head_displacement * faceMask * scale;
+    return animatedPositionOS;
+}	
+
+vec2 AnimateHeadSway(vec2 positionOS, vec2 positionWS, float scale)
+{
+    vec2 ellipse = positionWS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
+    float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
+
+    debug.x = faceMask;
+    //faceMask = 1.0;
 
     float P_x = mod(swaySpeed * swayTime, 1.0);
 
@@ -83,20 +93,13 @@ vec2 AnimateHeadSway(vec2 positionOS, float scale)//scale = ipd
     #else
         vec4 noiseTextureSample = texture2DLod(animationNoise, vec2(P_x, 0.5), 0.0);
     #endif
-    vec2 noise = noiseTextureSample.xy * 2.0 - 1.0;
-    noise *= swayAmplitude * (1.0 / scale);
 
-    vec2 animatedPositionOS = positionOS + noise * scale * faceMask;
+    vec2 noise = noiseTextureSample.xy * 2.0 - 1.0;
+    noise *= swayAmplitude * scale;
+
+    vec2 animatedPositionOS = positionOS + noise * faceMask;
     return animatedPositionOS;
 }
-    
-vec2 DisplaceHead(vec2 positionOS, float scale) {
-    vec2 ellipse = positionOS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
-    float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
-    faceMask = 0.9;
-    vec2 animatedPositionOS = positionOS + head_displacement * faceMask * scale;
-    return animatedPositionOS;
-}	
 
 vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float blinkR, float talk)
 {
@@ -150,8 +153,10 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
     animatedPositionOS.y *= 1.0 - (influenceMask.y * blinkR);
     animatedPositionOS.y -= (influenceMask.z * talk * ipd * 0.3) / mouthWidth;
 
-    animatedPositionOS = AnimateHeadSway(animatedPositionOS, ipd);
-    animatedPositionOS = DisplaceHead(animatedPositionOS, ipd);
+    float swayScale = ipd / mouthWidth;
+
+    animatedPositionOS = AnimateHeadSway(animatedPositionOS, positionWS, swayScale);
+    animatedPositionOS = DisplaceHead(animatedPositionOS, positionWS, swayScale);
     return animatedPositionOS;
 }
 
@@ -159,7 +164,7 @@ void main()
 {
     debug = vec4(0.0,0.0,0.0,0.0);
     
-    debug.xyz = color.xyz;
+    //debug.xyz = color.xyz;
 
     //alpha = (clamp(uv.x * 1.0, 0.0, 1.0) * clamp(mouthOpen * 16.0, 0.0, 1.0));
     alpha = (clamp(color.x * 1.0, 0.0, 1.0) * clamp(mouthOpen * 16.0, 0.0, 1.0));

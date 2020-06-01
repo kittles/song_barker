@@ -85,20 +85,22 @@ vec2 DebugNoiseTexture(vec2 uvCoords)
     return noise;
 }
 
-vec2 DisplaceHead(vec2 positionOS)
+vec2 DisplaceHead(vec2 positionOS, vec2 positionWS, float scale)
 {
-    vec2 ellipse = positionOS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
+    vec2 ellipse = positionWS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
     float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
-    vec2 animatedPositionOS = positionOS + head_displacement * faceMask;
+
+    vec2 animatedPositionOS = positionOS + head_displacement * faceMask * scale;
     return animatedPositionOS;
 }
 
-vec2 AnimateHeadSway(vec2 positionOS, float scale)
+vec2 AnimateHeadSway(vec2 positionOS, vec2 positionWS, float scale)
 {
-    vec2 ellipse = positionOS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
+    vec2 ellipse = positionWS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
     float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
 
-    // Sway now loops correctly
+    debug.x = faceMask;
+
     float P_x = mod(swaySpeed * swayTime, 1.0);
 
     #if defined(GLES3)
@@ -110,7 +112,6 @@ vec2 AnimateHeadSway(vec2 positionOS, float scale)
     vec2 noise = noiseTextureSample.xy * 2.0 - 1.0;
     noise *= swayAmplitude * scale;
 
-    //debug.x = faceMask;
     vec2 animatedPositionOS = positionOS + noise * faceMask;
     return animatedPositionOS;
 }
@@ -122,18 +123,9 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
     vec2 eyeLine = rightEyePosition - leftEyePosition;
     float ipd = length(eyeLine);
     vec2 blinkDir = vec2(eyeLine.y, -eyeLine.x);
-
-    //mat4 modelMatrixInverse = inverse(modelMatrix);
-    //vec2 leftEyePositionOS = (modelMatrixInverse * vec4(leftEyePosition, 0.0, 1.0)).xy;
-    //vec2 rightEyePositionOS = (modelMatrixInverse * vec4(rightEyePosition, 0.0, 1.0)).xy;
-    //vec2 mouthPositionOS = (modelMatrixInverse * vec4(mouthPosition, 0.0, 1.0)).xy;
-
-    //float mouthInfluence =
-    //    1.0 - clamp(distance(positionOS, mouthPositionOS) / (MOUTH_INFLUENCE * ipd), 0.0, 1.0);
-
     vec3 influenceMask = GenerateInfluenceMasks(positionWS, blinkDir, ipd);
 
-    debug.xyz = influenceMask;
+    //debug.xyz = influenceMask;
     vec2 eyebrowMasks = GenerateEyebrowMasks(positionWS, eyeLine, blinkDir, ipd);
 
     eyebrowMasks.x = clamp(eyebrowMasks.x * 0.8 - influenceMask.x * 0.35, 0.0, 1.0);
@@ -150,8 +142,8 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
     animatedPositionOS.y *= 1.0 - (influenceMask.y * blinkR);
     animatedPositionOS.y -= (influenceMask.z * talk * ipd * 0.3);
 
-    animatedPositionOS = AnimateHeadSway(animatedPositionOS, ipd);
-    animatedPositionOS = DisplaceHead(animatedPositionOS);
+    animatedPositionOS = AnimateHeadSway(animatedPositionOS, positionWS, ipd);
+    animatedPositionOS = DisplaceHead(animatedPositionOS, positionWS, ipd);
     return lerp(positionOS, animatedPositionOS, mask);
 }
 
