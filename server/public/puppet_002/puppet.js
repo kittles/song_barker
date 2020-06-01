@@ -134,7 +134,7 @@ var animation_noise_texture; // what head sway uses
 // see durations for
 var start_time;
 // log messages include time since init
-var show_timing = true;
+var show_timing = false;
 
 // set to true if you want to see mouse position in three coordinate space
 // for setting features etc
@@ -781,10 +781,10 @@ function frame_stepper (fps) {
 
     function compile () {
         var output = Whammy.fromImageArray(frames, fps);
-        var url = (window.webkitURL || window.URL).createObjectURL(output);
-        $('#video-download').attr('href', url);
-        log('video ready');
-        log(`video url: ${url}`);
+        //var url = (window.webkitURL || window.URL).createObjectURL(output);
+        var reader = new FileReader();
+        reader.readAsDataURL(output);
+        reader.onload = () => log(`video_data ${reader.result}`);
         frames = [];
     }
 
@@ -811,7 +811,9 @@ async function render_video (mouth_positions) {
     var stepper = frame_stepper(fps);
     //setTimeout(() => {
     for (var i=0; i <= frame_count; i+=1) {
+        var frame_start = performance.now();
         stepper.step();
+        log(`frame ${i} took ${(performance.now() - frame_start).toFixed(2)} ms`);
     }
     stepper.compile();
         //window.stepper.compile();
@@ -820,8 +822,9 @@ async function render_video (mouth_positions) {
 
 
 async function test_render () {
-    var mouth_pos = _.map(_.range(5 * 60), (i) => { return (1 + Math.sin(i / 5)) / 2 });
+    var mouth_pos = _.map(_.range(3 * 60), (i) => { return (1 + Math.sin(i / 5)) / 2 });
     await create_puppet('dog3.jpg');
+    log(`canvas x: ${renderer.domElement.width}, canvas y: ${renderer.domElement.height}`);
     render_video(mouth_pos);
 }
 

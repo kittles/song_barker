@@ -1,11 +1,9 @@
 # exporting to video
-here is a first experiment to see if we can get decent performance exporting videos directly from the webview.
-this works by stepping through the frames one by one, saving the canvas output as a webp each time, and then
-compiling all those images in to a video blob that gets attached to an anchor element's src attribute.
-
-the way the front end uses this is to first to stop the animation loop. then queue up the entire length of animations
-you want for the video- so probably the whole sequence of mouth motions for the audio. to do other animations ill 
-probably need to wire up a convenient way of placing them in time, but i just want to see if this method is feasable at all first.
+to render a sample video 3 seconds long, call `test_render()`, it will render 3 seconds of dog3 opening and closing its mouth.
+when ready, it will log the video data as base64 encoded string, in the form `video_data <the b64 string>`. the ms to render
+each frame will be logged as well, as will the canvas size (in pixels) at the beginning of the reder. the canvas size is really what
+controls how fast the frames render. i guess at around 300 x 300 we might be able to get about 15-20ms a frame, but well see. i just want to 
+make sure passing the video data this way works first.
 
 # testing the puppet
 
