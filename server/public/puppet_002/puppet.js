@@ -830,12 +830,14 @@ async function test_render () {
 
 
 // stop all current and queued animations, and reset the puppet to default state
-function stop_all_animations () {
+function stop_all_animations (stop_head_sway) {
     _.each(feature_tickers, (t, key) => {
         t.cancel();
     });
     // TODO smooth reset the dog to neutral position
-    head_sway(0, 0);
+    if (stop_head_sway) {
+        head_sway(0, 0);
+    }
     blink_left(0);
     blink_right(0);
     eyebrow_left(0);
