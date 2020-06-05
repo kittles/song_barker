@@ -46,13 +46,13 @@ vec2 lerp(vec2 b, vec2 t, float s)
 vec3 GenerateInfluenceMasks(vec2 positionWS, vec2 blinkDir, float ipd)
 {
     float leftEyeInfluence =
-        1.0 - sqr(clamp(distance(positionWS, leftEyePosition) / 
+        1.0 - sqr(clamp(distance(positionWS, leftEyePosition) /
         (EYE_INFLUENCE * ipd), 0.0, 1.0));
     float rightEyeInfluence =
-        1.0 - sqr(clamp(distance(positionWS, rightEyePosition) / 
+        1.0 - sqr(clamp(distance(positionWS, rightEyePosition) /
         (EYE_INFLUENCE * ipd), 0.0, 1.0));
     float mouthInfluence =
-        1.0 - (clamp(distance(positionWS, mouthPosition + blinkDir * 0.3) / 
+        1.0 - (clamp(distance(positionWS, mouthPosition + blinkDir * 0.3) /
         (MOUTH_INFLUENCE * ipd), 0.0, 1.0));
     mouthInfluence *= 1.0 - max(leftEyeInfluence, rightEyeInfluence) * 0.65;
 
@@ -64,11 +64,11 @@ vec2 GenerateEyebrowMasks(vec2 positionWS, vec2 eyeLine, vec2 blinkDir, float ip
     vec2 leftEyebrowPosition = leftEyePosition - ((blinkDir - eyeLine * 0.85) * EYEBROW_DISTANCE * 0.5);
     vec2 rightEyebrowPosition = rightEyePosition - ((blinkDir + eyeLine * 0.85) * EYEBROW_DISTANCE * 0.5);
 
-    float leftEyebrowInfluence = 1.0 - 
-        (clamp(distance(positionWS, leftEyebrowPosition) / 
+    float leftEyebrowInfluence = 1.0 -
+        (clamp(distance(positionWS, leftEyebrowPosition) /
         (EYEBROW_DISTANCE * ipd), 0.0, 1.0));
-    float rightEyebrowInfluence = 1.0 - 
-        (clamp(distance(positionWS, rightEyebrowPosition) / 
+    float rightEyebrowInfluence = 1.0 -
+        (clamp(distance(positionWS, rightEyebrowPosition) /
         (EYEBROW_DISTANCE * ipd), 0.0, 1.0));
     return vec2(leftEyebrowInfluence * 0.5, rightEyebrowInfluence * 0.5);
 }
@@ -80,15 +80,16 @@ vec2 DebugNoiseTexture(vec2 uvCoords)
     #else
         vec4 noiseTextureSample = texture2DLod(animationNoise, vec2(swaySpeed * swayTime, 0.5), 0.0);
     #endif
-    
+
     vec2 noise = noiseTextureSample.xy;
     return noise;
 }
 
 vec2 DisplaceHead(vec2 positionOS, vec2 positionWS, float scale)
 {
-    vec2 ellipse = positionWS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
-    float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
+    vec2 ellipse = (positionWS - faceEllipse_ST.zw) * faceEllipse_ST.xy;
+    float ellipseDistanceSqr = clamp((sqr(ellipse.x) + sqr(ellipse.y)) * 2.0, 0.0, 1.0);
+    float faceMask = 1.0 - ellipseDistanceSqr;
 
     vec2 animatedPositionOS = positionOS + head_displacement * faceMask * scale;
     return animatedPositionOS;
@@ -96,10 +97,11 @@ vec2 DisplaceHead(vec2 positionOS, vec2 positionWS, float scale)
 
 vec2 AnimateHeadSway(vec2 positionOS, vec2 positionWS, float scale)
 {
-    vec2 ellipse = positionWS * 2.0 * faceEllipse_ST.xy + faceEllipse_ST.zw;
-    float faceMask = 1.0 - clamp(sqr(ellipse.x) + sqr(ellipse.y), 0.0, 1.0);
+    vec2 ellipse = (positionWS - faceEllipse_ST.zw) * faceEllipse_ST.xy;
+    float ellipseDistanceSqr = clamp((sqr(ellipse.x) + sqr(ellipse.y)) * 3.0, 0.0, 1.0);
+    float faceMask = 1.0 - ellipseDistanceSqr;
 
-    debug.x = faceMask;
+    debug.x = ellipseDistanceSqr;
 
     float P_x = mod(swaySpeed * swayTime, 1.0);
 
@@ -115,7 +117,7 @@ vec2 AnimateHeadSway(vec2 positionOS, vec2 positionWS, float scale)
     vec2 animatedPositionOS = positionOS + noise * faceMask;
     return animatedPositionOS;
 }
-    
+
 vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float blinkR, float talk, float mask)
 {
     vec2 animatedPositionOS = positionOS;
@@ -134,7 +136,7 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
     animatedPositionOS.y += eyebrowMasks.x * ipd *
         ((eyebrowLeftOffset > 0.0) ? eyebrowLeftOffset * 0.5 : (eyebrowLeftOffset * 0.25));
     animatedPositionOS.x += eyebrowMasks.x * ipd * (eyebrowLeftOffset) * 0.18;
-    animatedPositionOS.y += eyebrowMasks.y * ipd * 
+    animatedPositionOS.y += eyebrowMasks.y * ipd *
         ((eyebrowRightOffset > 0.0) ? eyebrowRightOffset * 0.5 : (eyebrowRightOffset * 0.25));
     animatedPositionOS.x -= eyebrowMasks.y * ipd * (eyebrowRightOffset) * 0.18;
 
@@ -156,11 +158,11 @@ void main()
     uvCoords.x /= aspectRatio;
     uvCoords = Rescale(uvCoords, 1.0, 0.5);
 
-    float mask = clamp((1.0 - abs(position.x * 2.0)) * 8.0, 0.0, 1.0) * 
+    float mask = clamp((1.0 - abs(position.x * 2.0)) * 8.0, 0.0, 1.0) *
         clamp((1.0 - abs(position.y * 2.0)) * 8.0, 0.0, 1.0);
 
     vec2 animatedPositionOS = AnimatePositionOS(position.xy, worldPos, blinkLeft, blinkRight, mouthOpen, 1.0);
-    
+
     //gl_Position = projectionMatrix * modelViewMatrix * vec4(position.xy,  -1.0, 1.0);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(animatedPositionOS, -1.0, 1.0);
 

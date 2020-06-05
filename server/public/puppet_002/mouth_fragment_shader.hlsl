@@ -10,7 +10,7 @@ varying float alpha;
 varying vec4 debug;
 
 void main()
-{		
+{
 	//float distance = distance(debug.xy, mouthLeft) * 1.0;
 
 	gl_FragColor = vec4(mouthColor, alpha);
