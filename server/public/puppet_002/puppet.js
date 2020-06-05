@@ -1,4 +1,4 @@
-/* global _, Print, THREE, $, Stats, CCapture */
+/* global _, Print, THREE, $, Stats, Whammy */
 var fp = _.noConflict(); // lodash fp and lodash at the same time
 
 // for turning images into base64 strings, for testing
@@ -7,10 +7,6 @@ var image_ctx;
 
 // where the render canvas lives in the dom
 var container;
-
-// for turning animations in to videos for sharing
-var capturer;
-var should_capture = false;
 
 // the loading spinner that shows before your first create puppet call
 var loading_spinner;
@@ -132,13 +128,17 @@ var pet_image_texture;
 var pet_material;
 var animation_noise_texture; // what head sway uses
 
+// some animation defaults
+var head_sway_amplitude = 1;
+var head_sway_speed = 1;
+
 
 // just for checking how long the initialization process takes
 // set this to performance.now() at the beginning of something you want to
 // see durations for
 var start_time;
 // log messages include time since init
-var show_timing = true;
+var show_timing = false;
 
 // set to true if you want to see mouse position in three coordinate space
 // for setting features etc
@@ -239,6 +239,7 @@ async function init () {
 
     scene = new THREE.Scene();
     renderer = new THREE.WebGLRenderer();
+    //renderer.autoClear = false;
     scene.background = new THREE.Color(0x2E2E46);
 
     // Camera left and right frustrum to make sure the camera size is the same as viewport size
@@ -306,6 +307,8 @@ async function init () {
     renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
     container.appendChild(renderer.domElement);
     renderer.setSize(window_width, window_height);
+    // TODO fix a renderer size and zoom the canvas to fill viewport?
+    //renderer.setSize(250, 250);
 
     if (enable_controls) {
         controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -319,9 +322,6 @@ async function init () {
             console.log(`worldPos: ${worldPos.x}, ${worldPos.y}`);
         });
     }
-
-    // set the capturer up for making videos, should the user request them
-    capturer = new CCapture({ format: 'webm' });
 
     // dont render anything yet, that should happen when the app
     // actually specifies an image
@@ -369,7 +369,7 @@ async function create_puppet (img_url) {
     direct_render();
 
     animate();
-    head_sway(2, 1);
+    head_sway(head_sway_amplitude, head_sway_speed);
 
     fade_spinner(500, 0);
     await $(container).fadeTo(500, 1);
@@ -537,38 +537,60 @@ function mouth_color (fr, fg, fb) {
     direct_render();
 }
 
+
+function update_head_sway (amplitude, speed) { // eslint-disable-line no-unused-vars
+    head_sway_amplitude = amplitude;
+    head_sway_speed = speed;
+    head_sway(head_sway_amplitude, head_sway_speed);
+}
+
 // some prepackaged animations
+// amplitude is range of motion
+// speed is frames to complete motion
+// duration is time until the feature starts to return to original position (in ms)
 
 
-function left_brow_raise () { // eslint-disable-line no-unused-vars
-    left_brow_to_pos(0, 1, 15);
+function left_brow_raise (amplitude, speed, duration) { // eslint-disable-line no-unused-vars
+    amplitude = amplitude || 1;
+    speed = speed || 15;
+    duration = duration || 500;
+    left_brow_to_pos(0, amplitude, speed);
     setTimeout(() => {
-        left_brow_to_pos(1, 0, 15);
-    }, 500);
+        left_brow_to_pos(amplitude, 0, speed);
+    }, duration);
 }
 
 
-function right_brow_raise () { // eslint-disable-line no-unused-vars
-    right_brow_to_pos(0, 1, 15);
+function left_brow_furrow (amplitude, speed, duration) { // eslint-disable-line no-unused-vars
+    amplitude = amplitude || 1;
+    speed = speed || 15;
+    duration = duration || 500;
+    left_brow_to_pos(0, -amplitude, speed);
     setTimeout(() => {
-        right_brow_to_pos(1, 0, 15);
-    }, 500);
+        left_brow_to_pos(-amplitude, 0, speed);
+    }, duration);
 }
 
 
-function left_brow_furrow () { // eslint-disable-line no-unused-vars
-    left_brow_to_pos(0, -1, 15);
+function right_brow_raise (amplitude, speed, duration) { // eslint-disable-line no-unused-vars
+    amplitude = amplitude || 1;
+    speed = speed || 15;
+    duration = duration || 500;
+    right_brow_to_pos(0, amplitude, speed);
     setTimeout(() => {
-        left_brow_to_pos(-1, 0, 15);
-    }, 500);
+        right_brow_to_pos(amplitude, 0, speed);
+    }, duration);
 }
 
 
-function right_brow_furrow () { // eslint-disable-line no-unused-vars
-    right_brow_to_pos(0, -1, 15);
+function right_brow_furrow (amplitude, speed, duration) { // eslint-disable-line no-unused-vars
+    amplitude = amplitude || 1;
+    speed = speed || 15;
+    duration = duration || 500;
+    right_brow_to_pos(0, -amplitude, speed);
     setTimeout(() => {
-        right_brow_to_pos(-1, 0, 15);
-    }, 500);
+        right_brow_to_pos(-amplitude, 0, speed);
+    }, duration);
 }
 
 
@@ -721,6 +743,9 @@ function direct_render () {
 }
 
 
+var stop_anim_loop = _.noop;
+
+
 // this starts the raf loop and manages its state
 function animate () {
     if (enable_controls && controls !== undefined) {
@@ -748,24 +773,97 @@ function animate () {
         motion_handler_tick();
         direct_render();
 
-        if (should_capture) {
-            capturer.capture(renderer.domElement);
-        }
-
         stats.end();
         animation_frame = requestAnimationFrame(do_animate);
     }
     do_animate();
+    stop_anim_loop = () => { cancelAnimationFrame(animation_frame); };
+}
+
+
+// for rendering video:
+// stop all animations, cue up animation sequence, step through the frames using .step()
+// call compile when your ready to make the frames into a video
+// video blob url will be attached to a hidden anchor element on the page
+function frame_stepper (fps) {
+    var time = 0; // mock a time ellapsing for head sway
+    var ms_per_frame = 1000 / fps;
+    var frames = [];
+
+    // do the resampling here maybe
+    // alternatively just tick as many times as needed to get close
+
+    function step () {
+        var step_start = performance.now();
+        time += ms_per_frame;
+        var elapsedSeconds = time / 1000;
+        face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
+        mouth_shader.uniforms.swayTime.value = elapsedSeconds;
+        motion_handler_tick();
+        direct_render();
+        frames.push(renderer.domElement.toDataURL('image/webp', 0.25));
+        var step_time = performance.now() - step_start;
+        log(`rendering frame took ${step_time} ms`);
+    }
+
+
+    function compile () {
+        var output = Whammy.fromImageArray(frames, fps);
+        //var url = (window.webkitURL || window.URL).createObjectURL(output);
+        var reader = new FileReader();
+        reader.readAsDataURL(output);
+        reader.onload = () => log(`video_data ${reader.result}`);
+        frames = [];
+    }
+
+    var stepper = {
+        step: step,
+        compile: compile,
+    };
+    return stepper;
+}
+
+
+// client can use this as a first test
+async function render_video (mouth_positions) {
+    var fps = 20;
+    // mouth positions are 60 fps
+    var frame_count = (mouth_positions.length / 60) * fps;
+    // resample mouth positions
+    var downsampled = _.filter(mouth_positions, (x, idx) => {
+        return idx % 3 === 0;
+    });
+    stop_anim_loop();
+    feature_tickers.mouth.add(downsampled);
+    head_sway(head_sway_amplitude, head_sway_speed);
+    var stepper = frame_stepper(fps);
+    //setTimeout(() => {
+    for (var i = 0; i <= frame_count; i += 1) {
+        var frame_start = performance.now();
+        stepper.step();
+        log(`frame ${i} took ${(performance.now() - frame_start).toFixed(2)} ms`);
+    }
+    stepper.compile();
+}
+
+
+async function test_render () { // eslint-disable-line no-unused-vars
+    var mouth_pos = _.map(_.range(3 * 60), (i) => { return (1 + Math.sin(i / 5)) / 2; });
+    await create_puppet('dog3.jpg');
+    log(`canvas x: ${renderer.domElement.width}, canvas y: ${renderer.domElement.height}`);
+    render_video(mouth_pos);
 }
 
 
 // stop all current and queued animations, and reset the puppet to default state
-function stop_all_animations () {
+function stop_all_animations (stop_head_sway) {
     _.each(feature_tickers, (t, key) => {
         t.cancel();
     });
     // TODO smooth reset the dog to neutral position
-    head_sway(0, 0);
+    if (stop_head_sway) {
+        head_sway(0, 0);
+    }
     blink_left(0);
     blink_right(0);
     eyebrow_left(0);
@@ -1035,6 +1133,17 @@ var feature_map = {
         headLeft:         new THREE.Vector2(-0.3281010719754977, -0.01225114854517606),
         headRight:        new THREE.Vector2(0.2676110260336907, -0.03369065849923425),
     },
+    'dog_tilt.jpg': {
+        leftEyePosition:  new THREE.Vector2(-0.00041631062825520836, 0.25017178853352867),
+        rightEyePosition: new THREE.Vector2(0.18442967732747395, 0.07359710693359374),
+        mouthPosition:    new THREE.Vector2(-0.0908203125, -0.026812065972222222),
+        mouthLeft:        new THREE.Vector2(-0.16325993855794277, -0.00015928480360243055),
+        mouthRight:       new THREE.Vector2(-0.05085362752278652, -0.09760852389865451),
+        headTop:          new THREE.Vector2(0.041215667724609356, 0.36011451721191406),
+        headBottom:       new THREE.Vector2(-0.03788508097330726, -0.20125976562499998),
+        headLeft:         new THREE.Vector2(-0.2235636901855469, 0.16604894002278645),
+        headRight:        new THREE.Vector2(0.3, 0.0),
+    },
 };
 
 
@@ -1066,36 +1175,7 @@ async function test (img_url) { // eslint-disable-line no-unused-vars
     anims.push(setInterval(right_blink_quick, 800));
     anims.push(setInterval(left_brow_furrow, 900));
     anims.push(setInterval(right_brow_furrow, 700));
-    head_sway(3, 1);
-}
-
-
-async function test_capture (img_url) { // eslint-disable-line no-unused-vars
-    _.map(anims, clearInterval);
-    img_url = (img_url === undefined ? 'dog3.jpg' : img_url);
-    await create_puppet(img_url);
-    should_capture = true;
-    capturer.start();
-    features = feature_map[img_url];
-    sync_objects_to_features();
-    update_shaders();
-
-    // do some animations
-    left_blink_slow();
-    right_blink_slow();
-    feature_tickers.mouth.add(_.map(_.range(60 * 60), (i) => {
-        return (1 + Math.sin(i / 5)) / 2;
-    }));
-    anims.push(setInterval(left_blink_quick, 500));
-    anims.push(setInterval(right_blink_quick, 800));
-    anims.push(setInterval(left_brow_furrow, 900));
-    anims.push(setInterval(right_brow_furrow, 700));
-    head_sway(3, 1);
-    setTimeout(() => {
-        capturer.stop();
-        capturer.save();
-        should_capture = false;
-    }, 4000);
+    head_sway(head_sway_amplitude, head_sway_speed);
 }
 
 

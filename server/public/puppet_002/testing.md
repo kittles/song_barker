@@ -1,3 +1,25 @@
+# some animation controls
+## head_sway
+use `update_head_sway(amplitude, speed)` to modify default headsway amplitude and speed. it will update the current puppet as soon as called,
+and subsequent puppets will have the same amplitude and speed setting.
+
+## eyebrow motions
+`left_brow_raise`, furrow and right brow analogues all accept three optinal arguments now:
+`amplitude`: which sets the magnitude of the motion (bigger is more)
+`speed:`: which sets the number of frames between the start and end position of the motion (fewer frames == faster)
+`duration`: which sets the time (in ms) until the animation starts resuming its original position.
+
+for example: `right_brow_furrow(0.8, 20, 250)` would have the right eyebrow furrow pretty large, taking 20 frames to reach full amplitude, and 
+beginning to return to the original position 250 ms after the function was called.
+
+
+# exporting to video
+to render a sample video 3 seconds long, call `test_render()`, it will render 3 seconds of dog3 opening and closing its mouth.
+when ready, it will log the video data as base64 encoded string, in the form `video_data <the b64 string>`. the ms to render
+each frame will be logged as well, as will the canvas size (in pixels) at the beginning of the reder. the canvas size is really what
+controls how fast the frames render. i guess at around 300 x 300 we might be able to get about 15-20ms a frame, but well see. i just want to 
+make sure passing the video data this way works first.
+
 # testing the puppet
 
 ## testing "api" summary

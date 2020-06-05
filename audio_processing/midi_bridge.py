@@ -22,13 +22,20 @@ def midi_message_to_dict ():
     '''
     _notes = defaultdict(list) # keep track of events in here as we iterate through them
     _time = 0 # time of events is relative to last event, so increment here
+    note_on_count = 0
 
     def handle_message (msg):
         nonlocal _notes
         nonlocal _time
+        nonlocal note_on_count
         _time += msg.time
+        #print('\n-- start handle message --')
+        #print(msg)
+        #print(max([0] + [len(_notes[i]) for i in _notes]))
         try:
             if msg.type == 'note_on':
+                note_on_count += 1
+                #print('note on count', note_on_count)
                 _notes[msg.note].append({
                     'pitch': msg.note,
                     'velocity': msg.velocity,
@@ -37,14 +44,18 @@ def midi_message_to_dict ():
                 })
             if msg.type == 'note_off':
                 note_arr = _notes[msg.note]
+                #print('note_arr len before', len(note_arr))
                 if len(note_arr) < 1:
                     # must be a phantom off event, just let it pass
                     pass
                 note = note_arr.pop(0) # take the earliest on event
                 note['duration'] = _time - note['time']
-                del _notes[msg.note]
+                #print('note_arr len after', len(note_arr))
+                #print('-- end handle message --\n')
                 return note
-        except:
+            #print('-- end handle message --\n')
+        except Exception as e:
+            #print('error', e)
             #print(msg, _notes)
             # TODO log
             pass
@@ -163,14 +174,24 @@ class MidiBridge (object):
         return self.ticks_to_samples(min(mins), 44100)
 
 
+    def visualize (self):
+        from matplotlib import pyplot as plt
+        for track in self.tracks:
+            xs, ys = [], []
+            for note in track['notes']:
+                xs.append(note['time'])
+                ys.append(note['pitch'])
+            plt.scatter(xs, ys)
+        plt.show()
+
+
+
 if __name__ == '__main__':
     import tempfile
     with tempfile.TemporaryDirectory() as tmp_dir:
         midi_fp = '../songs/jingle_bells_harmonized/song.mid'
         mb = MidiBridge(midi_fp, tmp_dir, False)
-        print(mb.first_note_sample_offset())
-        for track in mb.tracks:
-            print(track['name'])
-            print([mb.ticks_to_seconds(note['time']) for note in track['notes']])
-            print('total notes', len(track['notes']))
-
+        mb.visualize()
+    for track in mb.tracks:
+        for idx, note in enumerate(track['notes']):
+            print(idx, note)
