@@ -116,9 +116,11 @@ app.get('/openid-tos', (req, res) => {
 });
 
 // puppet
-app.get('/puppet', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/puppet_001/puppet.html'));
-});
+// nginx handles this
+//app.get('/puppet', (req, res) => {
+//    res.setHeader('Cache-Control', 'no-cache');
+//    res.sendFile(path.join(__dirname, 'public/puppet_002/puppet.html'));
+//});
 
 // rest api
 (async () => {
