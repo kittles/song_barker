@@ -15,6 +15,7 @@ var loading_spinner;
 var scene;
 var camera;
 var renderer;
+var render_pixels = 128; // use a constant canvas resolution and scale it in css as needed
 
 // for inspecting the scene
 var controls;
@@ -210,9 +211,9 @@ async function init () {
     // this just holds the three.js render element
     container = document.getElementById('container');
 
-    // Calculate the aspect ratio of the browser viewport
-    var viewport_aspect = window_width / window_height;
-    log(`window width ${window_width} window height ${window_height}`);
+    // client is using cropped images that are always square
+    // so expect a square viewport as well
+    var viewport_aspect = 1;
 
     loading_spinner = document.getElementById('loading-spinner');
 
@@ -306,9 +307,11 @@ async function init () {
     // prepare for rendering
     renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
     container.appendChild(renderer.domElement);
-    renderer.setSize(window_width, window_height);
-    // TODO fix a renderer size and zoom the canvas to fill viewport?
-    //renderer.setSize(250, 250);
+    renderer.setSize(render_pixels, render_pixels);
+    var zoom_factor = Math.min(window_width, window_height) / render_pixels;
+    $(renderer.domElement).css('zoom', zoom_factor);
+    log(`renderer zoom factor: ${zoom_factor}`);
+
 
     if (enable_controls) {
         controls = new THREE.OrbitControls(camera, renderer.domElement);
