@@ -29,6 +29,7 @@ var enable_controls = false;
 
 // show threejs stats about fps and mb
 var show_fps = false;
+var show_rendering_stats = true;
 var stats;
 
 // iOS webviews need 20 extra pixels
@@ -758,6 +759,7 @@ function animate () {
 
     var animation_start_time = performance.now();
     function do_animate () {
+        var render_start = performance.now();
         stats.begin();
 
         // Tell the shaders how many seconds have elapsed, this is for the headsway animation
@@ -778,9 +780,31 @@ function animate () {
 
         stats.end();
         animation_frame = requestAnimationFrame(do_animate);
+        if (show_rendering_stats) {
+            frame_render_times(performance.now() - render_start);
+        }
     }
     do_animate();
     stop_anim_loop = () => { cancelAnimationFrame(animation_frame); };
+}
+
+
+var _render_times = [];
+var keep_n = 120;
+function frame_render_times (time_ms) {
+    if (_render_times.length == keep_n) {
+        // log summary stats
+        log(`
+            frame render ms summary (last ${keep_n} frames):
+                MIN: ${Math.min(..._render_times).toFixed(2)} ms
+                AVG: ${math.mean(_render_times).toFixed(2)} ms
+                MAX: ${Math.max(..._render_times).toFixed(2)} ms
+                STD: ${math.std(_render_times).toFixed(2)}
+        `);
+        _render_times = [time_ms];
+    } else {
+        _render_times.push(time_ms);
+    }
 }
 
 
