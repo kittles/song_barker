@@ -309,7 +309,7 @@ async function init () {
     container.appendChild(renderer.domElement);
     renderer.setSize(render_pixels, render_pixels);
     var zoom_factor = Math.min(window_width, window_height) / render_pixels;
-    $(renderer.domElement).css('zoom', zoom_factor);
+    //$(renderer.domElement).css('zoom', zoom_factor);
     log(`renderer zoom factor: ${zoom_factor}`);
 
 
