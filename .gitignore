@@ -7,6 +7,8 @@ audio_processing/.env
 audio_processing/output
 audio_processing/__pycache__
 credentials/*.json
+credentials/server.crt
+credentials/key.crt
 audio_processing/tmp
 audio_processing/*.pyc
 audio_processing/log.txt
