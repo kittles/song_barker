@@ -356,7 +356,7 @@ async function create_puppet (img_url) {
 
     // set the pet image on the mesh and on the shader
     pet_image_texture = await load_texture(img_url);
-    log(`pet image texture should exist: ${pet_image_texture}`);
+    log(`${performance.now()}: pet image texture should exist: ${pet_image_texture}`);
     pet_material.map = pet_image_texture;
     face_animation_shader.uniforms.petImage.value = pet_image_texture;
 
@@ -367,14 +367,12 @@ async function create_puppet (img_url) {
     face_mesh_material.needsUpdate = true;
 
     // use features to determine locations of stuff
+    log(`${performance.now()}: sync_objects_to_features in create_puppet`);
     sync_objects_to_features();
     update_shaders();
-
     direct_render();
-
     animate();
     head_sway(head_sway_amplitude, head_sway_speed);
-
     fade_spinner(500, 0);
     await $(container).fadeTo(500, 1);
     log('create_puppet finished');
@@ -386,6 +384,7 @@ async function create_puppet (img_url) {
 //
 
 function sync_objects_to_features () {
+    log(`${performance.now()}: sync objects to features called`);
     // this should only get called when pet image texture exists,
     // so it can use it to set scales and ratios
     if (!pet_image_texture) {
