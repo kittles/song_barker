@@ -356,6 +356,7 @@ async function create_puppet (img_url) {
 
     // set the pet image on the mesh and on the shader
     pet_image_texture = await load_texture(img_url);
+    log(`pet image texture should exist: ${pet_image_texture}`);
     pet_material.map = pet_image_texture;
     face_animation_shader.uniforms.petImage.value = pet_image_texture;
 
@@ -364,7 +365,6 @@ async function create_puppet (img_url) {
     pet_material.needsUpdate = true;
     face_mesh.needsUpdate = true;
     face_mesh_material.needsUpdate = true;
-
 
     // use features to determine locations of stuff
     sync_objects_to_features();
