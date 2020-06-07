@@ -15,7 +15,7 @@ var loading_spinner;
 var scene;
 var camera;
 var renderer;
-var render_pixels = 128; // use a constant canvas resolution and scale it in css as needed
+var render_pixels = 128 * 4; // use a constant canvas resolution and scale it in css as needed
 
 // for inspecting the scene
 var controls;
