@@ -328,4 +328,155 @@ exports.models = [
             ],
         },
     },
+    {
+        table_name: 'decoration_images',
+        obj_type: 'decoration_image',
+        primary_key: 'uuid',
+        primary_key_is_uuid: true,
+        order_by: 'created',
+        user_owned: true,
+        schema: {
+            columns: [
+                {
+                    name: 'uuid',
+                    type: 'text primary key',
+                    desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
+                },
+                {
+                    name: 'bucket_url',
+                    type: 'text',
+                    desc: 'the full url of the decoration image file in the bucket',
+                },
+                {
+                    name: 'bucket_fp',
+                    type: 'text',
+                    desc: 'the relative path (to bucket root) of the decoration image file in the bucket',
+                },
+                {
+                    name: 'user_id',
+                    type: 'text',
+                    desc: 'the foreign key to the user object',
+                },
+                {
+                    name: 'name',
+                    type: 'text',
+                    desc: 'the user specified name of the decoration image',
+                },
+                {
+                    name: 'hidden',
+                    type: 'integer default 0',
+                    desc: 'whether the account is active',
+                },
+                {
+                    name: 'created',
+                    type: 'integer DEFAULT CURRENT_TIMESTAMP',
+                    desc: 'when this object was created',
+                },
+            ],
+        },
+    },
+    {
+        table_name: 'card_audios',
+        obj_type: 'card_audio',
+        primary_key: 'uuid',
+        primary_key_is_uuid: true,
+        order_by: 'created',
+        user_owned: true,
+        schema: {
+            columns: [
+                {
+                    name: 'uuid',
+                    type: 'text primary key',
+                    desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
+                },
+                {
+                    name: 'bucket_url',
+                    type: 'text',
+                    desc: 'the full url of the audio file in the bucket',
+                },
+                {
+                    name: 'bucket_fp',
+                    type: 'text',
+                    desc: 'the relative path (to bucket root) of the audio file in the bucket',
+                },
+                {
+                    name: 'user_id',
+                    type: 'text',
+                    desc: 'the foreign key to the user object',
+                },
+                {
+                    name: 'name',
+                    type: 'text',
+                    desc: 'the user specified name of the image',
+                },
+                {
+                    name: 'hidden',
+                    type: 'integer default 0',
+                    desc: 'whether the account is active',
+                },
+                {
+                    name: 'created',
+                    type: 'integer DEFAULT CURRENT_TIMESTAMP',
+                    desc: 'when this object was created',
+                },
+            ],
+        },
+    },
+    {
+        table_name: 'greeting_cards',
+        obj_type: 'greeting_card',
+        primary_key: 'uuid',
+        primary_key_is_uuid: true,
+        order_by: 'created',
+        user_owned: true,
+        schema: {
+            columns: [
+                {
+                    name: 'uuid',
+                    type: 'text primary key',
+                    desc: 'uuid is both the primary key for the object in the database, as well as the filename in the bucket',
+                },
+                {
+                    name: 'user_id',
+                    type: 'text',
+                    desc: 'the foreign key to the user object',
+                },
+                {
+                    name: 'card_audio_id',
+                    type: 'text',
+                    desc: 'the foreign key to the accompanying card audio file',
+                },
+                {
+                    name: 'image_id',
+                    type: 'text',
+                    desc: 'the foreign key to the pet image',
+                },
+                {
+                    name: 'decoration_image_id',
+                    type: 'text',
+                    desc: 'the foreign key to the decoration image',
+                },
+                {
+                    name: 'animation_json',
+                    type: 'text',
+                    desc: 'a freeform json string for storing the animation data',
+                },
+                {
+                    name: 'name',
+                    type: 'text',
+                    desc: 'the user specified name displayed in the app',
+                },
+                {
+                    name: 'hidden',
+                    type: 'integer default 0',
+                    desc: 'set to 1 if the user has "deleted" this object',
+                },
+                {
+                    name: 'created',
+                    type: 'integer DEFAULT CURRENT_TIMESTAMP',
+                    desc: 'when this object was created',
+                },
+            ],
+        },
+    },
 ];
