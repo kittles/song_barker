@@ -46,6 +46,18 @@ app.use(
 //
 
 // index
+app.get('/card/:uuid', (req, res) => {
+    // uuid gets a greeting_card object
+    // greeting card is used to get necessary info to make a page
+    // with template vars filled in for all the animations etc
+    // page has to do a couple things:
+    // 1. wait until everything is loaded before allowing playback
+    // 2. control playback (keep in sync etc), allow repeats and pause
+    // 3. links to download app etc
+    res.send(`whoa, this card ${req.params.uuid} is so cool`);
+});
+
+// index
 app.get('/', (req, res) => {
     res.send(`sessionID: ${req.sessionID}, user_id: ${req.session.user_id}`);
 });
