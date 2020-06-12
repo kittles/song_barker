@@ -6,7 +6,7 @@ import re
 if __name__ == '__main__':
     # prune stuff in the bucket that isnt in the db
     # uuid format: 01ab4b83-2603-4ea9-aa59-5cf2a643f713
-    #              8       -4   -4   -4   -12                
+    #              8       -4   -4   -4   -12
     conn = sqlite3.connect('../server/barker_database.db')
     cur = conn.cursor()
     cur.execute('select uuid from raws')
@@ -20,7 +20,7 @@ if __name__ == '__main__':
         if re.match(r'.{8}-.{4}-.{4}-.{4}-.{12}', root_dirname):
             raw_uuids_bucket.append(root_dirname)
     raw_uuids_bucket = set(raw_uuids_bucket)
-    
+
     bucket_orphans = raw_uuids_bucket - raw_uuids_db
     db_orphans = raw_uuids_db - raw_uuids_bucket
     print('{} bucket orphans'.format(len(bucket_orphans)))
