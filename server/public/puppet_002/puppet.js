@@ -1,6 +1,9 @@
 /* global _, Print, THREE, $, Stats, Whammy */
 var fp = _.noConflict(); // lodash fp and lodash at the same time
 
+// so nginx can server static assets
+var static_root = '/puppet_002';
+
 // for turning images into base64 strings, for testing
 var image_canvas;
 var image_ctx;
@@ -332,6 +335,12 @@ async function init () {
 
     // tell client the webview is ready to create a puppet
     log('finished init');
+
+
+    // check the dom for a card_id, if so, playback card
+    if (window.greeting_card) {
+        log('greeting card yall');
+    }
 }
 
 
@@ -789,7 +798,7 @@ function animate () {
 
 
 var _render_times = [];
-var keep_n = 120;
+var keep_n = 60 * 10;
 function frame_render_times (time_ms) {
     if (_render_times.length == keep_n) {
         // log summary stats
@@ -979,13 +988,18 @@ var easings = {
 //
 
 
+function to_static (url) {
+    return _.startsWith(url, static_root) ? url : `${static_root}/${url}`;
+}
+
+
 async function load_mouth_mesh (scene, model_path) {
     // Load the Mouth custom mesh
     // dont make more than one
     if (mouth_gltf) {
         return mouth_gltf;
     } else {
-        mouth_gltf = await load_gltf(model_path);
+        mouth_gltf = await load_gltf(to_static(model_path));
         return mouth_gltf;
     }
 }
@@ -1002,7 +1016,7 @@ async function load_image (img_src) {
     return new Promise((resolve) => {
         var i = new Image();
         i.onload = () => resolve(i);
-        i.src = img_src;
+        i.src = to_static(img_src);
     });
 }
 
@@ -1011,19 +1025,19 @@ var gltf_memo = {};
 async function load_gltf (model_path) {
     return new Promise((resolve) => {
         if (_.get(gltf_memo, model_path, false)) {
-            log(`using cached gltf file: ${model_path}`);
+            log(`using cached gltf file: ${to_static(model_path)}`);
             resolve(gltf_memo[model_path]);
         } else {
             var loader = new THREE.GLTFLoader();
             // Load a glTF resource
-            loader.load(model_path, (gltf) => {
-                log(`gltf loaded: ${model_path}`);
+            loader.load(to_static(model_path), (gltf) => {
+                log(`gltf loaded: ${to_static(model_path)}`);
                 gltf_memo[model_path] = gltf;
                 resolve(gltf);
             }, () => {
-                log(`gltf file loading: ${model_path}`);
+                log(`gltf file loading: ${to_static(model_path)}`);
             }, (error) => {
-                log(`error loading gltf file: ${model_path}`);
+                log(`error loading gltf file: ${to_static(model_path)}`);
                 log(error);
             });
         }
@@ -1032,7 +1046,7 @@ async function load_gltf (model_path) {
 
 
 async function load_hlsl_text (url) {
-    var response = await fetch(url);
+    var response = await fetch(to_static(url));
     var text = await response.text();
     return text;
 }
@@ -1040,19 +1054,15 @@ async function load_hlsl_text (url) {
 
 async function load_shader_files () {
     if (face_animation_shader.fragmentShader == null) {
-        log('loading shader file: /puppet_002/face_fragment_shader.hlsl');
         face_animation_shader.fragmentShader = await load_hlsl_text('face_fragment_shader.hlsl');
     }
     if (face_animation_shader.vertexShader == null) {
-        log('loading shader file: /puppet_002/face_vertex_shader.hlsl');
         face_animation_shader.vertexShader = await load_hlsl_text('face_vertex_shader.hlsl');
     }
     if (mouth_shader.fragmentShader == null) {
-        log('loading shader file: /puppet_002/mouth_fragment_shader.hlsl');
         mouth_shader.fragmentShader = await load_hlsl_text('mouth_fragment_shader.hlsl');
     }
     if (mouth_shader.vertexShader == null) {
-        log('loading shader file: /puppet_002/mouth_vertex_shader.hlsl');
         mouth_shader.vertexShader = await load_hlsl_text('mouth_vertex_shader.hlsl');
     }
     log('finished loaded shader files');
@@ -1085,7 +1095,6 @@ async function fade_container (duration, opacity) {
         $(container).fadeTo(duration, opacity, resolve);
     });
 }
-
 
 
 //

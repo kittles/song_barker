@@ -13,6 +13,8 @@ var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var user_sess = require('./user_from_session.js');
 var uuid_validate = require('uuid-validate');
+var handlebars = require('handlebars');
+var fs = require('fs');
 
 //
 // server config
@@ -54,7 +56,19 @@ app.get('/card/:uuid', (req, res) => {
     // 1. wait until everything is loaded before allowing playback
     // 2. control playback (keep in sync etc), allow repeats and pause
     // 3. links to download app etc
-    res.send(`whoa, this card ${req.params.uuid} is so cool`);
+    fs.readFile('public/puppet_002/card.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+        var html = template({
+            uuid: req.params.uuid,
+            card_audio_id: 'some-audio-id',
+            image_id: 'some-image-id',
+            decoration_image_id: 'some-decoration-image-id',
+            animation_json: '{"some": [1,2,3], "animation": [0,1,2]}',
+            name: 'some-card-name',
+        });
+        console.log(html);
+        res.send(html);
+    });
 });
 
 // index
