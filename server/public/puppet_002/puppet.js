@@ -375,6 +375,9 @@ async function create_puppet (img_url) {
     face_mesh.needsUpdate = true;
     face_mesh_material.needsUpdate = true;
 
+    // TODO weird place for default mouth color
+    mouth_color(0.5686274509, 0.39607843137, 0.43137254902);
+
     // use features to determine locations of stuff
     log(`${performance.now()}: sync_objects_to_features in create_puppet`);
     sync_objects_to_features();
