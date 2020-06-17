@@ -365,7 +365,6 @@ async function create_puppet (img_url) {
 
     // set the pet image on the mesh and on the shader
     pet_image_texture = await load_texture(img_url);
-    log(`${performance.now()}: pet image texture should exist: ${pet_image_texture}`);
     pet_material.map = pet_image_texture;
     face_animation_shader.uniforms.petImage.value = pet_image_texture;
 
@@ -379,13 +378,11 @@ async function create_puppet (img_url) {
     mouth_color(0.5686274509, 0.39607843137, 0.43137254902);
 
     // use features to determine locations of stuff
-    log(`${performance.now()}: sync_objects_to_features in create_puppet`);
     sync_objects_to_features();
     update_shaders();
     direct_render();
     animate();
     head_sway(head_sway_amplitude, head_sway_speed);
-    sync_objects_to_features();
     fade_spinner(500, 0);
     await $(container).fadeTo(500, 1);
     log('create_puppet finished');
@@ -397,7 +394,6 @@ async function create_puppet (img_url) {
 //
 
 function sync_objects_to_features () {
-    log(`${performance.now()}: sync objects to features called`);
     // this should only get called when pet image texture exists,
     // so it can use it to set scales and ratios
     if (!pet_image_texture) {
@@ -550,6 +546,7 @@ function mouth_open (val) { // eslint-disable-line no-unused-vars
 
 function mouth_color (fr, fg, fb) {
     mouth_shader.uniforms.mouthColor.value = new THREE.Vector3(fr, fg, fb);
+    update_shaders();
     direct_render();
 }
 
@@ -908,7 +905,6 @@ function stop_all_animations (stop_head_sway) {
     eyebrow_left(0);
     eyebrow_right(0);
     mouth_open(0);
-    mouth_color(0, 0, 0);
 }
 
 
