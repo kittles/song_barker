@@ -385,6 +385,7 @@ async function create_puppet (img_url) {
     direct_render();
     animate();
     head_sway(head_sway_amplitude, head_sway_speed);
+    sync_objects_to_features();
     fade_spinner(500, 0);
     await $(container).fadeTo(500, 1);
     log('create_puppet finished');
