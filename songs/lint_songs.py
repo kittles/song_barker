@@ -57,4 +57,8 @@ print('\nsong_family:')
 print('\n'.join(sorted([
     '   - ' + i['song_family'] for i in infos
 ])))
+print('\nid:')
+print('\n'.join(sorted([
+    '   - ' + str(i['id']) for i in infos
+])))
 

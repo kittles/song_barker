@@ -44,6 +44,8 @@ var iOS;
 var window_width;
 var window_height;
 
+// TODO handle window resizing
+
 // store the coordinates of the features here
 var features = {
     // NOTE coordinate system is [-0.5 to 0.5, -0.5 to 0.5]
@@ -340,7 +342,48 @@ async function init () {
     // check the dom for a card_id, if so, playback card
     if (window.greeting_card) {
         log('greeting card yall');
+        greeting_card_init();
     }
+}
+
+
+// greeting card prep
+async function greeting_card_init () {
+    // create the puppet with specified image
+    // get the audio prepared for playback
+    // queue up the mouth positions for animation
+    // tap screen during playback to pause (bring up controls when paused)
+    await create_puppet(window.greeting_card.image_id);
+    // show play button when ready
+    $(document).ready(() => {
+        $(document).click(() => {
+            var audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${window.greeting_card.card_audio_id}`;
+            log(`looking for audio at ${audio_url}`);
+            $('body').html(`<audio crossorigin="anonymous" src="${audio_url}"></audio>`);
+            var audio_el = document.querySelector('audio');
+            console.log(audio_el);
+            var track = audio_ctx.createMediaElementSource(audio_el);
+            track.connect(audio_ctx.destination);
+            //var duration = 10.125 // should come from template var
+            //var frames = _.range(Math.floor(duration * 60));
+            //console.log(frames.length);
+            audio_el.play();
+
+            // maybe in here you continually add a couple mouth positions based
+            // on audio playhead
+            //function loop () {
+            //    var pct = audio_el.currentTime / duration
+            //    var frame_idx = Math.floor(frames.length * pct);
+            //    console.log(frame_idx);
+            //    requestAnimationFrame(loop);
+            //}
+            //loop();
+
+
+            // when its over, bring up some controls
+        });
+    });
 }
 
 

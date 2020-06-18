@@ -48,7 +48,7 @@ app.use(
 //
 
 // index
-app.get('/card/:uuid', (req, res) => {
+app.get('/card/:uuid', async (req, res) => {
     // uuid gets a greeting_card object
     // greeting card is used to get necessary info to make a page
     // with template vars filled in for all the animations etc
@@ -56,17 +56,24 @@ app.get('/card/:uuid', (req, res) => {
     // 1. wait until everything is loaded before allowing playback
     // 2. control playback (keep in sync etc), allow repeats and pause
     // 3. links to download app etc
+    if (!uuid_validate(req.params.uuid)) {
+        // TODO should redirect to a user friendly page
+        res.status(400).send('malformed raw uuid');
+        return;
+    }
+    const db = await _db.dbPromise;
+    var card = await db.get('select * from greeting_cards where uuid = ?', req.params.uuid);
+    // TODO verify card exists
     fs.readFile('public/puppet_002/card.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
         var html = template({
             uuid: req.params.uuid,
-            card_audio_id: 'some-audio-id',
-            image_id: 'some-image-id',
-            decoration_image_id: 'some-decoration-image-id',
-            animation_json: '{"some": [1,2,3], "animation": [0,1,2]}',
-            name: 'some-card-name',
+            card_audio_id: card.card_audio_id,
+            image_id: card.image_id,
+            decoration_image_id: card.decoration_image_id,
+            animation_json: card.animation_json,
+            name: card.name,
         });
-        console.log(html);
         res.send(html);
     });
 });
