@@ -346,7 +346,6 @@ async function init () {
     }
 }
 
-
 // greeting card prep
 async function greeting_card_init () {
     // create the puppet with specified image
@@ -381,24 +380,18 @@ async function greeting_card_init () {
         console.log(audio_el);
         var track = audio_ctx.createMediaElementSource(audio_el);
         track.connect(audio_ctx.destination);
-        //var duration = 10.125 // should come from template var
-        //var frames = _.range(Math.floor(duration * 60));
-        //console.log(frames.length);
-        feature_tickers.mouth.add(window.greeting_card.animation_json.mouth_positions);
         audio_el.play();
-
-        // maybe in here you continually add a couple mouth positions based
-        // on audio playhead
-        //function loop () {
-        //    var pct = audio_el.currentTime / duration
-        //    var frame_idx = Math.floor(frames.length * pct);
-        //    console.log(frame_idx);
-        //    requestAnimationFrame(loop);
-        //}
-        //loop();
-
-
-        // when its over, bring up some controls
+        buffer_interval = setInterval(() => {
+            // add the upcoming 250 ms of mouth animations based on current playback
+            var start_index = Math.floor(audio_el.currentTime * 60);
+            feature_tickers.mouth.cancel();
+            // add a little extra the interval gets delayed
+            feature_tickers.mouth.add(greeting_card.animation_json.mouth_positions.slice(start_index, start_index + 60))
+        }, 250);
+        audio_el.addEventListener('ended', (event) => {
+            console.log('song ended');
+            clearInterval(buffer_interval);
+        });
     });
 }
 
@@ -877,10 +870,10 @@ function animate () {
         direct_render();
 
         stats.end();
-        animation_frame = requestAnimationFrame(do_animate);
         if (show_rendering_stats) {
             frame_render_times(performance.now() - render_start);
         }
+        animation_frame = requestAnimationFrame(do_animate);
     }
     do_animate();
     stop_anim_loop = () => { cancelAnimationFrame(animation_frame); };
