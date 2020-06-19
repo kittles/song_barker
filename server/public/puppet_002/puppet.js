@@ -353,36 +353,52 @@ async function greeting_card_init () {
     // get the audio prepared for playback
     // queue up the mouth positions for animation
     // tap screen during playback to pause (bring up controls when paused)
-    await create_puppet(window.greeting_card.image_id);
-    // show play button when ready
-    $(document).ready(() => {
-        $(document).click(() => {
-            var audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
-            var audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${window.greeting_card.card_audio_id}`;
-            log(`looking for audio at ${audio_url}`);
-            $('body').html(`<audio crossorigin="anonymous" src="${audio_url}"></audio>`);
-            var audio_el = document.querySelector('audio');
-            console.log(audio_el);
-            var track = audio_ctx.createMediaElementSource(audio_el);
-            track.connect(audio_ctx.destination);
-            //var duration = 10.125 // should come from template var
-            //var frames = _.range(Math.floor(duration * 60));
-            //console.log(frames.length);
-            audio_el.play();
+    var image_url = `https://storage.googleapis.com/song_barker_sequences/images/${window.greeting_card.image_id}.jpg`;
+    var fts = window.greeting_card.image_coordinates_json;
+    features = {
+        leftEyePosition: fts.leftEye,
+        rightEyePosition: fts.rightEye,
+        mouthPosition: fts.mouth,
+        mouthLeft: fts.mouthLeft,
+        mouthRight: fts.mouthRight,
+        headTop: fts.headTop,
+        headBottom: fts.headBottom,
+        headLeft: fts.headLeft,
+        headRight: fts.headRight,
+    };
+    _.each(features, (v, k) => {
+        features[k] = new THREE.Vector2(v[0], v[1]);
+    });
 
-            // maybe in here you continually add a couple mouth positions based
-            // on audio playhead
-            //function loop () {
-            //    var pct = audio_el.currentTime / duration
-            //    var frame_idx = Math.floor(frames.length * pct);
-            //    console.log(frame_idx);
-            //    requestAnimationFrame(loop);
-            //}
-            //loop();
+    await create_puppet(image_url);
+
+    $(document).click(() => {
+        var audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${window.greeting_card.card_audio_id}.aac`;
+        log(`looking for audio at ${audio_url}`);
+        $('body').append(`<audio crossorigin="anonymous" src="${audio_url}"></audio>`);
+        var audio_el = document.querySelector('audio');
+        console.log(audio_el);
+        var track = audio_ctx.createMediaElementSource(audio_el);
+        track.connect(audio_ctx.destination);
+        //var duration = 10.125 // should come from template var
+        //var frames = _.range(Math.floor(duration * 60));
+        //console.log(frames.length);
+        feature_tickers.mouth.add(window.greeting_card.animation_json.mouth_positions);
+        audio_el.play();
+
+        // maybe in here you continually add a couple mouth positions based
+        // on audio playhead
+        //function loop () {
+        //    var pct = audio_el.currentTime / duration
+        //    var frame_idx = Math.floor(frames.length * pct);
+        //    console.log(frame_idx);
+        //    requestAnimationFrame(loop);
+        //}
+        //loop();
 
 
-            // when its over, bring up some controls
-        });
+        // when its over, bring up some controls
     });
 }
 
@@ -598,6 +614,36 @@ function update_head_sway (amplitude, speed) { // eslint-disable-line no-unused-
     head_sway_amplitude = amplitude;
     head_sway_speed = speed;
     head_sway(head_sway_amplitude, head_sway_speed);
+}
+
+
+function ramp_on_headsway (over_frames) {
+    var amplitude = face_animation_shader.uniforms.swayAmplitude.value;
+    var amplitude_step = 0.1 / over_frames; // amplitude gets divided by 10 in head_sway, so match that here
+    var ramp_interval = setInterval(() => {
+        amplitude = Math.min(amplitude + amplitude_step, 0.1);
+        face_animation_shader.uniforms.swayAmplitude.value = amplitude;
+        mouth_shader.uniforms.swayAmplitude.value = amplitude;
+        head_sway_amplitude = amplitude * 10; // should match the input to head sway
+        if (amplitude >= 0.1) {
+            clearInterval(ramp_interval);
+        }
+    }, 17);
+}
+
+
+function ramp_off_headsway (over_frames) {
+    var amplitude = face_animation_shader.uniforms.swayAmplitude.value;
+    var amplitude_step = amplitude / over_frames;
+    var ramp_interval = setInterval(() => {
+        amplitude = Math.max(amplitude - amplitude_step, 0);
+        face_animation_shader.uniforms.swayAmplitude.value = amplitude;
+        mouth_shader.uniforms.swayAmplitude.value = amplitude;
+        head_sway_amplitude = amplitude * 10; // should match the input to head sway
+        if (amplitude <= 0) {
+            clearInterval(ramp_interval);
+        }
+    }, 17);
 }
 
 // some prepackaged animations

@@ -63,13 +63,19 @@ app.get('/card/:uuid', async (req, res) => {
     }
     const db = await _db.dbPromise;
     var card = await db.get('select * from greeting_cards where uuid = ?', req.params.uuid);
-    // TODO verify card exists
+    if (_.isUndefined(card)) {
+        res.status(404).send('card does not exist');
+        return;
+    }
+    // get face coordinates
+    var image = await db.get('select * from images where uuid = ?', card.image_id);
     fs.readFile('public/puppet_002/card.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
         var html = template({
             uuid: req.params.uuid,
             card_audio_id: card.card_audio_id,
             image_id: card.image_id,
+            image_coordinates_json: image.coordinates_json,
             decoration_image_id: card.decoration_image_id,
             animation_json: card.animation_json,
             name: card.name,
