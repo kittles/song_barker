@@ -352,8 +352,9 @@ async function greeting_card_init () {
     // get the audio prepared for playback
     // queue up the mouth positions for animation
     // tap screen during playback to pause (bring up controls when paused)
-    var image_url = `https://storage.googleapis.com/song_barker_sequences/images/${window.greeting_card.image_id}.jpg`;
-    var fts = window.greeting_card.image_coordinates_json;
+    var card = window.greeting_card;
+    var image_url = `https://storage.googleapis.com/song_barker_sequences/images/${card.image_id}.jpg`;
+    var fts = card.image_coordinates_json;
     features = {
         leftEyePosition: fts.leftEye,
         rightEyePosition: fts.rightEye,
@@ -371,28 +372,68 @@ async function greeting_card_init () {
 
     await create_puppet(image_url);
 
+    var audio_ctx;
+    var audio_url;
+    var audio_el;
+    var track;
+    var buffer_interval;
+    var initialized = false;
+    var playing = false;
+
+
     $(document).click(() => {
-        var audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
-        var audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${window.greeting_card.card_audio_id}.aac`;
-        log(`looking for audio at ${audio_url}`);
+        if (!initialized) {
+            init_audio();
+        }
+        if (playing) {
+            pause_audio();
+        } else {
+            play_audio();
+        }
+    });
+
+
+    function init_audio () {
+        audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
+        audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${card.card_audio_id}.aac`;
         $('body').append(`<audio crossorigin="anonymous" src="${audio_url}"></audio>`);
-        var audio_el = document.querySelector('audio');
-        console.log(audio_el);
-        var track = audio_ctx.createMediaElementSource(audio_el);
+        audio_el = document.querySelector('audio');
+        track = audio_ctx.createMediaElementSource(audio_el);
         track.connect(audio_ctx.destination);
+        audio_el.addEventListener('ended', handle_audio_end, { once: true });
+        initialized = true;
+    }
+
+
+    function play_audio () {
+        // play the audio and animate
+        clearInterval(buffer_interval);
         audio_el.play();
         buffer_interval = setInterval(() => {
             // add the upcoming 250 ms of mouth animations based on current playback
-            var start_index = Math.floor(audio_el.currentTime * 60);
+            var start_idx = Math.floor(audio_el.currentTime * 60);
             feature_tickers.mouth.cancel();
             // add a little extra the interval gets delayed
-            feature_tickers.mouth.add(greeting_card.animation_json.mouth_positions.slice(start_index, start_index + 60))
+            feature_tickers.mouth.add(card.animation_json.mouth_positions.slice(start_idx, start_idx + 60));
         }, 250);
-        audio_el.addEventListener('ended', (event) => {
-            console.log('song ended');
-            clearInterval(buffer_interval);
-        });
-    });
+        playing = true;
+    }
+
+
+    function pause_audio () {
+        clearInterval(buffer_interval);
+        audio_el.pause();
+        feature_tickers.mouth.cancel();
+        feature_tickers.mouth.add([0]);
+        playing = false;
+    }
+
+
+
+    function handle_audio_end () {
+        log('playback ended');
+        clearInterval(buffer_interval);
+    }
 }
 
 
