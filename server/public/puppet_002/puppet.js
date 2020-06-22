@@ -43,6 +43,7 @@ var iOS;
 // store the results of that here
 var window_width;
 var window_height;
+var zoom_factor = 1; // gets set to a real value in init
 
 // TODO handle window resizing
 
@@ -314,7 +315,7 @@ async function init () {
     renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
     container.appendChild(renderer.domElement);
     renderer.setSize(render_pixels, render_pixels);
-    var zoom_factor = Math.min(window_width, window_height) / render_pixels;
+    zoom_factor = Math.min(window_width, window_height) / render_pixels;
     $(renderer.domElement).css('zoom', zoom_factor);
     log(`renderer zoom factor: ${zoom_factor}`);
 
@@ -354,6 +355,7 @@ async function greeting_card_init () {
     // tap screen during playback to pause (bring up controls when paused)
     var card = window.greeting_card;
     var image_url = `https://storage.googleapis.com/song_barker_sequences/images/${card.image_id}.jpg`;
+    var decoration_image_url = `https://storage.googleapis.com/k9karaoke_cards/decoration_images/${card.decoration_image_id}.png`;
     var fts = card.image_coordinates_json;
     features = {
         leftEyePosition: fts.leftEye,
@@ -380,6 +382,8 @@ async function greeting_card_init () {
     var initialized = false;
     var playing = false;
 
+    $('#container').append(`<img class="decoration-image" src=${decoration_image_url}></img>`);
+    $('.decoration-image').css('zoom', zoom_factor);
 
     $(document).click(() => {
         if (!initialized) {
@@ -937,80 +941,6 @@ function frame_render_times (time_ms) {
     } else {
         _render_times.push(time_ms);
     }
-}
-
-
-// for rendering video:
-// stop all animations, cue up animation sequence, step through the frames using .step()
-// call compile when your ready to make the frames into a video
-// video blob url will be attached to a hidden anchor element on the page
-function frame_stepper (fps) {
-    var time = 0; // mock a time ellapsing for head sway
-    var ms_per_frame = 1000 / fps;
-    var frames = [];
-
-    // do the resampling here maybe
-    // alternatively just tick as many times as needed to get close
-
-    function step () {
-        var step_start = performance.now();
-        time += ms_per_frame;
-        var elapsedSeconds = time / 1000;
-        face_animation_shader.uniforms.swayTime.value = elapsedSeconds;
-        mouth_shader.uniforms.swayTime.value = elapsedSeconds;
-        motion_handler_tick();
-        direct_render();
-        frames.push(renderer.domElement.toDataURL('image/webp', 0.25));
-        var step_time = performance.now() - step_start;
-        log(`rendering frame took ${step_time} ms`);
-    }
-
-
-    function compile () {
-        var output = Whammy.fromImageArray(frames, fps);
-        //var url = (window.webkitURL || window.URL).createObjectURL(output);
-        var reader = new FileReader();
-        reader.readAsDataURL(output);
-        reader.onload = () => log(`video_data ${reader.result}`);
-        frames = [];
-    }
-
-    var stepper = {
-        step: step,
-        compile: compile,
-    };
-    return stepper;
-}
-
-
-// client can use this as a first test
-async function render_video (mouth_positions) {
-    var fps = 20;
-    // mouth positions are 60 fps
-    var frame_count = (mouth_positions.length / 60) * fps;
-    // resample mouth positions
-    var downsampled = _.filter(mouth_positions, (x, idx) => {
-        return idx % 3 === 0;
-    });
-    stop_anim_loop();
-    feature_tickers.mouth.add(downsampled);
-    head_sway(head_sway_amplitude, head_sway_speed);
-    var stepper = frame_stepper(fps);
-    //setTimeout(() => {
-    for (var i = 0; i <= frame_count; i += 1) {
-        var frame_start = performance.now();
-        stepper.step();
-        log(`frame ${i} took ${(performance.now() - frame_start).toFixed(2)} ms`);
-    }
-    stepper.compile();
-}
-
-
-async function test_render () { // eslint-disable-line no-unused-vars
-    var mouth_pos = _.map(_.range(3 * 60), (i) => { return (1 + Math.sin(i / 5)) / 2; });
-    await create_puppet('dog3.jpg');
-    log(`canvas x: ${renderer.domElement.width}, canvas y: ${renderer.domElement.height}`);
-    render_video(mouth_pos);
 }
 
 
