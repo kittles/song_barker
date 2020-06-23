@@ -381,6 +381,10 @@ async function greeting_card_init () {
     var buffer_interval;
     var initialized = false;
     var playing = false;
+    var playback_ended = false;
+
+    $('#container').append('<img class="playback-image" src="/puppet_002/play.png"></img>')
+    var playback_btn = $('.playback-image');
 
     $('#container').append(`<img class="decoration-image" src=${decoration_image_url}></img>`);
     $('.decoration-image').css('zoom', zoom_factor);
@@ -390,8 +394,14 @@ async function greeting_card_init () {
             init_audio();
         }
         if (playing) {
+            // pause
+            playback_btn.attr('src', '/puppet_002/pause.png');
             pause_audio();
+            playback_btn.fadeIn(500);
         } else {
+            // resume play
+            playback_btn.attr('src', '/puppet_002/play.png');
+            playback_btn.fadeOut(500);
             play_audio();
         }
     });
@@ -433,10 +443,13 @@ async function greeting_card_init () {
     }
 
 
-
     function handle_audio_end () {
         log('playback ended');
         clearInterval(buffer_interval);
+        playback_btn.attr('src', '/puppet_002/replay.png');
+        playback_btn.fadeIn(500);
+        audio_el.currentTime = 0;
+        playing = false;
     }
 }
 
