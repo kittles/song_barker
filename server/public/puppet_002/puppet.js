@@ -349,6 +349,29 @@ async function init () {
 
 // greeting card prep
 async function greeting_card_init () {
+
+    // hack to stop bad hover states on mobile
+    function hasTouch() {
+      return 'ontouchstart' in document.documentElement
+             || navigator.maxTouchPoints > 0
+             || navigator.msMaxTouchPoints > 0;
+    }
+    if (hasTouch()) { // remove all the :hover stylesheets
+        try { // prevent exception on browsers not supporting DOM styleSheets properly
+            for (var si in document.styleSheets) {
+                var styleSheet = document.styleSheets[si];
+                if (!styleSheet.rules) continue;
+
+                for (var ri = styleSheet.rules.length - 1; ri >= 0; ri--) {
+                    if (!styleSheet.rules[ri].selectorText) continue;
+
+                    if (styleSheet.rules[ri].selectorText.match(':hover')) {
+                        styleSheet.deleteRule(ri);
+                    }
+                }
+            }
+        } catch (ex) {}
+    }
     // create the puppet with specified image
     // get the audio prepared for playback
     // queue up the mouth positions for animation
@@ -395,7 +418,7 @@ async function greeting_card_init () {
     decoration_image.css('margin-left', -left_offset);
     decoration_image.css('zoom', zoom_factor);
 
-    $(document).click(() => {
+    $(playback_btn).click(() => {
         if (!initialized) {
             init_audio();
         }
@@ -416,7 +439,7 @@ async function greeting_card_init () {
     function init_audio () {
         audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
         audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${card.card_audio_id}.aac`;
-        $('body').append(`<audio crossorigin="anonymous" src="${audio_url}"></audio>`);
+        $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
         audio_el = document.querySelector('audio');
         track = audio_ctx.createMediaElementSource(audio_el);
         track.connect(audio_ctx.destination);
