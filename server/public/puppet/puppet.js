@@ -607,7 +607,7 @@ function _greeting_card_init() {
             decoration_image.css('left', '50%');
             decoration_image.css('margin-left', -left_offset);
             decoration_image.css('zoom', zoom_factor);
-            $(playback_btn).click(function () {
+            $('#container').click(function () {
               if (!initialized) {
                 init_audio();
               }

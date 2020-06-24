@@ -418,7 +418,7 @@ async function greeting_card_init () {
     decoration_image.css('margin-left', -left_offset);
     decoration_image.css('zoom', zoom_factor);
 
-    $(playback_btn).click(() => {
+    $('#container').click(() => {
         if (!initialized) {
             init_audio();
         }
