@@ -437,6 +437,7 @@ async function greeting_card_init () {
 
 
     function init_audio () {
+        log('initializing audio');
         audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
         audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${card.card_audio_id}.aac`;
         $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
@@ -445,6 +446,7 @@ async function greeting_card_init () {
         track.connect(audio_ctx.destination);
         audio_el.addEventListener('ended', handle_audio_end, { once: true });
         initialized = true;
+        log('initializing audio suceeded');
     }
 
 
