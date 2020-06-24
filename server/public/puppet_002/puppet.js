@@ -382,12 +382,18 @@ async function greeting_card_init () {
     var initialized = false;
     var playing = false;
     var playback_ended = false;
+    var decoration_image;
 
     $('#container').append('<img class="playback-image" src="/puppet_002/play.png"></img>')
     var playback_btn = $('.playback-image');
 
     $('#container').append(`<img class="decoration-image" src=${decoration_image_url}></img>`);
-    $('.decoration-image').css('zoom', zoom_factor);
+    decoration_image = $('.decoration-image');
+    // position card in the center
+    var left_offset = $('#container > canvas').width() / 2;
+    decoration_image.css('left', '50%');
+    decoration_image.css('margin-left', -left_offset);
+    decoration_image.css('zoom', zoom_factor);
 
     $(document).click(() => {
         if (!initialized) {
