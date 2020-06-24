@@ -592,18 +592,12 @@ function _greeting_card_init() {
             decoration_image.css('left', '50%');
             decoration_image.css('margin-left', -left_offset);
             decoration_image.css('zoom', zoom_factor);
-            log('initializing audio');
-            audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
             audio_url = "https://storage.googleapis.com/k9karaoke_cards/card_audios/".concat(card.card_audio_id, ".aac");
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
             audio_el = document.querySelector('audio');
-            track = audio_ctx.createMediaElementSource(audio_el);
-            track.connect(audio_ctx.destination);
             audio_el.addEventListener('ended', handle_audio_end, {
               once: true
             });
-            initialized = true;
-            log('initializing audio suceeded');
             $('#container').click(function () {
               if (playing) {
                 // pause
@@ -618,7 +612,7 @@ function _greeting_card_init() {
               }
             });
 
-          case 56:
+          case 50:
           case "end":
             return _context2.stop();
         }

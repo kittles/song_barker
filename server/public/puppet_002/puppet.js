@@ -418,16 +418,10 @@ async function greeting_card_init () {
     decoration_image.css('margin-left', -left_offset);
     decoration_image.css('zoom', zoom_factor);
 
-    log('initializing audio');
-    audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
     audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${card.card_audio_id}.aac`;
     $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
     audio_el = document.querySelector('audio');
-    track = audio_ctx.createMediaElementSource(audio_el);
-    track.connect(audio_ctx.destination);
     audio_el.addEventListener('ended', handle_audio_end, { once: true });
-    initialized = true;
-    log('initializing audio suceeded');
 
     $('#container').click(() => {
         if (playing) {
