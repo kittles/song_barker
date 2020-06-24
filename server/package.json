@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon app.js --ignore 'sessions/'",
-    "build": "babel public/puppet_002/puppet.js -d public/puppet/"
+    "build": "babel public/puppet/puppet.js -d public/build/"
   },
   "author": "Patrick Brooks",
   "license": "ISC",
