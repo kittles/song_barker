@@ -1,0 +1,40 @@
+
+<head>
+    <script src="/puppet_002/jquery.min.js"></script>
+    <script src="/puppet_002/lodash.js"></script>
+    <script src="/puppet_002/lodash.fp.js"></script>
+    <script src="/puppet_002/three.110.js"></script>
+    <script src="/puppet_002/gltf_loader.js"></script>
+    <script src="/puppet_002/orbit_controls.js"></script>
+    <script src="/puppet_002/stats.min.js"></script>
+    <script src="/puppet_002/raf.js"></script>
+    <script src="/puppet_002/performance.js"></script>
+    <script src="/puppet_002/whammy.js"></script>
+    <script src="/puppet_002/math.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="spinners.css">
+    <style>
+    body {
+        margin: 0px auto;
+        overflow: hidden;
+        background: black;
+    }
+    </style>
+</head>
+<body>
+    <script>
+    var audio_el;
+
+    //audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
+    audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/5ce26d8e-068b-47be-882c-7300440d24ee.aac`;
+    $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
+    audio_el = document.querySelector('audio');
+    //track = audio_ctx.createMediaElementSource(audio_el);
+    //track.connect(audio_ctx.destination);
+    initialized = true;
+
+    $('body').click(() => {
+        console.log('playing');
+        audio_el.play();
+    });
+    </script>
+</body>
