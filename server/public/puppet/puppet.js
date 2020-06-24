@@ -449,7 +449,7 @@ function greeting_card_init() {
 
 function _greeting_card_init() {
   _greeting_card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-    var hasTouch, si, styleSheet, ri, card, image_url, decoration_image_url, fts, audio_ctx, audio_url, audio_el, track, buffer_interval, initialized, playing, playback_ended, decoration_image, playback_btn, left_offset, init_audio, play_audio, pause_audio, handle_audio_end;
+    var hasTouch, si, styleSheet, ri, card, image_url, decoration_image_url, fts, audio_ctx, audio_url, audio_el, track, buffer_interval, initialized, playing, playback_ended, decoration_image, playback_btn, left_offset, play_audio, pause_audio, handle_audio_end;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -485,36 +485,21 @@ function _greeting_card_init() {
               playing = true;
             };
 
-            init_audio = function _init_audio() {
-              log('initializing audio');
-              audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
-              audio_url = "https://storage.googleapis.com/k9karaoke_cards/card_audios/".concat(card.card_audio_id, ".aac");
-              $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
-              audio_el = document.querySelector('audio');
-              track = audio_ctx.createMediaElementSource(audio_el);
-              track.connect(audio_ctx.destination);
-              audio_el.addEventListener('ended', handle_audio_end, {
-                once: true
-              });
-              initialized = true;
-              log('initializing audio suceeded');
-            };
-
             hasTouch = function _hasTouch() {
               return 'ontouchstart' in document.documentElement || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
             };
 
             if (!hasTouch()) {
-              _context2.next = 27;
+              _context2.next = 26;
               break;
             }
 
-            _context2.prev = 6;
+            _context2.prev = 5;
             _context2.t0 = regeneratorRuntime.keys(document.styleSheets);
 
-          case 8:
+          case 7:
             if ((_context2.t1 = _context2.t0()).done) {
-              _context2.next = 23;
+              _context2.next = 22;
               break;
             }
 
@@ -522,51 +507,51 @@ function _greeting_card_init() {
             styleSheet = document.styleSheets[si];
 
             if (styleSheet.rules) {
-              _context2.next = 13;
+              _context2.next = 12;
               break;
             }
 
-            return _context2.abrupt("continue", 8);
+            return _context2.abrupt("continue", 7);
 
-          case 13:
+          case 12:
             ri = styleSheet.rules.length - 1;
 
-          case 14:
+          case 13:
             if (!(ri >= 0)) {
-              _context2.next = 21;
+              _context2.next = 20;
               break;
             }
 
             if (styleSheet.rules[ri].selectorText) {
-              _context2.next = 17;
+              _context2.next = 16;
               break;
             }
 
-            return _context2.abrupt("continue", 18);
+            return _context2.abrupt("continue", 17);
 
-          case 17:
+          case 16:
             if (styleSheet.rules[ri].selectorText.match(':hover')) {
               styleSheet.deleteRule(ri);
             }
 
-          case 18:
+          case 17:
             ri--;
-            _context2.next = 14;
+            _context2.next = 13;
             break;
 
-          case 21:
-            _context2.next = 8;
+          case 20:
+            _context2.next = 7;
             break;
 
-          case 23:
-            _context2.next = 27;
+          case 22:
+            _context2.next = 26;
             break;
 
-          case 25:
-            _context2.prev = 25;
-            _context2.t2 = _context2["catch"](6);
+          case 24:
+            _context2.prev = 24;
+            _context2.t2 = _context2["catch"](5);
 
-          case 27:
+          case 26:
             // create the puppet with specified image
             // get the audio prepared for playback
             // queue up the mouth positions for animation
@@ -591,10 +576,10 @@ function _greeting_card_init() {
               features[k] = new THREE.Vector2(v[0], v[1]);
             });
 
-            _context2.next = 35;
+            _context2.next = 34;
             return create_puppet(image_url);
 
-          case 35:
+          case 34:
             initialized = false;
             playing = false;
             playback_ended = false;
@@ -607,11 +592,19 @@ function _greeting_card_init() {
             decoration_image.css('left', '50%');
             decoration_image.css('margin-left', -left_offset);
             decoration_image.css('zoom', zoom_factor);
+            log('initializing audio');
+            audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
+            audio_url = "https://storage.googleapis.com/k9karaoke_cards/card_audios/".concat(card.card_audio_id, ".aac");
+            $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
+            audio_el = document.querySelector('audio');
+            track = audio_ctx.createMediaElementSource(audio_el);
+            track.connect(audio_ctx.destination);
+            audio_el.addEventListener('ended', handle_audio_end, {
+              once: true
+            });
+            initialized = true;
+            log('initializing audio suceeded');
             $('#container').click(function () {
-              if (!initialized) {
-                init_audio();
-              }
-
               if (playing) {
                 // pause
                 playback_btn.attr('src', '/puppet_002/pause.png');
@@ -625,12 +618,12 @@ function _greeting_card_init() {
               }
             });
 
-          case 47:
+          case 56:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[6, 25]]);
+    }, _callee2, null, [[5, 24]]);
   }));
   return _greeting_card_init.apply(this, arguments);
 }
