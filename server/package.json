@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "woof",
   "main": "app.js",
+  "watch": {
+    "transpile-puppet": "public/puppet/*.js"
+  },
   "scripts": {
     "test": "jest",
     "dev": "nodemon app.js --ignore 'sessions/'",
-    "build": "babel public/puppet/puppet.js -d public/build/"
+    "transpile-puppet": "babel public/puppet/puppet.js -d public/build/",
+    "watch": "npm-watch"
   },
   "author": "Patrick Brooks",
   "license": "ISC",
@@ -32,6 +36,7 @@
     "mediaserver": "^0.1.1",
     "midi-parser-js": "^4.0.4",
     "morgan": "^1.9.1",
+    "npm-watch": "^0.6.0",
     "prettier": "^2.0.5",
     "regenerator-runtime": "^0.13.5",
     "save": "^2.4.0",

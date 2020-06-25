@@ -16,12 +16,12 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-/* global _, Print, THREE, $, Stats, Whammy */
+/* global _, Print, THREE, $, Stats, math */
 var fp = _.noConflict(); // lodash fp and lodash at the same time
 // so nginx can server static assets
 
 
-var static_root = '/puppet_002'; // for turning images into base64 strings, for testing
+var static_root = '/puppet'; // for turning images into base64 strings, for testing
 
 var image_canvas;
 var image_ctx; // where the render canvas lives in the dom
@@ -34,7 +34,8 @@ var scene;
 var camera;
 var renderer;
 var render_pixels = 128 * 4; // use a constant canvas resolution and scale it in css as needed
-// for inspecting the scene
+
+var card = window.greeting_card || undefined; // for inspecting the scene
 
 var controls; // the id of the RAF loop if you want to cancel it
 
@@ -247,7 +248,9 @@ var start_time; // log messages include time since init
 var show_timing = false; // set to true if you want to see mouse position in three coordinate space
 // for setting features etc
 
-var log_mouse_position = true; // wrap output so it can be sent to the app through a javascript channel
+var log_mouse_position = false;
+var post_init = _.noop; // for cards, this gets replaced with a card init function, after general init is done
+// wrap output so it can be sent to the app through a javascript channel
 
 function log(msg) {
   // this gets picked up clientside through a "javascript channel"
@@ -279,15 +282,14 @@ $('document').ready(init); // prepare a threejs scene for puppet creation
 
 function init() {
   return _init.apply(this, arguments);
-} // greeting card prep
-
+}
 
 function _init() {
-  _init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var viewport_aspect;
-    return regeneratorRuntime.wrap(function _callee$(_context) {
+  _init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+    var viewport_aspect, image_url, decoration_image_url, fts, decoration_image;
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
-        switch (_context.prev = _context.next) {
+        switch (_context2.prev = _context2.next) {
           case 0:
             start_time = performance.now();
             log('puppet.js initializing');
@@ -316,6 +318,63 @@ function _init() {
             // so expect a square viewport as well
 
             viewport_aspect = 1;
+            zoom_factor = Math.min(window_width, window_height) / render_pixels;
+
+            if (card) {
+              log('greeting card yall');
+              image_url = "https://storage.googleapis.com/song_barker_sequences/images/".concat(card.image_id, ".jpg");
+              decoration_image_url = "https://storage.googleapis.com/k9karaoke_cards/decoration_images/".concat(card.decoration_image_id, ".png");
+              fts = card.image_coordinates_json;
+              features = {
+                leftEyePosition: fts.leftEye,
+                rightEyePosition: fts.rightEye,
+                mouthPosition: fts.mouth,
+                mouthLeft: fts.mouthLeft,
+                mouthRight: fts.mouthRight,
+                headTop: fts.headTop,
+                headBottom: fts.headBottom,
+                headLeft: fts.headLeft,
+                headRight: fts.headRight
+              };
+
+              _.each(features, function (v, k) {
+                features[k] = new THREE.Vector2(v[0], v[1]);
+              }); // so theres room for some playback ui
+
+
+              zoom_factor = zoom_factor * 0.8;
+              $('#container').append("<img class=\"decoration-image\" src=".concat(decoration_image_url, "></img>"));
+              decoration_image = $('.decoration-image');
+              decoration_image.css('zoom', zoom_factor); // this gets called at the end of the init
+
+              post_init = /*#__PURE__*/function () {
+                var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                  return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                      switch (_context.prev = _context.next) {
+                        case 0:
+                          _context.next = 2;
+                          return create_puppet(image_url);
+
+                        case 2:
+                          $('#container').css('transform', 'translateY(0px)');
+                          $('.playback-image').css('top', $('#container > canvas').width() * zoom_factor * 0.5);
+                          init_audio();
+
+                        case 5:
+                        case "end":
+                          return _context.stop();
+                      }
+                    }
+                  }, _callee);
+                }));
+
+                return function post_init() {
+                  return _ref.apply(this, arguments);
+                };
+              }();
+            }
+
             loading_spinner = document.getElementById('loading-spinner'); // see fps and memory for debugging
 
             if (show_fps) {
@@ -329,15 +388,15 @@ function _init() {
             // shader code
 
 
-            _context.next = 16;
+            _context2.next = 18;
             return load_shader_files();
 
-          case 16:
-            _context.next = 18;
+          case 18:
+            _context2.next = 20;
             return load_texture('noise_2D.png');
 
-          case 18:
-            animation_noise_texture = _context.sent;
+          case 20:
+            animation_noise_texture = _context2.sent;
             //
             // create the threejs geometry and materials for the scene
             //
@@ -375,11 +434,11 @@ function _init() {
             face_mesh.renderOrder = 1; // mouth sprite - this is a group in threejs lingo,
             // the actual mouth mesh lives in mouth_mesh, a child of the group
 
-            _context.next = 30;
+            _context2.next = 32;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
-          case 30:
-            mouth_gltf = _context.sent;
+          case 32:
+            mouth_gltf = _context2.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
               uniforms: mouth_shader.uniforms,
@@ -403,7 +462,6 @@ function _init() {
             renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
             container.appendChild(renderer.domElement);
             renderer.setSize(render_pixels, render_pixels);
-            zoom_factor = Math.min(window_width, window_height) / render_pixels;
             $(renderer.domElement).css('zoom', zoom_factor);
             log("renderer zoom factor: ".concat(zoom_factor));
 
@@ -423,36 +481,44 @@ function _init() {
             // tell client the webview is ready to create a puppet
 
 
-            log('finished init'); // check the dom for a card_id, if so, playback card
+            log('finished init');
+            post_init(); //// check the dom for a card_id, if so, playback card
+            //if (window.greeting_card) {
+            //    log('greeting card yall');
+            //    greeting_card_init();
+            //    $('body').css('background', 'rgb(235,235,235)');
+            //    $('#container').css('margin', 20);
+            //    $('#container > canvas').css('box-shadow', '0 4px 9px 0 rgba(0,0,0,.25)');
+            //}
 
-            if (window.greeting_card) {
-              log('greeting card yall');
-              greeting_card_init();
-            }
-
-          case 47:
+          case 48:
           case "end":
-            return _context.stop();
+            return _context2.stop();
         }
       }
-    }, _callee);
+    }, _callee2);
   }));
   return _init.apply(this, arguments);
 }
 
-function greeting_card_init() {
-  return _greeting_card_init.apply(this, arguments);
+function hasTouch() {
+  return 'ontouchstart' in document.documentElement || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+} // greeting card prep
+
+
+function init_audio() {
+  return _init_audio.apply(this, arguments);
 } // create a puppet from an image url
 // the app will pass a base64 string encoding to this
 // TODO make the transition smooth looking
 
 
-function _greeting_card_init() {
-  _greeting_card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-    var hasTouch, si, styleSheet, ri, card, image_url, decoration_image_url, fts, audio_ctx, audio_url, audio_el, track, buffer_interval, initialized, playing, playback_ended, decoration_image, playback_btn, left_offset, play_audio, pause_audio, handle_audio_end;
-    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+function _init_audio() {
+  _init_audio = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+    var audio_url, audio_el, buffer_interval, playing, playback_btn, play_audio, pause_audio, handle_audio_end;
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
-        switch (_context2.prev = _context2.next) {
+        switch (_context3.prev = _context3.next) {
           case 0:
             handle_audio_end = function _handle_audio_end() {
               log('playback ended');
@@ -485,141 +551,47 @@ function _greeting_card_init() {
               playing = true;
             };
 
-            hasTouch = function _hasTouch() {
-              return 'ontouchstart' in document.documentElement || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
-            };
-
-            if (!hasTouch()) {
-              _context2.next = 26;
-              break;
-            }
-
-            _context2.prev = 5;
-            _context2.t0 = regeneratorRuntime.keys(document.styleSheets);
-
-          case 7:
-            if ((_context2.t1 = _context2.t0()).done) {
-              _context2.next = 22;
-              break;
-            }
-
-            si = _context2.t1.value;
-            styleSheet = document.styleSheets[si];
-
-            if (styleSheet.rules) {
-              _context2.next = 12;
-              break;
-            }
-
-            return _context2.abrupt("continue", 7);
-
-          case 12:
-            ri = styleSheet.rules.length - 1;
-
-          case 13:
-            if (!(ri >= 0)) {
-              _context2.next = 20;
-              break;
-            }
-
-            if (styleSheet.rules[ri].selectorText) {
-              _context2.next = 16;
-              break;
-            }
-
-            return _context2.abrupt("continue", 17);
-
-          case 16:
-            if (styleSheet.rules[ri].selectorText.match(':hover')) {
-              styleSheet.deleteRule(ri);
-            }
-
-          case 17:
-            ri--;
-            _context2.next = 13;
-            break;
-
-          case 20:
-            _context2.next = 7;
-            break;
-
-          case 22:
-            _context2.next = 26;
-            break;
-
-          case 24:
-            _context2.prev = 24;
-            _context2.t2 = _context2["catch"](5);
-
-          case 26:
-            // create the puppet with specified image
-            // get the audio prepared for playback
-            // queue up the mouth positions for animation
-            // tap screen during playback to pause (bring up controls when paused)
-            card = window.greeting_card;
-            image_url = "https://storage.googleapis.com/song_barker_sequences/images/".concat(card.image_id, ".jpg");
-            decoration_image_url = "https://storage.googleapis.com/k9karaoke_cards/decoration_images/".concat(card.decoration_image_id, ".png");
-            fts = card.image_coordinates_json;
-            features = {
-              leftEyePosition: fts.leftEye,
-              rightEyePosition: fts.rightEye,
-              mouthPosition: fts.mouth,
-              mouthLeft: fts.mouthLeft,
-              mouthRight: fts.mouthRight,
-              headTop: fts.headTop,
-              headBottom: fts.headBottom,
-              headLeft: fts.headLeft,
-              headRight: fts.headRight
-            };
-
-            _.each(features, function (v, k) {
-              features[k] = new THREE.Vector2(v[0], v[1]);
-            });
-
-            _context2.next = 34;
-            return create_puppet(image_url);
-
-          case 34:
-            initialized = false;
             playing = false;
-            playback_ended = false;
-            $('#container').append('<img class="playback-image" src="/puppet_002/play.png"></img>');
-            playback_btn = $('.playback-image');
-            $('#container').append("<img class=\"decoration-image\" src=".concat(decoration_image_url, "></img>"));
-            decoration_image = $('.decoration-image'); // position card in the center
+            playback_btn = $('.playback-image'); //var volume_html = `
+            //<div id="volume">
+            //    <img class="volume-icon" src="/puppet/volume_quiet.png"></img>
+            //    <input type="range" id="volume-slider" name="volume"
+            //             min="0" max="1" step="0.05" value="1">
+            //    <img class="volume-icon" src="/puppet/volume_loud.png"></img>
+            //</div>`;
+            //$('#container').after(volume_html);
+            //$('#volume-slider').css('width', $('#container > canvas').width() * zoom_resize * 0.5);
+            //$('#volume').css('left', ($('#container > canvas').width() * zoom_resize * 0.25) - 50);
 
-            left_offset = $('#container > canvas').width() / 2;
-            decoration_image.css('left', '50%');
-            decoration_image.css('margin-left', -left_offset);
-            decoration_image.css('zoom', zoom_factor);
             audio_url = "https://storage.googleapis.com/k9karaoke_cards/card_audios/".concat(card.card_audio_id, ".aac");
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
             audio_el = document.querySelector('audio');
             audio_el.addEventListener('ended', handle_audio_end, {
               once: true
             });
+            $('#volume-slider').on('input', function () {
+              audio_el.volume = $('#volume-slider').val();
+            });
             $('#container').click(function () {
               if (playing) {
-                // pause
-                playback_btn.attr('src', '/puppet_002/pause.png');
-                pause_audio();
-                playback_btn.fadeIn(500);
-              } else {
-                // resume play
                 playback_btn.attr('src', '/puppet_002/play.png');
-                playback_btn.fadeOut(500);
+                pause_audio();
+                playback_btn.fadeIn(250);
+              } else {
+                playback_btn.attr('src', '/puppet_002/play.png');
+                playback_btn.fadeOut(250);
                 play_audio();
               }
             });
 
-          case 50:
+          case 11:
           case "end":
-            return _context2.stop();
+            return _context3.stop();
         }
       }
-    }, _callee2, null, [[5, 24]]);
+    }, _callee3);
   }));
-  return _greeting_card_init.apply(this, arguments);
+  return _init_audio.apply(this, arguments);
 }
 
 function create_puppet(_x) {
@@ -630,41 +602,41 @@ function create_puppet(_x) {
 
 
 function _create_puppet() {
-  _create_puppet = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(img_url) {
-    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+  _create_puppet = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(img_url) {
+    return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context4.prev = _context4.next) {
           case 0:
             start_time = performance.now();
-            _context3.next = 3;
+            _context4.next = 3;
             return fade_spinner(200, 0);
 
           case 3:
             stop_all_animations();
-            _context3.next = 6;
+            _context4.next = 6;
             return fade_container(500, 0);
 
           case 6:
             cancelAnimationFrame(animation_frame);
 
             if (!(img_url === undefined)) {
-              _context3.next = 13;
+              _context4.next = 13;
               break;
             }
 
-            _context3.next = 10;
+            _context4.next = 10;
             return to_b64('dog3.jpg');
 
           case 10:
-            _context3.t0 = _context3.sent;
-            _context3.next = 14;
+            _context4.t0 = _context4.sent;
+            _context4.next = 14;
             break;
 
           case 13:
-            _context3.t0 = img_url;
+            _context4.t0 = img_url;
 
           case 14:
-            img_url = _context3.t0;
+            img_url = _context4.t0;
 
             // need to do this so old three objects can be garbage collected
             if (pet_image_texture) {
@@ -672,11 +644,11 @@ function _create_puppet() {
             } // set the pet image on the mesh and on the shader
 
 
-            _context3.next = 18;
+            _context4.next = 18;
             return load_texture(img_url);
 
           case 18:
-            pet_image_texture = _context3.sent;
+            pet_image_texture = _context4.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
 
@@ -693,7 +665,7 @@ function _create_puppet() {
             animate();
             head_sway(head_sway_amplitude, head_sway_speed);
             fade_spinner(500, 0);
-            _context3.next = 34;
+            _context4.next = 34;
             return $(container).fadeTo(500, 1);
 
           case 34:
@@ -701,10 +673,10 @@ function _create_puppet() {
 
           case 35:
           case "end":
-            return _context3.stop();
+            return _context4.stop();
         }
       }
-    }, _callee3);
+    }, _callee4);
   }));
   return _create_puppet.apply(this, arguments);
 }
@@ -854,6 +826,7 @@ function update_head_sway(amplitude, speed) {
 }
 
 function ramp_on_headsway(over_frames) {
+  // eslint-disable-line no-unused-vars
   var amplitude = face_animation_shader.uniforms.swayAmplitude.value;
   var amplitude_step = 0.1 / over_frames; // amplitude gets divided by 10 in head_sway, so match that here
 
@@ -870,6 +843,7 @@ function ramp_on_headsway(over_frames) {
 }
 
 function ramp_off_headsway(over_frames) {
+  // eslint-disable-line no-unused-vars
   var amplitude = face_animation_shader.uniforms.swayAmplitude.value;
   var amplitude_step = amplitude / over_frames;
   var ramp_interval = setInterval(function () {
@@ -1074,7 +1048,8 @@ function direct_render() {
   renderer.render(scene, camera);
 }
 
-var stop_anim_loop = _.noop; // this starts the raf loop and manages its state
+var stop_anim_loop = _.noop; // eslint-disable-line no-unused-vars
+// this starts the raf loop and manages its state
 
 function animate() {
   if (enable_controls && controls !== undefined) {
@@ -1120,7 +1095,7 @@ var _render_times = [];
 var keep_n = 60 * 10;
 
 function frame_render_times(time_ms) {
-  if (_render_times.length == keep_n) {
+  if (_render_times.length === keep_n) {
     // log summary stats
     log("\n            frame render ms summary (last ".concat(keep_n, " frames):\n                MIN: ").concat(Math.min.apply(Math, _toConsumableArray(_render_times)).toFixed(2), " ms\n                AVG: ").concat(math.mean(_render_times).toFixed(2), " ms\n                MAX: ").concat(Math.max.apply(Math, _toConsumableArray(_render_times)).toFixed(2), " ms\n                STD: ").concat(math.std(_render_times).toFixed(2), "\n        "));
     _render_times = [time_ms];
@@ -1259,32 +1234,32 @@ function load_mouth_mesh(_x2, _x3) {
 }
 
 function _load_mouth_mesh() {
-  _load_mouth_mesh = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(scene, model_path) {
-    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+  _load_mouth_mesh = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(scene, model_path) {
+    return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
             if (!mouth_gltf) {
-              _context4.next = 4;
+              _context5.next = 4;
               break;
             }
 
-            return _context4.abrupt("return", mouth_gltf);
+            return _context5.abrupt("return", mouth_gltf);
 
           case 4:
-            _context4.next = 6;
+            _context5.next = 6;
             return load_gltf(to_static(model_path));
 
           case 6:
-            mouth_gltf = _context4.sent;
-            return _context4.abrupt("return", mouth_gltf);
+            mouth_gltf = _context5.sent;
+            return _context5.abrupt("return", mouth_gltf);
 
           case 8:
           case "end":
-            return _context4.stop();
+            return _context5.stop();
         }
       }
-    }, _callee4);
+    }, _callee5);
   }));
   return _load_mouth_mesh.apply(this, arguments);
 }
@@ -1294,21 +1269,21 @@ function load_texture(_x4) {
 }
 
 function _load_texture() {
-  _load_texture = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(img_src) {
-    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+  _load_texture = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(img_src) {
+    return regeneratorRuntime.wrap(function _callee6$(_context6) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context6.prev = _context6.next) {
           case 0:
-            return _context5.abrupt("return", new Promise(function (resolve) {
+            return _context6.abrupt("return", new Promise(function (resolve) {
               new THREE.TextureLoader().load(img_src, resolve);
             }));
 
           case 1:
           case "end":
-            return _context5.stop();
+            return _context6.stop();
         }
       }
-    }, _callee5);
+    }, _callee6);
   }));
   return _load_texture.apply(this, arguments);
 }
@@ -1318,12 +1293,12 @@ function load_image(_x5) {
 }
 
 function _load_image() {
-  _load_image = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(img_src) {
-    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+  _load_image = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(img_src) {
+    return regeneratorRuntime.wrap(function _callee7$(_context7) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context7.prev = _context7.next) {
           case 0:
-            return _context6.abrupt("return", new Promise(function (resolve) {
+            return _context7.abrupt("return", new Promise(function (resolve) {
               var i = new Image();
 
               i.onload = function () {
@@ -1335,10 +1310,10 @@ function _load_image() {
 
           case 1:
           case "end":
-            return _context6.stop();
+            return _context7.stop();
         }
       }
-    }, _callee6);
+    }, _callee7);
   }));
   return _load_image.apply(this, arguments);
 }
@@ -1350,12 +1325,12 @@ function load_gltf(_x6) {
 }
 
 function _load_gltf() {
-  _load_gltf = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(model_path) {
-    return regeneratorRuntime.wrap(function _callee7$(_context7) {
+  _load_gltf = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(model_path) {
+    return regeneratorRuntime.wrap(function _callee8$(_context8) {
       while (1) {
-        switch (_context7.prev = _context7.next) {
+        switch (_context8.prev = _context8.next) {
           case 0:
-            return _context7.abrupt("return", new Promise(function (resolve) {
+            return _context8.abrupt("return", new Promise(function (resolve) {
               if (_.get(gltf_memo, model_path, false)) {
                 log("using cached gltf file: ".concat(to_static(model_path)));
                 resolve(gltf_memo[model_path]);
@@ -1377,10 +1352,10 @@ function _load_gltf() {
 
           case 1:
           case "end":
-            return _context7.stop();
+            return _context8.stop();
         }
       }
-    }, _callee7);
+    }, _callee8);
   }));
   return _load_gltf.apply(this, arguments);
 }
@@ -1390,30 +1365,30 @@ function load_hlsl_text(_x7) {
 }
 
 function _load_hlsl_text() {
-  _load_hlsl_text = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(url) {
+  _load_hlsl_text = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(url) {
     var response, text;
-    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+    return regeneratorRuntime.wrap(function _callee9$(_context9) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context9.prev = _context9.next) {
           case 0:
-            _context8.next = 2;
+            _context9.next = 2;
             return fetch(to_static(url));
 
           case 2:
-            response = _context8.sent;
-            _context8.next = 5;
+            response = _context9.sent;
+            _context9.next = 5;
             return response.text();
 
           case 5:
-            text = _context8.sent;
-            return _context8.abrupt("return", text);
+            text = _context9.sent;
+            return _context9.abrupt("return", text);
 
           case 7:
           case "end":
-            return _context8.stop();
+            return _context9.stop();
         }
       }
-    }, _callee8);
+    }, _callee9);
   }));
   return _load_hlsl_text.apply(this, arguments);
 }
@@ -1423,67 +1398,67 @@ function load_shader_files() {
 }
 
 function _load_shader_files() {
-  _load_shader_files = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
-    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+  _load_shader_files = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
+    return regeneratorRuntime.wrap(function _callee10$(_context10) {
       while (1) {
-        switch (_context9.prev = _context9.next) {
+        switch (_context10.prev = _context10.next) {
           case 0:
             if (!(face_animation_shader.fragmentShader == null)) {
-              _context9.next = 4;
+              _context10.next = 4;
               break;
             }
 
-            _context9.next = 3;
+            _context10.next = 3;
             return load_hlsl_text('face_fragment_shader.hlsl');
 
           case 3:
-            face_animation_shader.fragmentShader = _context9.sent;
+            face_animation_shader.fragmentShader = _context10.sent;
 
           case 4:
             if (!(face_animation_shader.vertexShader == null)) {
-              _context9.next = 8;
+              _context10.next = 8;
               break;
             }
 
-            _context9.next = 7;
+            _context10.next = 7;
             return load_hlsl_text('face_vertex_shader.hlsl');
 
           case 7:
-            face_animation_shader.vertexShader = _context9.sent;
+            face_animation_shader.vertexShader = _context10.sent;
 
           case 8:
             if (!(mouth_shader.fragmentShader == null)) {
-              _context9.next = 12;
+              _context10.next = 12;
               break;
             }
 
-            _context9.next = 11;
+            _context10.next = 11;
             return load_hlsl_text('mouth_fragment_shader.hlsl');
 
           case 11:
-            mouth_shader.fragmentShader = _context9.sent;
+            mouth_shader.fragmentShader = _context10.sent;
 
           case 12:
             if (!(mouth_shader.vertexShader == null)) {
-              _context9.next = 16;
+              _context10.next = 16;
               break;
             }
 
-            _context9.next = 15;
+            _context10.next = 15;
             return load_hlsl_text('mouth_vertex_shader.hlsl');
 
           case 15:
-            mouth_shader.vertexShader = _context9.sent;
+            mouth_shader.vertexShader = _context10.sent;
 
           case 16:
             log('finished loaded shader files');
 
           case 17:
           case "end":
-            return _context9.stop();
+            return _context10.stop();
         }
       }
-    }, _callee9);
+    }, _callee10);
   }));
   return _load_shader_files.apply(this, arguments);
 }
@@ -1496,28 +1471,28 @@ function to_b64(_x8) {
 
 
 function _to_b() {
-  _to_b = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(img_src) {
+  _to_b = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(img_src) {
     var img;
-    return regeneratorRuntime.wrap(function _callee10$(_context10) {
+    return regeneratorRuntime.wrap(function _callee11$(_context11) {
       while (1) {
-        switch (_context10.prev = _context10.next) {
+        switch (_context11.prev = _context11.next) {
           case 0:
-            _context10.next = 2;
+            _context11.next = 2;
             return load_image(img_src);
 
           case 2:
-            img = _context10.sent;
+            img = _context11.sent;
             image_canvas.width = img.width;
             image_canvas.height = img.height;
             image_ctx.drawImage(img, 0, 0);
-            return _context10.abrupt("return", image_canvas.toDataURL());
+            return _context11.abrupt("return", image_canvas.toDataURL());
 
           case 7:
           case "end":
-            return _context10.stop();
+            return _context11.stop();
         }
       }
-    }, _callee10);
+    }, _callee11);
   }));
   return _to_b.apply(this, arguments);
 }
@@ -1527,21 +1502,21 @@ function fade_spinner(_x9, _x10) {
 }
 
 function _fade_spinner() {
-  _fade_spinner = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(duration, opacity) {
-    return regeneratorRuntime.wrap(function _callee11$(_context11) {
+  _fade_spinner = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(duration, opacity) {
+    return regeneratorRuntime.wrap(function _callee12$(_context12) {
       while (1) {
-        switch (_context11.prev = _context11.next) {
+        switch (_context12.prev = _context12.next) {
           case 0:
-            return _context11.abrupt("return", new Promise(function (resolve) {
+            return _context12.abrupt("return", new Promise(function (resolve) {
               $(loading_spinner).fadeTo(duration, opacity, resolve);
             }));
 
           case 1:
           case "end":
-            return _context11.stop();
+            return _context12.stop();
         }
       }
-    }, _callee11);
+    }, _callee12);
   }));
   return _fade_spinner.apply(this, arguments);
 }
@@ -1554,21 +1529,21 @@ function fade_container(_x11, _x12) {
 
 
 function _fade_container() {
-  _fade_container = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(duration, opacity) {
-    return regeneratorRuntime.wrap(function _callee12$(_context12) {
+  _fade_container = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(duration, opacity) {
+    return regeneratorRuntime.wrap(function _callee13$(_context13) {
       while (1) {
-        switch (_context12.prev = _context12.next) {
+        switch (_context13.prev = _context13.next) {
           case 0:
-            return _context12.abrupt("return", new Promise(function (resolve) {
+            return _context13.abrupt("return", new Promise(function (resolve) {
               $(container).fadeTo(duration, opacity, resolve);
             }));
 
           case 1:
           case "end":
-            return _context12.stop();
+            return _context13.stop();
         }
       }
-    }, _callee12);
+    }, _callee13);
   }));
   return _fade_container.apply(this, arguments);
 }
@@ -1666,16 +1641,16 @@ function test(_x13) {
 
 
 function _test() {
-  _test = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(img_url) {
-    return regeneratorRuntime.wrap(function _callee13$(_context13) {
+  _test = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(img_url) {
+    return regeneratorRuntime.wrap(function _callee14$(_context14) {
       while (1) {
-        switch (_context13.prev = _context13.next) {
+        switch (_context14.prev = _context14.next) {
           case 0:
             // eslint-disable-line no-unused-vars
             _.map(anims, clearInterval);
 
             img_url = img_url === undefined ? 'dog3.jpg' : img_url;
-            _context13.next = 4;
+            _context14.next = 4;
             return create_puppet(img_url);
 
           case 4:
@@ -1696,10 +1671,10 @@ function _test() {
 
           case 15:
           case "end":
-            return _context13.stop();
+            return _context14.stop();
         }
       }
-    }, _callee13);
+    }, _callee14);
   }));
   return _test.apply(this, arguments);
 }
@@ -1709,16 +1684,16 @@ function find_features(_x14) {
 }
 
 function _find_features() {
-  _find_features = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(img_url) {
-    return regeneratorRuntime.wrap(function _callee14$(_context14) {
+  _find_features = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(img_url) {
+    return regeneratorRuntime.wrap(function _callee15$(_context15) {
       while (1) {
-        switch (_context14.prev = _context14.next) {
+        switch (_context15.prev = _context15.next) {
           case 0:
             // eslint-disable-line no-unused-vars
             _.map(anims, clearInterval);
 
             img_url = img_url === undefined ? 'dog3.jpg' : img_url;
-            _context14.next = 4;
+            _context15.next = 4;
             return create_puppet(img_url);
 
           case 4:
@@ -1726,10 +1701,10 @@ function _find_features() {
 
           case 5:
           case "end":
-            return _context14.stop();
+            return _context15.stop();
         }
       }
-    }, _callee14);
+    }, _callee15);
   }));
   return _find_features.apply(this, arguments);
 }

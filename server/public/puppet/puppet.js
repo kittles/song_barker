@@ -1,4 +1,4 @@
-/* global _, Print, THREE, $, Stats, Whammy */
+/* global _, Print, THREE, $, Stats, math */
 var fp = _.noConflict(); // lodash fp and lodash at the same time
 
 // so nginx can server static assets
@@ -19,6 +19,8 @@ var scene;
 var camera;
 var renderer;
 var render_pixels = 128 * 4; // use a constant canvas resolution and scale it in css as needed
+
+var card = window.greeting_card || undefined;
 
 // for inspecting the scene
 var controls;
@@ -150,7 +152,9 @@ var show_timing = false;
 
 // set to true if you want to see mouse position in three coordinate space
 // for setting features etc
-var log_mouse_position = true;
+var log_mouse_position = false;
+
+var post_init = _.noop // for cards, this gets replaced with a card init function, after general init is done
 
 
 // wrap output so it can be sent to the app through a javascript channel
@@ -221,6 +225,43 @@ async function init () {
     // client is using cropped images that are always square
     // so expect a square viewport as well
     var viewport_aspect = 1;
+    zoom_factor = Math.min(window_width, window_height) / render_pixels;
+
+    if (card) {
+        log('greeting card yall');
+        var image_url = `https://storage.googleapis.com/song_barker_sequences/images/${card.image_id}.jpg`;
+        var decoration_image_url = `https://storage.googleapis.com/k9karaoke_cards/decoration_images/${card.decoration_image_id}.png`;
+        var fts = card.image_coordinates_json;
+        features = {
+            leftEyePosition: fts.leftEye,
+            rightEyePosition: fts.rightEye,
+            mouthPosition: fts.mouth,
+            mouthLeft: fts.mouthLeft,
+            mouthRight: fts.mouthRight,
+            headTop: fts.headTop,
+            headBottom: fts.headBottom,
+            headLeft: fts.headLeft,
+            headRight: fts.headRight,
+        };
+        _.each(features, (v, k) => {
+            features[k] = new THREE.Vector2(v[0], v[1]);
+        });
+
+        // so theres room for some playback ui
+        zoom_factor = zoom_factor * 0.8;
+
+        $('#container').append(`<img class="decoration-image" src=${decoration_image_url}></img>`);
+        var decoration_image = $('.decoration-image');
+        decoration_image.css('zoom', zoom_factor);
+
+        // this gets called at the end of the init
+        post_init = async () => {
+            await create_puppet(image_url);
+            $('#container').css('transform', 'translateY(0px)');
+            $('.playback-image').css('top', $('#container > canvas').width() * zoom_factor * 0.5);
+            init_audio();
+        };
+    }
 
     loading_spinner = document.getElementById('loading-spinner');
 
@@ -271,7 +312,6 @@ async function init () {
         background_mesh.renderOrder = 0;
     }
 
-
     // create the face mesh
     face_mesh_material = new THREE.ShaderMaterial({
         uniforms:       face_animation_shader.uniforms,
@@ -315,10 +355,8 @@ async function init () {
     renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
     container.appendChild(renderer.domElement);
     renderer.setSize(render_pixels, render_pixels);
-    zoom_factor = Math.min(window_width, window_height) / render_pixels;
     $(renderer.domElement).css('zoom', zoom_factor);
     log(`renderer zoom factor: ${zoom_factor}`);
-
 
     if (enable_controls) {
         controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -338,101 +376,61 @@ async function init () {
 
     // tell client the webview is ready to create a puppet
     log('finished init');
+    post_init();
 
-
-    // check the dom for a card_id, if so, playback card
-    if (window.greeting_card) {
-        log('greeting card yall');
-        greeting_card_init();
-    }
+    //// check the dom for a card_id, if so, playback card
+    //if (window.greeting_card) {
+    //    log('greeting card yall');
+    //    greeting_card_init();
+    //    $('body').css('background', 'rgb(235,235,235)');
+    //    $('#container').css('margin', 20);
+    //    $('#container > canvas').css('box-shadow', '0 4px 9px 0 rgba(0,0,0,.25)');
+    //}
 }
 
+
+function hasTouch () {
+    return 'ontouchstart' in document.documentElement || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+}
+
+
 // greeting card prep
-async function greeting_card_init () {
+async function init_audio () {
 
-    // hack to stop bad hover states on mobile
-    function hasTouch() {
-      return 'ontouchstart' in document.documentElement
-             || navigator.maxTouchPoints > 0
-             || navigator.msMaxTouchPoints > 0;
-    }
-    if (hasTouch()) { // remove all the :hover stylesheets
-        try { // prevent exception on browsers not supporting DOM styleSheets properly
-            for (var si in document.styleSheets) {
-                var styleSheet = document.styleSheets[si];
-                if (!styleSheet.rules) continue;
-
-                for (var ri = styleSheet.rules.length - 1; ri >= 0; ri--) {
-                    if (!styleSheet.rules[ri].selectorText) continue;
-
-                    if (styleSheet.rules[ri].selectorText.match(':hover')) {
-                        styleSheet.deleteRule(ri);
-                    }
-                }
-            }
-        } catch (ex) {}
-    }
-    // create the puppet with specified image
-    // get the audio prepared for playback
-    // queue up the mouth positions for animation
-    // tap screen during playback to pause (bring up controls when paused)
-    var card = window.greeting_card;
-    var image_url = `https://storage.googleapis.com/song_barker_sequences/images/${card.image_id}.jpg`;
-    var decoration_image_url = `https://storage.googleapis.com/k9karaoke_cards/decoration_images/${card.decoration_image_id}.png`;
-    var fts = card.image_coordinates_json;
-    features = {
-        leftEyePosition: fts.leftEye,
-        rightEyePosition: fts.rightEye,
-        mouthPosition: fts.mouth,
-        mouthLeft: fts.mouthLeft,
-        mouthRight: fts.mouthRight,
-        headTop: fts.headTop,
-        headBottom: fts.headBottom,
-        headLeft: fts.headLeft,
-        headRight: fts.headRight,
-    };
-    _.each(features, (v, k) => {
-        features[k] = new THREE.Vector2(v[0], v[1]);
-    });
-
-    await create_puppet(image_url);
-
-    var audio_ctx;
     var audio_url;
     var audio_el;
-    var track;
     var buffer_interval;
-    var initialized = false;
     var playing = false;
-    var playback_ended = false;
-    var decoration_image;
-
-    $('#container').append('<img class="playback-image" src="/puppet_002/play.png"></img>')
     var playback_btn = $('.playback-image');
 
-    $('#container').append(`<img class="decoration-image" src=${decoration_image_url}></img>`);
-    decoration_image = $('.decoration-image');
-    // position card in the center
-    var left_offset = $('#container > canvas').width() / 2;
-    decoration_image.css('left', '50%');
-    decoration_image.css('margin-left', -left_offset);
-    decoration_image.css('zoom', zoom_factor);
+    //var volume_html = `
+    //<div id="volume">
+    //    <img class="volume-icon" src="/puppet/volume_quiet.png"></img>
+    //    <input type="range" id="volume-slider" name="volume"
+    //             min="0" max="1" step="0.05" value="1">
+    //    <img class="volume-icon" src="/puppet/volume_loud.png"></img>
+    //</div>`;
+    //$('#container').after(volume_html);
+    //$('#volume-slider').css('width', $('#container > canvas').width() * zoom_resize * 0.5);
+    //$('#volume').css('left', ($('#container > canvas').width() * zoom_resize * 0.25) - 50);
 
     audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${card.card_audio_id}.aac`;
     $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
     audio_el = document.querySelector('audio');
     audio_el.addEventListener('ended', handle_audio_end, { once: true });
 
+    $('#volume-slider').on('input', () => {
+        audio_el.volume = $('#volume-slider').val();
+    });
+
     $('#container').click(() => {
         if (playing) {
-            // pause
-            playback_btn.attr('src', '/puppet_002/pause.png');
-            pause_audio();
-            playback_btn.fadeIn(500);
-        } else {
-            // resume play
             playback_btn.attr('src', '/puppet_002/play.png');
-            playback_btn.fadeOut(500);
+            pause_audio();
+            playback_btn.fadeIn(250);
+        } else {
+            playback_btn.attr('src', '/puppet_002/play.png');
+            playback_btn.fadeOut(250);
             play_audio();
         }
     });
@@ -687,7 +685,7 @@ function update_head_sway (amplitude, speed) { // eslint-disable-line no-unused-
 }
 
 
-function ramp_on_headsway (over_frames) {
+function ramp_on_headsway (over_frames) { // eslint-disable-line no-unused-vars
     var amplitude = face_animation_shader.uniforms.swayAmplitude.value;
     var amplitude_step = 0.1 / over_frames; // amplitude gets divided by 10 in head_sway, so match that here
     var ramp_interval = setInterval(() => {
@@ -702,7 +700,7 @@ function ramp_on_headsway (over_frames) {
 }
 
 
-function ramp_off_headsway (over_frames) {
+function ramp_off_headsway (over_frames) { // eslint-disable-line no-unused-vars
     var amplitude = face_animation_shader.uniforms.swayAmplitude.value;
     var amplitude_step = amplitude / over_frames;
     var ramp_interval = setInterval(() => {
@@ -915,7 +913,7 @@ function direct_render () {
 }
 
 
-var stop_anim_loop = _.noop;
+var stop_anim_loop = _.noop; // eslint-disable-line no-unused-vars
 
 
 // this starts the raf loop and manages its state
@@ -960,7 +958,7 @@ function animate () {
 var _render_times = [];
 var keep_n = 60 * 10;
 function frame_render_times (time_ms) {
-    if (_render_times.length == keep_n) {
+    if (_render_times.length === keep_n) {
         // log summary stats
         log(`
             frame render ms summary (last ${keep_n} frames):
