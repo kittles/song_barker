@@ -282,11 +282,12 @@ $('document').ready(init); // prepare a threejs scene for puppet creation
 
 function init() {
   return _init.apply(this, arguments);
-}
+} // greeting card prep
+
 
 function _init() {
   _init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-    var viewport_aspect, image_url, decoration_image_url, fts, decoration_image;
+    var viewport_aspect, image_url, decoration_image_url, fts, decoration_image, volume_html, small_controls;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -345,7 +346,11 @@ function _init() {
               zoom_factor = zoom_factor * 0.8;
               $('#container').append("<img class=\"decoration-image\" src=".concat(decoration_image_url, "></img>"));
               decoration_image = $('.decoration-image');
-              decoration_image.css('zoom', zoom_factor); // this gets called at the end of the init
+              decoration_image.css('zoom', zoom_factor);
+              volume_html = "\n        <div id=\"volume\">\n            <img class=\"volume-icon\" src=\"/puppet/volume_quiet.png\"></img>\n            <input type=\"range\" id=\"volume-slider\" name=\"volume\"\n                     min=\"0\" max=\"1\" step=\"0.05\" value=\"1\">\n            <img class=\"volume-icon\" src=\"/puppet/volume_loud.png\"></img>\n        </div>";
+              $('#container').after(volume_html);
+              small_controls = "\n        <div id=\"controls\">\n            <img class=\"small-icon play-icon play-button\" src=\"/puppet/play.png\"></img>\n            <img class=\"small-icon replay-icon replay-button\" src=\"/puppet/replay.png\"></img>\n        </div>";
+              $('#container').after(small_controls); // this gets called at the end of the init
 
               post_init = /*#__PURE__*/function () {
                 var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
@@ -360,8 +365,16 @@ function _init() {
                           $('#container').css('transform', 'translateY(0px)');
                           $('.playback-image').css('top', $('#container > canvas').width() * zoom_factor * 0.5);
                           init_audio();
+                          $('#volume-slider').css('width', $('#container > canvas').width() * zoom_factor * 0.5); //$('#volume').css('left', ($('#container > canvas').width() * zoom_factor * 0.25) - 50);
 
-                        case 5:
+                          setTimeout(function () {
+                            $('#volume').css('opacity', 1);
+                            $('#volume').css('transform', 'translateY(0px)');
+                            $('#controls').css('opacity', 1);
+                            $('#controls').css('transform', 'translateY(0px)');
+                          }, 1000);
+
+                        case 7:
                         case "end":
                           return _context.stop();
                       }
@@ -501,11 +514,6 @@ function _init() {
   return _init.apply(this, arguments);
 }
 
-function hasTouch() {
-  return 'ontouchstart' in document.documentElement || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
-} // greeting card prep
-
-
 function init_audio() {
   return _init_audio.apply(this, arguments);
 } // create a puppet from an image url
@@ -515,7 +523,7 @@ function init_audio() {
 
 function _init_audio() {
   _init_audio = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-    var audio_url, audio_el, buffer_interval, playing, playback_btn, play_audio, pause_audio, handle_audio_end;
+    var audio_url, audio_el, buffer_interval, playing, playback_btn, handle_click, play_audio, pause_audio, handle_audio_end;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -523,8 +531,8 @@ function _init_audio() {
             handle_audio_end = function _handle_audio_end() {
               log('playback ended');
               clearInterval(buffer_interval);
-              playback_btn.attr('src', '/puppet_002/replay.png');
-              playback_btn.fadeIn(500);
+              $('.playback-image').attr('src', '/puppet_002/replay.png');
+              $('.playback-image').fadeIn(500);
               audio_el.currentTime = 0;
               playing = false;
             };
@@ -551,18 +559,20 @@ function _init_audio() {
               playing = true;
             };
 
-            playing = false;
-            playback_btn = $('.playback-image'); //var volume_html = `
-            //<div id="volume">
-            //    <img class="volume-icon" src="/puppet/volume_quiet.png"></img>
-            //    <input type="range" id="volume-slider" name="volume"
-            //             min="0" max="1" step="0.05" value="1">
-            //    <img class="volume-icon" src="/puppet/volume_loud.png"></img>
-            //</div>`;
-            //$('#container').after(volume_html);
-            //$('#volume-slider').css('width', $('#container > canvas').width() * zoom_resize * 0.5);
-            //$('#volume').css('left', ($('#container > canvas').width() * zoom_resize * 0.25) - 50);
+            handle_click = function _handle_click() {
+              if (playing) {
+                playback_btn.attr('src', '/puppet_002/play.png');
+                pause_audio();
+                $('.playback-image').fadeIn(250);
+              } else {
+                playback_btn.attr('src', '/puppet_002/pause.png');
+                play_audio();
+                $('.playback-image').fadeOut(250);
+              }
+            };
 
+            playing = false;
+            playback_btn = $('.play-button');
             audio_url = "https://storage.googleapis.com/k9karaoke_cards/card_audios/".concat(card.card_audio_id, ".aac");
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
             audio_el = document.querySelector('audio');
@@ -572,19 +582,16 @@ function _init_audio() {
             $('#volume-slider').on('input', function () {
               audio_el.volume = $('#volume-slider').val();
             });
-            $('#container').click(function () {
-              if (playing) {
-                playback_btn.attr('src', '/puppet_002/play.png');
-                pause_audio();
-                playback_btn.fadeIn(250);
-              } else {
-                playback_btn.attr('src', '/puppet_002/play.png');
-                playback_btn.fadeOut(250);
-                play_audio();
-              }
+            $('.play-button').click(handle_click);
+            $('.decoration-image').click(handle_click);
+            $('#container > canvas').click(handle_click);
+            $('.replay-button').click(function () {
+              clearInterval(buffer_interval);
+              audio_el.currentTime = 0;
+              play_audio();
             });
 
-          case 11:
+          case 15:
           case "end":
             return _context3.stop();
         }

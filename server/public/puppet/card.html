@@ -57,13 +57,22 @@
     }
     #container {
         text-align: center;
-        margin: 20;
+        margin-top: 20px;
+        margin-bottom: 20px;
         transform: translateY(-100vh) rotate(-145deg) scale(0.5);
         transition: transform 0.8s ease-in-out;
     }
     #volume {
-        margin-top: 30px;
-        position: relative;
+        display: block;
+        transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+        transform: scale(1.1) translateY(-40px);
+        opacity: 0;
+    }
+    #controls {
+        display: block;
+        transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+        transform: translateY(-40px);
+        opacity: 0;
     }
 
     /* slider icons */
@@ -75,6 +84,10 @@
     }
     #container > canvas {
         box-shadow: 0 4px 9px 0 rgba(0,0,0,.25);
+    }
+    .small-icon {
+        max-width: min(100px, 15vw);
+        cursor: pointer;
     }
 
 
@@ -205,7 +218,7 @@
 
     <!-- puppet render canvas goes inside this -->
     <div id="container">
-        <img class="playback-image" src="/puppet_002/play.png"></img>
+        <img class="playback-image play-button" src="/puppet_002/play.png"></img>
     </div>
 
     <!-- this is just for turning images into base64, for testing -->
