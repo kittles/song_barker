@@ -1,0 +1,222 @@
+<head>
+    <script src="/puppet/jquery.min.js"></script>
+    <script src="/puppet/lodash.js"></script>
+    <!--
+    <script src="/puppet/lodash.fp.js"></script>
+    <script src="/puppet/three.110.js"></script>
+    <script src="/puppet/gltf_loader.js"></script>
+    <script src="/puppet/orbit_controls.js"></script>
+    <script src="/puppet/stats.min.js"></script>
+    <script src="/puppet/raf.js"></script>
+    <script src="/puppet/performance.js"></script>
+    <script src="/puppet/math.min.js"></script>
+    -->
+    <!-- for transpiling async await -->
+    <!--
+    <script src="/puppet/runtime.js"></script>
+    <link rel="stylesheet" type="text/css" href="/puppet/spinners.css">
+    -->
+    <link rel="stylesheet" type="text/css" href="/puppet/card-flex.css">
+    <script>
+    $(document).ready(() => {
+        $('body').animate({top: 0});
+        var back_pieces = $('.envelope-back-piece');
+        var flap = $('#envelope-flap');
+        var flap_underside = $('#envelope-flap-underside');
+
+        // the pixel dimensions of the card
+        $('body').css({
+            zoom: card_scale(),
+        });
+        console.log(card_scale());
+        
+        back_pieces.click(open_envelope);
+        flap.click(open_envelope);
+
+        back_pieces.fadeIn(200);
+        flap.fadeIn(200);
+        flap_underside.fadeIn(200);
+        setTimeout(() => {
+            $('#card-container').fadeIn(1);
+        }, 250);
+
+        function open_envelope () {
+            $('body').css({animation: 'none'});
+            $('.envelope-flap-piece').toggleClass('opened');
+            setTimeout(() => {
+
+                // wait until now to resize card?
+                $(window).resize(_.debounce(() => {
+                    $('body').css({
+                       zoom: card_scale(),
+                    });
+
+                }, 125, {trailing: true}));
+
+                //// after flap has flipped up, change z and transition for sliding behind card
+                //flap_underside.css({
+                //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
+                //    zIndex: 1,
+                //});
+                //flap.css({
+                //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
+                //    zIndex: 1,
+                //});
+                setTimeout(() => {
+                    var y_dist = vh() * 120;
+                    var y_dist_flap = y_dist;
+                    flap_underside.animate({top: y_dist});
+                    back_pieces.animate({top: y_dist}, on_complete);
+                    function on_complete () {
+                        back_pieces.fadeOut(100);
+                        flap_underside.fadeOut(100);
+                        flap.fadeOut(100);
+                    }
+                }, 100);
+                setTimeout(() => {
+                    $('#card-container').css({
+                        transform: `translateX(-50%) translateY(-50%)`,
+                    });
+                }, 750);
+            }, 250);
+        }
+
+        function vh () {
+            return window.innerHeight / 100;
+        }
+        
+
+        function card_scale () {
+            var container_width = 512 + 40;
+            var container_height = 512 + 100;
+            var zoom_width = (window.innerWidth - 40) / container_width;
+            var zoom_height = (window.innerHeight - 40) / container_height;
+            var zoom = Math.min(zoom_width, zoom_height);
+            return zoom;
+        }
+
+
+        function rescale () {
+        }
+        //card_scale(); 
+    });
+    </script>
+    <style>
+    #envelope {
+        margin: 0 auto;
+    }
+    #card-container {
+        position: fixed;
+        margin: auto;
+        background-color: rgb(240, 240, 240);
+        background-image: url('/puppet/k9_create_background.png');
+        background-size: contain;
+        width: calc(512px + 40px);
+        height: calc(512px + 100px);
+        text-align: center;
+        box-shadow: 0 4px 9px 0 rgba(0,0,0,1);
+        top: 50%;
+        left: 50%;
+        transition: transform 0.5s;
+        transform: translateX(-50%) translateY(-36%) scale(0.5);
+        z-index: 2;
+        border-radius: 5px;
+    }
+    #puppet-container {
+        background: red;
+        width: 512px;
+        height: 512px;
+        margin: auto;
+        margin-top: 20px;
+        display: inline-block;
+    }
+    #controls-container {
+        display: flex;
+        margin: 20px;
+            
+        flex-direction: horizontal;
+    }
+    #controls-container > div {
+        height: 40px;
+    }
+    #play-control {
+        background: yellow;
+        flex: 1 1 0;
+    }
+    #replay-control {
+        background: orange;
+        flex: 1 1 0;
+    }
+    #volume-slider {
+        flex: 5 1 0;
+        background: gray;
+    }
+    #volume-icon {
+        flex: 1 1 0;
+        background: teal;
+    }
+    #volume-slider-element {
+        background: black;
+        border-right: 10px solid green;
+        height: 100%;
+        width: 1px;
+    }
+    .flex-icon {
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .hidden {
+        display: none;
+    }
+    </style>
+    <!--
+    <script>
+        window.greeting_card = {};
+        window.greeting_card.uuid='{{uuid}}';
+        window.greeting_card.card_audio_id='{{card_audio_id}}';
+        window.greeting_card.image_id='{{image_id}}';
+        window.greeting_card.decoration_image_id='{{decoration_image_id}}';
+        window.greeting_card.animation_json=JSON.parse('{{{animation_json}}}');
+        window.greeting_card.image_coordinates_json=JSON.parse('{{{image_coordinates_json}}}');
+        window.greeting_card.name='{{name}}';
+    </script>
+    <meta property="og:title" content="K9 Karaoke Card">
+    <meta property="og:description" content="Someone's pet has a message for you">
+    <meta property="og:image" content="https://storage.googleapis.com/song_barker_sequences/images/{{image_id}}.jpg">
+    <meta property="og:url" content="https://thedogbarksthesong.ml/card/{{uuid}}">
+
+    <meta name="twitter:title" content="K9 Karaoke Card">
+    <meta name="twitter:description" content="Someone's pet has a message for you">
+    <meta name="twitter:image" content="https://storage.googleapis.com/song_barker_sequences/images/{{image_id}}.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    -->
+</head>
+<body>
+    <!--
+    -->
+    <div id="card-container" class="hidden">
+        <div id="puppet-container"></div>
+        <div id="controls-container">
+            <div id="play-control">
+                <img class="flex-icon" src="/puppet/play.png"></img>
+            </div>
+            <div id="replay-control">
+                <img class="flex-icon" src="/puppet/replay.png"></img>
+            </div>
+            <div id="volume-slider">
+                <div id="volume-slider-element"></div>
+            </div>
+            <div id="volume-icon">
+                <img class="flex-icon" src="/puppet/volume_loud.png"></img>
+            </div>
+        </div>
+    </div>
+    <div id="envelope-back" class="envelope-back-piece hidden"></div>
+    <div id="envelope-pouch" class="envelope-back-piece hidden"></div>
+    <div id="envelope-below" class="envelope-back-piece hidden"></div>
+    <div id="envelope-flap-underside" class="envelope-flap-piece hidden"></div>
+    <div id="envelope-flap" class="envelope-flap-piece hidden"></div>
+    <!--
+    <script src="/build/puppet.js"></script>
+    -->
+</body>

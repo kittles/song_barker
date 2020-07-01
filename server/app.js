@@ -46,6 +46,10 @@ app.use(
 //
 // routes
 //
+// index
+app.get('/card-flex', async (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/puppet/card-flex.html'));
+});
 
 // index
 app.get('/card/:uuid', async (req, res) => {
