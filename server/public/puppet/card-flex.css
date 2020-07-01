@@ -1,94 +1,99 @@
 body {
-  background-color: #111;
-  text-align: center;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  font-family: 'Arial', sans-serif;
-  font-size: 12px;
-  animation: wiggle 2s infinite;
+    background-color: #111;
+    text-align: center;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+}
+#content {
+    position: relative;
+    top: -50%;
+    transform: translateY(-50%);
+    animation: wiggle 2s infinite;
 }
 @keyframes wiggle {
     0% { transform: rotate(0deg); }
-   80% { transform: rotate(0deg); }
-   85% { transform: rotate(5deg); }
-   95% { transform: rotate(-5deg); }
-  100% { transform: rotate(0deg); }
+    80% { transform: rotate(0deg); }
+    85% { transform: rotate(5deg); }
+    95% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
 }
 #envelope-back {
-  width: 300px;
-  height: 150px;
-  background: #b49976;
-  position: fixed;
-  z-index: 0;
-  transform: translateY(-50%);
+    width: 300px;
+    height: 150px;
+    background: #b49976;
+    position: fixed;
+    z-index: 0;
+    transform: translateY(-50%);
 }
 #envelope-pouch {
-  width: 300px;
-  height: 150px;
-  position: fixed;
-  z-index: 3;
-  transform: translateY(-50%);
-  background: repeating-linear-gradient(-45deg, #cebda6, #cebda6 10px, #e74c3c 10px, #e74c3c 20px, #cebda6 20px, #cebda6 30px, #1e90ff 30px, #1e90ff 40px) 0 100%/100% 5px no-repeat, repeating-linear-gradient(-45deg, #cebda6, #cebda6 10px, #e74c3c 10px, #e74c3c 20px, #cebda6 20px, #cebda6 30px, #1e90ff 30px, #1e90ff 40px) 0 100%/5px 100% no-repeat, repeating-linear-gradient(-45deg, #cebda6, #cebda6 10px, #e74c3c 10px, #e74c3c 20px, #cebda6 20px, #cebda6 30px, #1e90ff 30px, #1e90ff 40px) 100% 100%/5px 100% no-repeat, #cebda6;
-  -webkit-clip-path: polygon(80% 40%, 100% 0, 100% 100%, 0 100%, 0 0, 20% 40%);
-          clip-path: polygon(80% 40%, 100% 0, 100% 100%, 0 100%, 0 0, 20% 40%);
-  cursor: pointer;
+    width: 300px;
+    height: 150px;
+    position: fixed;
+    z-index: 3;
+    transform: translateY(-50%);
+    background: repeating-linear-gradient(-45deg, #cebda6, #cebda6 10px, #e74c3c 10px, #e74c3c 20px, #cebda6 20px, #cebda6 30px, #1e90ff 30px, #1e90ff 40px) 0 100%/100% 5px no-repeat, repeating-linear-gradient(-45deg, #cebda6, #cebda6 10px, #e74c3c 10px, #e74c3c 20px, #cebda6 20px, #cebda6 30px, #1e90ff 30px, #1e90ff 40px) 0 100%/5px 100% no-repeat, repeating-linear-gradient(-45deg, #cebda6, #cebda6 10px, #e74c3c 10px, #e74c3c 20px, #cebda6 20px, #cebda6 30px, #1e90ff 30px, #1e90ff 40px) 100% 100%/5px 100% no-repeat, #cebda6;
+    -webkit-clip-path: polygon(80% 40%, 100% 0, 100% 100%, 0 100%, 0 0, 20% 40%);
+    clip-path: polygon(80% 40%, 100% 0, 100% 100%, 0 100%, 0 0, 20% 40%);
+    cursor: pointer;
 }
 #envelope-pouch:after {
-  width: 300px;
-  height: 150px;
-  background: repeating-linear-gradient(-45deg, #c7b49a, #c7b49a 10px, #e74c3c 10px, #e74c3c 20px, #c7b49a 20px, #c7b49a 30px, #1e90ff 30px, #1e90ff 40px) 0 100%/100% 5px no-repeat, #c7b49a;
-  content: '';
-  position: absolute;
-  left: 0px;
-  z-index: 4;
-  -webkit-clip-path: polygon(70% 10%, 100% 100%, 0 100%, 30% 10%);
-          clip-path: polygon(70% 10%, 100% 100%, 0 100%, 30% 10%);
+    width: 300px;
+    height: 150px;
+    background: repeating-linear-gradient(-45deg, #c7b49a, #c7b49a 10px, #e74c3c 10px, #e74c3c 20px, #c7b49a 20px, #c7b49a 30px, #1e90ff 30px, #1e90ff 40px) 0 100%/100% 5px no-repeat, #c7b49a;
+    content: '';
+    position: absolute;
+    left: 0px;
+    z-index: 4;
+    -webkit-clip-path: polygon(70% 10%, 100% 100%, 0 100%, 30% 10%);
+    clip-path: polygon(70% 10%, 100% 100%, 0 100%, 30% 10%);
 }
 #envelope-below {
-  width: 300px;
-  height: 300px;
-  margin-top: 75px;
-  background: #111;
-  position: fixed;
-  z-index: 2;
+    width: 300px;
+    height: 300px;
+    margin-top: 75px;
+    background: #111;
+    position: fixed;
+    z-index: 2;
 }
 #envelope-flap {
-  position: fixed;
-  height: 112.5px;
-  width: 300px;
-  z-index: 5;
-  transform: translateY(-75px);
-  -webkit-clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
-          clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
-  background: repeating-linear-gradient(-45deg, #c1ab8e, #c1ab8e 10px, #e74c3c 10px, #e74c3c 20px, #c1ab8e 20px, #c1ab8e 30px, #1e90ff 30px, #1e90ff 40px) 0 0/100% 5px no-repeat, #c1ab8e;
-  -webkit-transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-  transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-  transition: transform 0.25s 0.5s, z-index 0s 0.5s;
-  transition: transform 0.25s 0.5s, z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-  -webkit-transform-origin: top center;
-          transform-origin: top center;
-  -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
-  cursor: pointer;
+    position: fixed;
+    height: 112.5px;
+    width: 300px;
+    z-index: 5;
+    transform: translateY(-75px);
+    -webkit-clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
+    clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
+    background: repeating-linear-gradient(-45deg, #c1ab8e, #c1ab8e 10px, #e74c3c 10px, #e74c3c 20px, #c1ab8e 20px, #c1ab8e 30px, #1e90ff 30px, #1e90ff 40px) 0 0/100% 5px no-repeat, #c1ab8e;
+    -webkit-transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
+    transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
+    transition: transform 0.25s 0.5s, z-index 0s 0.5s;
+    transition: transform 0.25s 0.5s, z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
+    -webkit-transform-origin: top center;
+    transform-origin: top center;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    cursor: pointer;
 }
 #envelope-flap-underside {
-  position: fixed;
-  height: 112.5px;
-  width: 300px;
-  z-index: 5;
-  transform: translateY(-75px);
-  background: #c1ab8e;
-  -webkit-backface-visibility: visible;
-          backface-visibility: visible;
-  -webkit-clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
-          clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
-  -webkit-transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-  transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-  transition: transform 0.25s 0.5s, z-index 0s 0.5s;
-  transition: transform 0.25s 0.5s, z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-  -webkit-transform-origin: top center;
-          transform-origin: top center;
+    position: fixed;
+    height: 112.5px;
+    width: 300px;
+    z-index: 5;
+    transform: translateY(-75px);
+    background: #c1ab8e;
+    -webkit-backface-visibility: visible;
+    backface-visibility: visible;
+    -webkit-clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
+    clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
+    -webkit-transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
+    transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
+    transition: transform 0.25s 0.5s, z-index 0s 0.5s;
+    transition: transform 0.25s 0.5s, z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
+    -webkit-transform-origin: top center;
+    transform-origin: top center;
 }
 .envelope-back-piece,
 .envelope-flap-piece {
@@ -100,20 +105,85 @@ body {
 
 /* opening the top flap of the envelope */
 #envelope-flap.opened {
-  -webkit-transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-  transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-  transition: transform 0.25s 0s, z-index 0s 0.25s;
-  transition: transform 0.25s 0s, z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-  -webkit-transform: translateY(-75px) rotateX(-180deg);
-          transform: translateY(-75px) rotateX(-180deg);
-  z-index: 1;
+    -webkit-transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
+    transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
+    transition: transform 0.25s 0s, z-index 0s 0.25s;
+    transition: transform 0.25s 0s, z-index 0s 0.25s, -webkit-transform 0.25s 0s;
+    -webkit-transform: translateY(-75px) rotateX(-180deg);
+    transform: translateY(-75px) rotateX(-180deg);
+    z-index: 1;
 }
 #envelope-flap-underside.opened {
-  -webkit-transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-  transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-  transition: transform 0.25s 0s, z-index 0s 0.25s;
-  transition: transform 0.25s 0s, z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-  -webkit-transform: translateY(-75px) rotateX(-180deg);
-          transform: translateY(-75px) rotateX(-180deg);
-  z-index: 1;
+    -webkit-transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
+    transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
+    transition: transform 0.25s 0s, z-index 0s 0.25s;
+    transition: transform 0.25s 0s, z-index 0s 0.25s, -webkit-transform 0.25s 0s;
+    -webkit-transform: translateY(-75px) rotateX(-180deg);
+    transform: translateY(-75px) rotateX(-180deg);
+    z-index: 1;
+}
+
+
+/* card that comes out of the envelope */
+#card-container {
+    position: fixed;
+    margin: auto;
+    background-color: rgb(240, 240, 240);
+    background-image: url('/puppet/k9_create_background.png');
+    background-size: contain;
+    width: calc(512px + 40px);
+    height: calc(512px + 100px);
+    text-align: center;
+    box-shadow: 0 4px 9px 0 rgba(0,0,0,1);
+    top: 50%;
+    left: 50%;
+    transition: transform 0.5s;
+    transform: translateX(-50%) translateY(-36%) scale(0.5);
+    z-index: 2;
+    border-radius: 5px;
+}
+#puppet-container {
+    background: red;
+    width: 512px;
+    height: 512px;
+    margin: auto;
+    margin-top: 20px;
+    display: inline-block;
+}
+#controls-container {
+    display: flex;
+    margin: 20px;
+    flex-direction: horizontal;
+}
+#controls-container > div {
+    height: 40px;
+}
+#play-control {
+    background: yellow;
+    flex: 1 1 0;
+}
+#replay-control {
+    background: orange;
+    flex: 1 1 0;
+}
+#volume-slider {
+    flex: 5 1 0;
+    background: gray;
+}
+#volume-icon {
+    flex: 1 1 0;
+    background: teal;
+}
+#volume-slider-element {
+    background: black;
+    border-right: 10px solid green;
+    height: 100%;
+    width: 1px;
+}
+.flex-icon {
+    max-height: 100%;
+    max-width: 100%;
+}
+.hidden {
+    display: none;
 }

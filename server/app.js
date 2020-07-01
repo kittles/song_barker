@@ -73,7 +73,7 @@ app.get('/card/:uuid', async (req, res) => {
     }
     // get face coordinates
     var image = await db.get('select * from images where uuid = ?', card.image_id);
-    fs.readFile('public/puppet/card.html', 'utf-8', function (error, source) {
+    fs.readFile('public/puppet/card-flex.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
         var html = template({
             uuid: req.params.uuid,

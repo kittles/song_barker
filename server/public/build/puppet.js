@@ -274,11 +274,257 @@ function log(msg) {
   }
 }
 
-$('document').ready(init); // prepare a threejs scene for puppet creation
+$('document').ready(function () {
+  if (card) {
+    card_init();
+  } else {
+    init();
+  }
+});
+
+function card_init() {
+  return _card_init.apply(this, arguments);
+} // prepare a threejs scene for puppet creation
 // this includes establishing info about the environment
 // and creating the actual threejs scene and objects.
 // nothing is rendered yet because that depends on
 // what image the app wants to use
+
+
+function _card_init() {
+  _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+    var back_pieces, flap, flap_underside, open_envelope, vh, card_scale, viewport_aspect, image_url, decoration_image_url, fts, decoration_image;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            card_scale = function _card_scale() {
+              var container_width = 512 + 40;
+              var container_height = 512 + 100;
+              var zoom_width = (window.innerWidth - 40) / container_width;
+              var zoom_height = (window.innerHeight - 40) / container_height;
+              var zoom = Math.min(zoom_width, zoom_height);
+              return zoom;
+            };
+
+            vh = function _vh() {
+              return window.innerHeight / 100;
+            };
+
+            open_envelope = function _open_envelope() {
+              $('#content').css({
+                animation: 'none'
+              });
+              $('.envelope-flap-piece').toggleClass('opened');
+              setTimeout(function () {
+                // wait until now to resize card?
+                $(window).resize(_.debounce(function () {
+                  $('body').css({
+                    zoom: card_scale()
+                  });
+                }, 125, {
+                  trailing: true
+                })); //// after flap has flipped up, change z and transition for sliding behind card
+                //flap_underside.css({
+                //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
+                //    zIndex: 1,
+                //});
+                //flap.css({
+                //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
+                //    zIndex: 1,
+                //});
+
+                setTimeout(function () {
+                  var y_dist = vh() * 120;
+                  var y_dist_flap = y_dist;
+                  flap_underside.animate({
+                    top: y_dist
+                  }, 1000);
+                  back_pieces.animate({
+                    top: y_dist
+                  }, 1000, on_complete);
+
+                  function on_complete() {
+                    back_pieces.fadeOut(100);
+                    flap_underside.fadeOut(100);
+                    flap.fadeOut(100);
+                  }
+                }, 100);
+                setTimeout(function () {
+                  $('#card-container').css({
+                    transform: "translateX(-50%) translateY(-50%)"
+                  });
+                }, 750);
+              }, 250);
+            };
+
+            console.log('card init');
+            $('#content').animate({
+              top: '50%'
+            }, 1000, 'easeOutBounce');
+            back_pieces = $('.envelope-back-piece');
+            flap = $('#envelope-flap');
+            flap_underside = $('#envelope-flap-underside'); // the pixel dimensions of the card
+
+            $('body').css({
+              zoom: card_scale()
+            });
+            back_pieces.click(open_envelope);
+            flap.click(open_envelope);
+            back_pieces.fadeIn(200);
+            flap.fadeIn(200);
+            flap_underside.fadeIn(200);
+            $('#card-container').fadeIn(300);
+            // iOS webview sizing shim
+            // TODO figure out why webviews dimensions come out undersized on ios
+            iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            log("navigator.userAgent: ".concat(navigator.userAgent));
+            log("iOS = ".concat(iOS));
+
+            if (iOS) {
+              window_width = document.body.offsetWidth + 20;
+              window_height = document.body.offsetHeight + 20;
+            } else {
+              window_width = document.body.offsetWidth;
+              window_height = document.body.offsetHeight;
+            }
+
+            log("WIDTH INFO:\n    window.innerWidth: ".concat(window.innerWidth, "\n    document.body.offsetWidth: ").concat(document.body.offsetWidth, "\n    document.body.clientWidth: ").concat(document.body.clientWidth, "\n    USING:\n    window_width: ").concat(window_width, "\n    window_height: ").concat(window_height, "\n    ")); // this just holds the three.js render element
+
+            container = document.getElementById('puppet-container'); // client is using cropped images that are always square
+            // so expect a square viewport as well
+
+            viewport_aspect = 1;
+            zoom_factor = Math.min(window_width, window_height) / render_pixels;
+            image_url = "https://storage.googleapis.com/song_barker_sequences/images/".concat(card.image_id, ".jpg");
+            decoration_image_url = "https://storage.googleapis.com/k9karaoke_cards/decoration_images/".concat(card.decoration_image_id, ".png");
+            fts = card.image_coordinates_json;
+            features = {
+              leftEyePosition: fts.leftEye,
+              rightEyePosition: fts.rightEye,
+              mouthPosition: fts.mouth,
+              mouthLeft: fts.mouthLeft,
+              mouthRight: fts.mouthRight,
+              headTop: fts.headTop,
+              headBottom: fts.headBottom,
+              headLeft: fts.headLeft,
+              headRight: fts.headRight
+            };
+
+            _.each(features, function (v, k) {
+              features[k] = new THREE.Vector2(v[0], v[1]);
+            }); // so theres room for some playback ui
+
+
+            zoom_factor = zoom_factor * 0.8; //container.append(`<img class="decoration-image" src=${decoration_image_url}></img>`);
+
+            decoration_image = $('.decoration-image'); // this gets called at the end of the init
+            //post_init = async () => {
+            //    await create_puppet(image_url);
+            //    $('#container').css('transform', 'translateY(0px)');
+            //    $('.playback-image').css('top', $('#container > canvas').width() * zoom_factor * 0.5);
+            //    init_audio();
+            //    $('#volume-slider').css('width', $('#container > canvas').width() * zoom_factor * 0.5);
+            //    //$('#volume').css('left', ($('#container > canvas').width() * zoom_factor * 0.25) - 50);
+            //    setTimeout(() => {
+            //        $('#volume').css('opacity', 1);
+            //        $('#volume').css('transform', 'translateY(0px)');
+            //        $('#controls').css('opacity', 1);
+            //        $('#controls').css('transform', 'translateY(0px)');
+            //    }, 1000);
+            //};
+            //}
+
+            _context.next = 32;
+            return load_shader_files();
+
+          case 32:
+            _context.next = 34;
+            return load_texture('noise_2D.png');
+
+          case 34:
+            animation_noise_texture = _context.sent;
+            scene = new THREE.Scene();
+            renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
+
+            scene.background = new THREE.Color(0x2E2E46);
+            camera = new THREE.OrthographicCamera(-0.5 * viewport_aspect, 0.5 * viewport_aspect, 0.5, -0.5, 0.001, 1000);
+            camera.position.z = 1;
+            pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
+
+            background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
+            background_mesh.scale.x = 1; // this will get set when we know what the pet image is
+
+            background_mesh.renderOrder = 0;
+            face_mesh_material = new THREE.ShaderMaterial({
+              uniforms: face_animation_shader.uniforms,
+              vertexShader: face_animation_shader.vertexShader,
+              fragmentShader: face_animation_shader.fragmentShader,
+              depthFunc: debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
+              side: THREE.DoubleSide,
+              wireframe: debug_face_mesh
+            });
+            face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
+            face_mesh.renderOrder = 1;
+            _context.next = 49;
+            return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
+
+          case 49:
+            mouth_gltf = _context.sent;
+            mouth_mesh = mouth_gltf.scene.children[0].children[0];
+            mouth_mesh.material = new THREE.ShaderMaterial({
+              uniforms: mouth_shader.uniforms,
+              vertexShader: mouth_shader.vertexShader,
+              fragmentShader: mouth_shader.fragmentShader,
+              depthFunc: THREE.AlwaysDepth,
+              side: THREE.DoubleSide,
+              blending: THREE.CustomBlending,
+              blendEquation: THREE.AddEquation,
+              blendSrc: THREE.SrcAlphaFactor,
+              blendDst: THREE.OneMinusSrcAlphaFactor,
+              vertexColors: true
+            });
+            mouth_mesh.renderOrder = 2;
+            scene.add(background_mesh);
+            scene.add(face_mesh);
+            scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
+
+            renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+            container.appendChild(renderer.domElement);
+            renderer.setSize(render_pixels, render_pixels);
+            $(renderer.domElement).css('zoom', zoom_factor);
+            image_url = "https://storage.googleapis.com/song_barker_sequences/images/".concat(card.image_id, ".jpg"); // set the pet image on the mesh and on the shader
+
+            _context.next = 63;
+            return load_texture(image_url);
+
+          case 63:
+            pet_image_texture = _context.sent;
+            pet_material.map = pet_image_texture;
+            face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
+
+            background_mesh.needsUpdate = true;
+            pet_material.needsUpdate = true;
+            face_mesh.needsUpdate = true;
+            face_mesh_material.needsUpdate = true; // TODO weird place for default mouth color
+
+            mouth_color(0.5686274509, 0.39607843137, 0.43137254902); // use features to determine locations of stuff
+
+            sync_objects_to_features();
+            update_shaders();
+            direct_render();
+            animate();
+            head_sway(head_sway_amplitude, head_sway_speed);
+
+          case 76:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _card_init.apply(this, arguments);
+}
 
 function init() {
   return _init.apply(this, arguments);
@@ -287,7 +533,7 @@ function init() {
 
 function _init() {
   _init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-    var viewport_aspect, image_url, decoration_image_url, fts, decoration_image, volume_html, small_controls;
+    var viewport_aspect;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -320,74 +566,6 @@ function _init() {
 
             viewport_aspect = 1;
             zoom_factor = Math.min(window_width, window_height) / render_pixels;
-
-            if (card) {
-              log('greeting card yall');
-              image_url = "https://storage.googleapis.com/song_barker_sequences/images/".concat(card.image_id, ".jpg");
-              decoration_image_url = "https://storage.googleapis.com/k9karaoke_cards/decoration_images/".concat(card.decoration_image_id, ".png");
-              fts = card.image_coordinates_json;
-              features = {
-                leftEyePosition: fts.leftEye,
-                rightEyePosition: fts.rightEye,
-                mouthPosition: fts.mouth,
-                mouthLeft: fts.mouthLeft,
-                mouthRight: fts.mouthRight,
-                headTop: fts.headTop,
-                headBottom: fts.headBottom,
-                headLeft: fts.headLeft,
-                headRight: fts.headRight
-              };
-
-              _.each(features, function (v, k) {
-                features[k] = new THREE.Vector2(v[0], v[1]);
-              }); // so theres room for some playback ui
-
-
-              zoom_factor = zoom_factor * 0.8;
-              $('#container').append("<img class=\"decoration-image\" src=".concat(decoration_image_url, "></img>"));
-              decoration_image = $('.decoration-image');
-              decoration_image.css('zoom', zoom_factor);
-              volume_html = "\n        <div id=\"volume\">\n            <img class=\"volume-icon\" src=\"/puppet/volume_quiet.png\"></img>\n            <input type=\"range\" id=\"volume-slider\" name=\"volume\"\n                     min=\"0\" max=\"1\" step=\"0.05\" value=\"1\">\n            <img class=\"volume-icon\" src=\"/puppet/volume_loud.png\"></img>\n        </div>";
-              $('#container').after(volume_html);
-              small_controls = "\n        <div id=\"controls\">\n            <img class=\"small-icon play-icon play-button\" src=\"/puppet/play.png\"></img>\n            <img class=\"small-icon replay-icon replay-button\" src=\"/puppet/replay.png\"></img>\n        </div>";
-              $('#container').after(small_controls); // this gets called at the end of the init
-
-              post_init = /*#__PURE__*/function () {
-                var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-                  return regeneratorRuntime.wrap(function _callee$(_context) {
-                    while (1) {
-                      switch (_context.prev = _context.next) {
-                        case 0:
-                          _context.next = 2;
-                          return create_puppet(image_url);
-
-                        case 2:
-                          $('#container').css('transform', 'translateY(0px)');
-                          $('.playback-image').css('top', $('#container > canvas').width() * zoom_factor * 0.5);
-                          init_audio();
-                          $('#volume-slider').css('width', $('#container > canvas').width() * zoom_factor * 0.5); //$('#volume').css('left', ($('#container > canvas').width() * zoom_factor * 0.25) - 50);
-
-                          setTimeout(function () {
-                            $('#volume').css('opacity', 1);
-                            $('#volume').css('transform', 'translateY(0px)');
-                            $('#controls').css('opacity', 1);
-                            $('#controls').css('transform', 'translateY(0px)');
-                          }, 1000);
-
-                        case 7:
-                        case "end":
-                          return _context.stop();
-                      }
-                    }
-                  }, _callee);
-                }));
-
-                return function post_init() {
-                  return _ref.apply(this, arguments);
-                };
-              }();
-            }
-
             loading_spinner = document.getElementById('loading-spinner'); // see fps and memory for debugging
 
             if (show_fps) {
@@ -401,14 +579,14 @@ function _init() {
             // shader code
 
 
-            _context2.next = 18;
+            _context2.next = 17;
             return load_shader_files();
 
-          case 18:
-            _context2.next = 20;
+          case 17:
+            _context2.next = 19;
             return load_texture('noise_2D.png');
 
-          case 20:
+          case 19:
             animation_noise_texture = _context2.sent;
             //
             // create the threejs geometry and materials for the scene
@@ -447,10 +625,10 @@ function _init() {
             face_mesh.renderOrder = 1; // mouth sprite - this is a group in threejs lingo,
             // the actual mouth mesh lives in mouth_mesh, a child of the group
 
-            _context2.next = 32;
+            _context2.next = 31;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
-          case 32:
+          case 31:
             mouth_gltf = _context2.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
@@ -504,7 +682,7 @@ function _init() {
             //    $('#container > canvas').css('box-shadow', '0 4px 9px 0 rgba(0,0,0,.25)');
             //}
 
-          case 48:
+          case 47:
           case "end":
             return _context2.stop();
         }
@@ -1068,7 +1246,11 @@ function animate() {
 
   function do_animate() {
     var render_start = performance.now();
-    stats.begin(); // Tell the shaders how many seconds have elapsed, this is for the headsway animation
+
+    if (stats) {
+      stats.begin();
+    } // Tell the shaders how many seconds have elapsed, this is for the headsway animation
+
 
     var elapsedMilliseconds = performance.now() - animation_start_time;
     var elapsedSeconds = elapsedMilliseconds / 1000.0;
@@ -1082,7 +1264,10 @@ function animate() {
 
     motion_handler_tick();
     direct_render();
-    stats.end();
+
+    if (stats) {
+      stats.end();
+    }
 
     if (show_rendering_stats) {
       frame_render_times(performance.now() - render_start);
