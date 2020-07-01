@@ -1035,6 +1035,17 @@ var feature_map = {
         headLeft:         new THREE.Vector2(-0.3281010719754977, -0.01225114854517606),
         headRight:        new THREE.Vector2(0.2676110260336907, -0.03369065849923425),
     },
+    'dog_tilt.jpg': {
+        leftEyePosition:  new THREE.Vector2(-0.0020032051282051766, 0.2483974358974359),
+        rightEyePosition: new THREE.Vector2(0.18629807692307687, 0.07451923076923078),
+        mouthPosition:    new THREE.Vector2(-0.09655448717948717, -0.028044871794871806),
+        mouthLeft:        new THREE.Vector2(-0.1742788461538462, -0.011217948717948678),
+        mouthRight:       new THREE.Vector2(-0.06049679487179482, -0.08653846153846156),
+        headTop:          new THREE.Vector2(0.18629807692307687, 0.27083333333333337),
+        headBottom:       new THREE.Vector2(-0.12860576923076922, -0.10016025641025639),
+        headLeft:         new THREE.Vector2(-0.1061698717948718, 0.2580128205128205),
+        headRight:        new THREE.Vector2(0.18629807692307687, -0.03605769230769229),
+    },
 };
 
 
