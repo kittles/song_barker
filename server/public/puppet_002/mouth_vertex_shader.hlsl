@@ -125,7 +125,8 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
     float mouthWidth = length(mouthCornerRight - mouthCornerLeft);
 
     //used to build a reverse rotation matrix to convert world vectors to local
-    float sinTheta = -eyeLine.y / ipd;
+    //float sinTheta = -eyeLine.y / ipd;
+    float sinTheta = mouthLine.y / mouthWidth;
     float theta = asin(sinTheta);
     float cosTheta = cos(theta);
 

@@ -423,11 +423,19 @@ function sync_objects_to_features () {
     face_mesh.rotation.set(0, 0, 0);
     face_mesh.rotateZ(rads);
 
+    // Rotate the mouth mesh as an average of the eye and mouth lines
+    // This looks better on average, but the mouth doesn't follow 1:1.
     rads =
         Math.atan(mouthLine.y / mouthLine.x) * 0.5 +
         Math.atan(eyeLine.y / eyeLine.x) * 0.5;
-    mouth_mesh.rotateY(-rads);
+
+    // Rotate the mouth mesh exactly along the mouth line
+    //rads = Math.atan(mouthLine.y / mouthLine.x);
+
+    //mouth_mesh.rotateY(-rads);            <---- problem line
     mouth_mesh.rotation.y = -rads;
+
+    console.log(`sync_objects_to_features => mouth_mesh.rotation.y: ${mouth_mesh.rotation.y}`);
 
     // update the head ellipse
     var top = new THREE.Vector2(features.headTop.x, features.headTop.y);
@@ -1037,7 +1045,8 @@ var feature_map = {
         headRight:        new THREE.Vector2(0.2676110260336907, -0.03369065849923425),
     },
     'dog_tilt.jpg': {
-        leftEyePosition:  new THREE.Vector2(-0.0020032051282051766, 0.2483974358974359),
+        leftEyePosition:  new THREE.Vector2(-0.0020032051282051766, 0.2483974358974359),  // Good
+        //leftEyePosition:  new THREE.Vector2(0.09718498659517427, 0.27345844504021444),      // Bad
         rightEyePosition: new THREE.Vector2(0.18629807692307687, 0.07451923076923078),
         mouthPosition:    new THREE.Vector2(-0.09655448717948717, -0.028044871794871806),
         mouthLeft:        new THREE.Vector2(-0.1742788461538462, -0.011217948717948678),
