@@ -306,6 +306,7 @@ async function init () {
         blendEquation:  THREE.AddEquation,
         blendSrc:       THREE.SrcAlphaFactor,
         blendDst:       THREE.OneMinusSrcAlphaFactor,
+        wireframe:      debug_face_mesh,
         vertexColors:   true
     });
     mouth_mesh.renderOrder = 2;
