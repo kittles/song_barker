@@ -293,25 +293,13 @@ function card_init() {
 
 function _card_init() {
   _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var back_pieces, flap, flap_underside, open_envelope, vh, card_scale, viewport_aspect, image_url, decoration_image_url, fts, decoration_image;
+    var vh, card_scale, viewport_aspect, image_url, decoration_image_url, fts, back_pieces, flap, flap_underside, open_envelope;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            card_scale = function _card_scale() {
-              var container_width = 512 + 40;
-              var container_height = 512 + 100;
-              var zoom_width = (window.innerWidth - 40) / container_width;
-              var zoom_height = (window.innerHeight - 40) / container_height;
-              var zoom = Math.min(zoom_width, zoom_height);
-              return zoom;
-            };
-
-            vh = function _vh() {
-              return window.innerHeight / 100;
-            };
-
             open_envelope = function _open_envelope() {
+              init_audio();
               $('#content').css({
                 animation: 'none'
               });
@@ -358,23 +346,19 @@ function _card_init() {
               }, 250);
             };
 
-            console.log('card init');
-            $('#content').animate({
-              top: '50%'
-            }, 1000, 'easeOutBounce');
-            back_pieces = $('.envelope-back-piece');
-            flap = $('#envelope-flap');
-            flap_underside = $('#envelope-flap-underside'); // the pixel dimensions of the card
+            card_scale = function _card_scale() {
+              var container_width = 512 + 40;
+              var container_height = 512 + 100;
+              var zoom_width = (window.innerWidth - 40) / container_width;
+              var zoom_height = (window.innerHeight - 40) / container_height;
+              var zoom = Math.min(zoom_width, zoom_height);
+              return zoom;
+            };
 
-            $('body').css({
-              zoom: card_scale()
-            });
-            back_pieces.click(open_envelope);
-            flap.click(open_envelope);
-            back_pieces.fadeIn(200);
-            flap.fadeIn(200);
-            flap_underside.fadeIn(200);
-            $('#card-container').fadeIn(300);
+            vh = function _vh() {
+              return window.innerHeight / 100;
+            };
+
             // iOS webview sizing shim
             // TODO figure out why webviews dimensions come out undersized on ios
             iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -416,9 +400,7 @@ function _card_init() {
             }); // so theres room for some playback ui
 
 
-            zoom_factor = zoom_factor * 0.8; //container.append(`<img class="decoration-image" src=${decoration_image_url}></img>`);
-
-            decoration_image = $('.decoration-image'); // this gets called at the end of the init
+            zoom_factor = zoom_factor * 0.8; // this gets called at the end of the init
             //post_init = async () => {
             //    await create_puppet(image_url);
             //    $('#container').css('transform', 'translateY(0px)');
@@ -435,14 +417,14 @@ function _card_init() {
             //};
             //}
 
-            _context.next = 32;
+            _context.next = 19;
             return load_shader_files();
 
-          case 32:
-            _context.next = 34;
+          case 19:
+            _context.next = 21;
             return load_texture('noise_2D.png');
 
-          case 34:
+          case 21:
             animation_noise_texture = _context.sent;
             scene = new THREE.Scene();
             renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
@@ -466,10 +448,10 @@ function _card_init() {
             });
             face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
             face_mesh.renderOrder = 1;
-            _context.next = 49;
+            _context.next = 36;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
-          case 49:
+          case 36:
             mouth_gltf = _context.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
@@ -491,14 +473,14 @@ function _card_init() {
 
             renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
             container.appendChild(renderer.domElement);
-            renderer.setSize(render_pixels, render_pixels);
-            $(renderer.domElement).css('zoom', zoom_factor);
+            renderer.setSize(render_pixels, render_pixels); //$(renderer.domElement).css('zoom', zoom_factor);
+
             image_url = "https://storage.googleapis.com/song_barker_sequences/images/".concat(card.image_id, ".jpg"); // set the pet image on the mesh and on the shader
 
-            _context.next = 63;
+            _context.next = 49;
             return load_texture(image_url);
 
-          case 63:
+          case 49:
             pet_image_texture = _context.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
@@ -515,8 +497,28 @@ function _card_init() {
             direct_render();
             animate();
             head_sway(head_sway_amplitude, head_sway_speed);
+            $('#decoration-image').attr('src', decoration_image_url);
+            console.log('card init');
+            back_pieces = $('.envelope-back-piece');
+            flap = $('#envelope-flap');
+            flap_underside = $('#envelope-flap-underside'); // the pixel dimensions of the card
 
-          case 76:
+            $('#content').css({
+              zoom: card_scale()
+            });
+            setTimeout(function () {
+              $('#content').fadeIn({
+                queue: false,
+                duration: 300
+              });
+              $('#content').animate({
+                top: '50%'
+              }, 1300, 'easeOutElastic');
+            }, 200);
+            back_pieces.click(open_envelope);
+            flap.click(open_envelope);
+
+          case 71:
           case "end":
             return _context.stop();
         }
@@ -701,16 +703,15 @@ function init_audio() {
 
 function _init_audio() {
   _init_audio = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-    var audio_url, audio_el, buffer_interval, playing, playback_btn, handle_click, play_audio, pause_audio, handle_audio_end;
+    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, replay_btn, decoration_img, card_play, card_pause, handle_click, play_audio, pause_audio, handle_audio_end;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
             handle_audio_end = function _handle_audio_end() {
-              log('playback ended');
               clearInterval(buffer_interval);
-              $('.playback-image').attr('src', '/puppet_002/replay.png');
-              $('.playback-image').fadeIn(500);
+              big_btn.attr('src', '/puppet_002/replay.png');
+              big_btn_container.fadeIn(500);
               audio_el.currentTime = 0;
               playing = false;
             };
@@ -738,38 +739,53 @@ function _init_audio() {
             };
 
             handle_click = function _handle_click() {
+              big_btn.attr('src', '/puppet_002/play.png');
+
               if (playing) {
-                playback_btn.attr('src', '/puppet_002/play.png');
-                pause_audio();
-                $('.playback-image').fadeIn(250);
+                card_pause();
               } else {
-                playback_btn.attr('src', '/puppet_002/pause.png');
-                play_audio();
-                $('.playback-image').fadeOut(250);
+                card_play();
               }
             };
 
+            card_pause = function _card_pause() {
+              $('img', playback_btn).attr('src', '/puppet_002/play.png');
+              pause_audio();
+              big_btn_container.fadeIn(250);
+            };
+
+            card_play = function _card_play() {
+              $('img', playback_btn).attr('src', '/puppet_002/pause.png');
+              play_audio();
+              big_btn_container.fadeOut(250);
+            };
+
             playing = false;
-            playback_btn = $('.play-button');
+            playback_btn = $('#play-control');
+            big_btn_container = $('#big-button-container');
+            big_btn = $('#big-button-img');
+            replay_btn = $('#replay-control');
+            decoration_img = $('#decoration-image');
             audio_url = "https://storage.googleapis.com/k9karaoke_cards/card_audios/".concat(card.card_audio_id, ".aac");
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
             audio_el = document.querySelector('audio');
             audio_el.addEventListener('ended', handle_audio_end, {
               once: true
             });
-            $('#volume-slider').on('input', function () {
-              audio_el.volume = $('#volume-slider').val();
+            $('#progress').on('input', function () {
+              audio_el.volume = $('#progress').val() / 100;
             });
-            $('.play-button').click(handle_click);
-            $('.decoration-image').click(handle_click);
-            $('#container > canvas').click(handle_click);
-            $('.replay-button').click(function () {
+            playback_btn.click(handle_click);
+            big_btn_container.click(handle_click);
+            decoration_img.click(handle_click);
+            replay_btn.click(function () {
               clearInterval(buffer_interval);
               audio_el.currentTime = 0;
               play_audio();
+              big_btn_container.fadeOut(250);
             });
 
-          case 15:
+          case 21:
           case "end":
             return _context3.stop();
         }

@@ -14,93 +14,6 @@
     <script src="/puppet/runtime.js"></script>
     <link rel="stylesheet" type="text/css" href="/puppet/card-flex.css">
     <script>
-    //var fp = _.noConflict();
-    //$(document).ready(() => {
-    //    $('#content').animate({top: '50%'}, 1000, 'easeOutBounce');
-    //    var back_pieces = $('.envelope-back-piece');
-    //    var flap = $('#envelope-flap');
-    //    var flap_underside = $('#envelope-flap-underside');
-
-    //    // the pixel dimensions of the card
-    //    $('body').css({
-    //        zoom: card_scale(),
-    //    });
-    //    console.log(card_scale());
-    //    
-    //    back_pieces.click(open_envelope);
-    //    flap.click(open_envelope);
-
-    //    back_pieces.fadeIn(200);
-    //    flap.fadeIn(200);
-    //    flap_underside.fadeIn(200);
-    //    setTimeout(() => {
-    //        $('#card-container').fadeIn(1);
-    //    }, 250);
-
-    //    function open_envelope () {
-    //        $('#content').css({animation: 'none'});
-    //        $('.envelope-flap-piece').toggleClass('opened');
-    //        setTimeout(() => {
-
-    //            // wait until now to resize card?
-    //            $(window).resize(_.debounce(() => {
-    //                $('body').css({
-    //                   zoom: card_scale(),
-    //                });
-
-    //            }, 125, {trailing: true}));
-
-    //            //// after flap has flipped up, change z and transition for sliding behind card
-    //            //flap_underside.css({
-    //            //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
-    //            //    zIndex: 1,
-    //            //});
-    //            //flap.css({
-    //            //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
-    //            //    zIndex: 1,
-    //            //});
-    //            setTimeout(() => {
-    //                var y_dist = vh() * 120;
-    //                var y_dist_flap = y_dist;
-    //                flap_underside.animate({top: y_dist}, 1000);
-    //                back_pieces.animate({top: y_dist}, 1000, on_complete);
-    //                function on_complete () {
-    //                    back_pieces.fadeOut(100);
-    //                    flap_underside.fadeOut(100);
-    //                    flap.fadeOut(100);
-    //                }
-    //            }, 100);
-    //            setTimeout(() => {
-    //                $('#card-container').css({
-    //                    transform: `translateX(-50%) translateY(-50%)`,
-    //                });
-    //            }, 750);
-    //        }, 250);
-    //    }
-
-    //    function vh () {
-    //        return window.innerHeight / 100;
-    //    }
-    //    
-
-    //    function card_scale () {
-    //        var container_width = 512 + 40;
-    //        var container_height = 512 + 100;
-    //        var zoom_width = (window.innerWidth - 40) / container_width;
-    //        var zoom_height = (window.innerHeight - 40) / container_height;
-    //        var zoom = Math.min(zoom_width, zoom_height);
-    //        return zoom;
-    //    }
-
-
-    //    function rescale () {
-    //    }
-    //    //card_scale(); 
-    //});
-    </script>
-    <style>
-    </style>
-    <script>
         window.greeting_card = {};
         window.greeting_card.uuid='{{uuid}}';
         window.greeting_card.card_audio_id='{{card_audio_id}}';
@@ -124,8 +37,12 @@
     <!--
     -->
     <div id="content">
-        <div id="card-container" class="hidden">
+        <div id="card-container">
             <div id="puppet-container"></div>
+            <img id="decoration-image"></img>
+            <div id="big-button-container">
+                <img id="big-button-img" src="/puppet/play.png"></img>
+            </div>
             <div id="controls-container">
                 <div id="play-control">
                     <img class="flex-icon" src="/puppet/play.png"></img>
@@ -134,18 +51,18 @@
                     <img class="flex-icon" src="/puppet/replay.png"></img>
                 </div>
                 <div id="volume-slider">
-                    <div id="volume-slider-element"></div>
+                    <input id="progress" type="range" min="0" max="100" step="1" value="100" data-before />
                 </div>
                 <div id="volume-icon">
                     <img class="flex-icon" src="/puppet/volume_loud.png"></img>
                 </div>
             </div>
         </div>
-        <div id="envelope-back" class="envelope-back-piece hidden"></div>
-        <div id="envelope-pouch" class="envelope-back-piece hidden"></div>
-        <div id="envelope-below" class="envelope-back-piece hidden"></div>
-        <div id="envelope-flap-underside" class="envelope-flap-piece hidden"></div>
-        <div id="envelope-flap" class="envelope-flap-piece hidden"></div>
+        <div id="envelope-back" class="envelope-back-piece"></div>
+        <div id="envelope-pouch" class="envelope-back-piece"></div>
+        <div id="envelope-below" class="envelope-back-piece"></div>
+        <div id="envelope-flap-underside" class="envelope-flap-piece"></div>
+        <div id="envelope-flap" class="envelope-flap-piece"></div>
     </div>
     <script src="/build/puppet.js"></script>
 </body>
