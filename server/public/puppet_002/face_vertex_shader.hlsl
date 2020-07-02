@@ -4,6 +4,8 @@ uniform mat4 worldToFaceMatrix;
 uniform vec2 leftEyePosition;//in worldSpace
 uniform vec2 rightEyePosition;//in worldSpace
 uniform vec2 mouthPosition;//in worldSpace
+uniform vec2 mouthLeft;
+uniform vec2 mouthRight;
 
 uniform float blinkLeft;
 uniform float blinkRight;

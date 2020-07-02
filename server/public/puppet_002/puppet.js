@@ -69,7 +69,12 @@ var face_animation_shader = {
         resolution:         { type: 'v2', value: new THREE.Vector2() },
         leftEyePosition:    { type: 'v2', value: new THREE.Vector2() },
         rightEyePosition:   { type: 'v2', value: new THREE.Vector2() },
-        mouthPosition:      { type: 'v2', value: new THREE.Vector2() },
+
+        mouthPosition:     { type: 'v2', value: new THREE.Vector2() },
+        mouthLeft:         { type: 'v2', value: new THREE.Vector2() },
+        mouthRight:        { type: 'v2', value: new THREE.Vector2() },
+        mouthOpen:          { type: 'f', value: 0.0 },
+
         blinkLeft:          { type: 'f', value: 0.0 },
         blinkRight:         { type: 'f', value: 0.0 },
         mouthOpen:          { type: 'f', value: 0.0 },
@@ -472,6 +477,8 @@ function update_shaders () {
     face_animation_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
     face_animation_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
     face_animation_shader.uniforms.mouthPosition.value = features.mouthPosition;
+    face_animation_shader.uniforms.mouthLeft.value = features.mouthLeft;
+    face_animation_shader.uniforms.mouthRight.value = features.mouthRight;
 
     mouth_shader.uniforms.animationNoise.value = animation_noise_texture;
     mouth_shader.uniforms.resolution.value.x = window.innerWidth;
