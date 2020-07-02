@@ -139,12 +139,12 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
     vec2 leftCornerOffsetAveraged = leftCornerOffset * 0.7 + rightCornerOffset * vec2(-0.3, 0.3);
     vec2 rightCornerOffsetAveraged = rightCornerOffset * 0.7 + leftCornerOffset * vec2(-0.3, 0.3);
 
-    animatedPositionOS +=
-        leftCornerOffset * mouthMaskLeft +
-        rightCornerOffset * mouthMaskRight;
+    // animatedPositionOS +=
+    //     leftCornerOffset * mouthMaskLeft +
+    //     rightCornerOffset * mouthMaskRight;
 
     //blend to default shape around the bottom of the mouth.  Improves shape under extreme deformations
-    animatedPositionOS = lerp(animatedPositionOS, position.xz, mouthOpen * color.z * 0.5);
+    //animatedPositionOS = lerp(animatedPositionOS, position.xz, mouthOpen * color.z * 0.5);
 
     vec2 mouthDir = vec2(-mouthLine.y, mouthLine.x);
 
@@ -174,7 +174,8 @@ void main()
 
     vec2 mouthClosedOS = vec2(uv.x - 0.5, (1.0 - uv.y) - 0.5);
 
-    vec2 animatedPositionOS = lerp(mouthClosedOS.xy, position.xz, mouthOpen);
+    //vec2 animatedPositionOS = lerp(mouthClosedOS.xy, position.xz, mouthOpen);
+    vec2 animatedPositionOS = position.xz;
 
     vec2 positionWS = (modelMatrix * vec4(animatedPositionOS.x, 0.0, animatedPositionOS.y, 1.0)).xy;
 
