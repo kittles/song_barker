@@ -307,7 +307,7 @@ function _card_init() {
               setTimeout(function () {
                 // wait until now to resize card?
                 $(window).resize(_.debounce(function () {
-                  $('body').css({
+                  $('#content').css({
                     zoom: card_scale()
                   });
                 }, 125, {
@@ -349,8 +349,8 @@ function _card_init() {
             card_scale = function _card_scale() {
               var container_width = 512 + 40;
               var container_height = 512 + 100;
-              var zoom_width = (window.innerWidth - 40) / container_width;
-              var zoom_height = (window.innerHeight - 40) / container_height;
+              var zoom_width = (window.innerWidth - 80) / container_width;
+              var zoom_height = (window.innerHeight - 80) / container_height;
               var zoom = Math.min(zoom_width, zoom_height);
               return zoom;
             };

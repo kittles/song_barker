@@ -14,14 +14,21 @@
     <script src="/puppet/runtime.js"></script>
     <link rel="stylesheet" type="text/css" href="/puppet/card-flex.css">
     <script>
-        window.greeting_card = {};
-        window.greeting_card.uuid='{{uuid}}';
-        window.greeting_card.card_audio_id='{{card_audio_id}}';
-        window.greeting_card.image_id='{{image_id}}';
-        window.greeting_card.decoration_image_id='{{decoration_image_id}}';
-        window.greeting_card.animation_json=JSON.parse('{{{animation_json}}}');
-        window.greeting_card.image_coordinates_json=JSON.parse('{{{image_coordinates_json}}}');
-        window.greeting_card.name='{{name}}';
+        try {
+            window.greeting_card = {};
+            window.greeting_card.uuid='{{uuid}}';
+            window.greeting_card.card_audio_id='{{card_audio_id}}';
+            window.greeting_card.image_id='{{image_id}}';
+            window.greeting_card.decoration_image_id='{{decoration_image_id}}';
+            window.greeting_card.animation_json=JSON.parse('{{{animation_json}}}');
+            window.greeting_card.image_coordinates_json=JSON.parse('{{{image_coordinates_json}}}');
+            window.greeting_card.name='{{name}}';
+        } catch (error) {
+            $(document).ready(() => {
+                $('#error-message').text(`problem with greeting_card values: ${error}`);
+                $('#error').fadeIn(100);
+            });
+        }
     </script>
     <meta property="og:title" content="K9 Karaoke Card">
     <meta property="og:description" content="Someone's pet has a message for you">
@@ -32,6 +39,7 @@
     <meta name="twitter:description" content="Someone's pet has a message for you">
     <meta name="twitter:image" content="https://storage.googleapis.com/song_barker_sequences/images/{{image_id}}.jpg">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="viewport" content="width=device-width">
 </head>
 <body>
     <!--
@@ -63,6 +71,9 @@
         <div id="envelope-below" class="envelope-back-piece"></div>
         <div id="envelope-flap-underside" class="envelope-flap-piece"></div>
         <div id="envelope-flap" class="envelope-flap-piece"></div>
+    </div>
+    <div id="error">
+        <div id="error-message">im sad</div>
     </div>
     <script src="/build/puppet.js"></script>
 </body>

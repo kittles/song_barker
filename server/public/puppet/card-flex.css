@@ -69,14 +69,16 @@ body {
     clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
     background: repeating-linear-gradient(-45deg, #c1ab8e, #c1ab8e 10px, #e74c3c 10px, #e74c3c 20px, #c1ab8e 20px, #c1ab8e 30px, #1e90ff 30px, #1e90ff 40px) 0 0/100% 5px no-repeat, #c1ab8e;
 
-    -webkit-transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-    transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-    transition: transform 0.25s 0.5s, z-index 0s 0.5s;
-    transition: transform 0.25s 0.5s, z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
+    -webkit-transition: -webkit-transform 0.25s 0.5s;
+    transition: -webkit-transform 0.25s 0.5s;
+    transition: transform 0.25s 0.5s;
+
     -webkit-transform-origin: top center;
     transform-origin: top center;
+
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+
     cursor: pointer;
 }
 #envelope-flap-underside {
@@ -90,10 +92,10 @@ body {
     backface-visibility: visible;
     -webkit-clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
     clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
-    -webkit-transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-    transition: z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
-    transition: transform 0.25s 0.5s, z-index 0s 0.5s;
-    transition: transform 0.25s 0.5s, z-index 0s 0.5s, -webkit-transform 0.25s 0.5s;
+    -webkit-transition:  -webkit-transform 0.25s 0.5s;
+    transition: -webkit-transform 0.25s 0.5s;
+    transition: transform 0.25s 0.5s;
+    transition: transform 0.25s 0.5s, -webkit-transform 0.25s 0.5s;
     -webkit-transform-origin: top center;
     transform-origin: top center;
 }
@@ -107,19 +109,19 @@ body {
 
 /* opening the top flap of the envelope */
 #envelope-flap.opened {
-    -webkit-transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-    transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-    transition: transform 0.25s 0s, z-index 0s 0.25s;
-    transition: transform 0.25s 0s, z-index 0s 0.25s, -webkit-transform 0.25s 0s;
+    -webkit-transition:-webkit-transform 0.25s 0s;
+    transition: -webkit-transform 0.25s 0s;
+    transition: transform 0.25s 0s;
+    transition: transform 0.25s 0s, -webkit-transform 0.25s 0s;
     -webkit-transform: translateY(-75px) rotateX(-180deg);
     transform: translateY(-75px) rotateX(-180deg);
     z-index: 1;
 }
 #envelope-flap-underside.opened {
-    -webkit-transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-    transition: z-index 0s 0.25s, -webkit-transform 0.25s 0s;
-    transition: transform 0.25s 0s, z-index 0s 0.25s;
-    transition: transform 0.25s 0s, z-index 0s 0.25s, -webkit-transform 0.25s 0s;
+    -webkit-transition: -webkit-transform 0.25s 0s;
+    transition: -webkit-transform 0.25s 0s;
+    transition: transform 0.25s 0s;
+    transition: transform 0.25s 0s, -webkit-transform 0.25s 0s;
     -webkit-transform: translateY(-75px) rotateX(-180deg);
     transform: translateY(-75px) rotateX(-180deg);
     z-index: 1;
@@ -305,4 +307,17 @@ input[type=range]:focus::-ms-fill-lower {
 }
 input[type=range]:focus::-ms-fill-upper {
   background: #605A5A;
+}
+
+#error {
+    position: fixed;
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    background: white;
+}
+#error-message {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
 }

@@ -73,6 +73,10 @@ app.get('/card/:uuid', async (req, res) => {
     }
     // get face coordinates
     var image = await db.get('select * from images where uuid = ?', card.image_id);
+    if (_.isUndefined(image)) {
+        res.status(400).send('unable to find image for card');
+        return;
+    }
     fs.readFile('public/puppet/card-flex.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
         var html = template({
@@ -181,7 +185,6 @@ app.get('/openid-tos', (req, res) => {
 app.get('/describe', (req, res) => {
     res.json(models);
 });
-
 
 // process raw audio into cropped pieces
 app.post('/to_crops', async function (req, res) {
