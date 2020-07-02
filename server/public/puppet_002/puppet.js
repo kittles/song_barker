@@ -429,12 +429,12 @@ function sync_objects_to_features () {
 
     // Rotate the mouth mesh as an average of the eye and mouth lines
     // This looks better on average, but the mouth doesn't follow 1:1.
-    rads =
-        Math.atan(mouthLine.y / mouthLine.x) * 0.5 +
-        Math.atan(eyeLine.y / eyeLine.x) * 0.5;
+    // rads =
+    //     Math.atan(mouthLine.y / mouthLine.x) * 0.5 +
+    //     Math.atan(eyeLine.y / eyeLine.x) * 0.5;
 
     // Rotate the mouth mesh exactly along the mouth line
-    //rads = Math.atan(mouthLine.y / mouthLine.x);
+    rads = Math.atan(mouthLine.y / mouthLine.x);
 
     //mouth_mesh.rotateY(-rads);            <---- problem line
     mouth_mesh.rotation.y = -rads;
