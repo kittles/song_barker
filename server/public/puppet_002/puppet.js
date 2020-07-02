@@ -81,7 +81,6 @@ var face_animation_shader = {
 
         blinkLeft:          { type: 'f', value: 0.0 },
         blinkRight:         { type: 'f', value: 0.0 },
-        mouthOpen:          { type: 'f', value: 0.0 },
         aspectRatio:        { type: 'f', value: 1.0 },
         petImage:           { type: 't', value: new THREE.Texture() },
         // Head Sway
