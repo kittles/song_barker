@@ -42,13 +42,13 @@ vec2 lerp(vec2 b, vec2 t, float s)
 #define EYE_INFLUENCE 0.35
 #define MOUTH_INFLUENCE 0.6
 
-vec3 GenerateInfluenceMasks(vec2 positionWS, vec2 blinkDir, float ipd)
+vec3 GenerateInfluenceMasks(vec2 positionWS, vec2 blinkDir, vec2 mouthDir, float ipd, float mouthWidth)
 {
     float leftEyeInfluence = 0.0;
     float rightEyeInfluence = 0.0;
     float mouthInfluence =
-        1.0 - (clamp(distance(positionWS, mouthPosition + blinkDir * 0.3) /
-        (MOUTH_INFLUENCE * ipd), 0.0, 1.0));
+        1.0 - (clamp(distance(positionWS, mouthPosition + mouthDir * 0.3) /
+        (MOUTH_INFLUENCE * mouthWidth), 0.0, 1.0));
 
     return vec3(leftEyeInfluence, rightEyeInfluence, mouthInfluence);
 }
@@ -146,12 +146,13 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
     //blend to default shape around the bottom of the mouth.  Improves shape under extreme deformations
     animatedPositionOS = lerp(animatedPositionOS, position.xz, mouthOpen * color.z * 0.5);
 
+    vec2 mouthDir = vec2(-mouthLine.y, mouthLine.x);
 
-    vec3 influenceMask = GenerateInfluenceMasks(positionWS, blinkDir, ipd);
+    vec3 influenceMask = GenerateInfluenceMasks(positionWS, blinkDir, mouthDir, ipd, mouthWidth);
 
-    animatedPositionOS.y *= 1.0 - (influenceMask.x * blinkL);
-    animatedPositionOS.y *= 1.0 - (influenceMask.y * blinkR);
-    animatedPositionOS.y -= (influenceMask.z * talk * ipd * 0.3) / mouthWidth;
+    //animatedPositionOS.y *= 1.0 - (influenceMask.x * blinkL);
+    //animatedPositionOS.y *= 1.0 - (influenceMask.y * blinkR);
+    animatedPositionOS.y -= (influenceMask.z * talk * mouthWidth * 0.3) / mouthWidth;
 
     float swayScale = ipd / mouthWidth;
 

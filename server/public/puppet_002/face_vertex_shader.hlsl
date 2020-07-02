@@ -1,4 +1,3 @@
-
 uniform mat4 worldToFaceMatrix;
 
 uniform vec2 leftEyePosition;//in worldSpace
@@ -45,7 +44,8 @@ vec2 lerp(vec2 b, vec2 t, float s)
 #define MOUTH_INFLUENCE 0.6
 #define EYEBROW_DISTANCE 0.67
 
-vec3 GenerateInfluenceMasks(vec2 positionWS, vec2 blinkDir, float ipd)
+
+vec3 GenerateInfluenceMasks(vec2 positionWS, vec2 blinkDir, vec2 mouthDir, float ipd, float mouthWidth)
 {
     float leftEyeInfluence =
         1.0 - sqr(clamp(distance(positionWS, leftEyePosition) /
@@ -54,12 +54,29 @@ vec3 GenerateInfluenceMasks(vec2 positionWS, vec2 blinkDir, float ipd)
         1.0 - sqr(clamp(distance(positionWS, rightEyePosition) /
         (EYE_INFLUENCE * ipd), 0.0, 1.0));
     float mouthInfluence =
-        1.0 - (clamp(distance(positionWS, mouthPosition + blinkDir * 0.3) /
-        (MOUTH_INFLUENCE * ipd), 0.0, 1.0));
-    mouthInfluence *= 1.0 - max(leftEyeInfluence, rightEyeInfluence) * 0.65;
+        1.0 - (clamp(distance(positionWS, mouthPosition + mouthDir * 0.3) /
+        (MOUTH_INFLUENCE * mouthWidth), 0.0, 1.0));
 
     return vec3(leftEyeInfluence, rightEyeInfluence, mouthInfluence);
 }
+
+void SortMouthCorners(inout vec2 mouthLeft, inout vec2 mouthRight)
+{
+    if(mouthLeft.x > mouthRight.x)//if left is right of right, flip em
+    {
+        vec2 copyLeft = mouthLeft;
+        mouthLeft = mouthRight;
+        mouthRight = copyLeft;
+    }
+}
+
+vec2 RotateVector(vec2 inVector, float sinTheta, float cosTheta)
+{
+    float x2 = cosTheta * inVector.x - sinTheta * inVector.y;
+    float y2 = sinTheta * inVector.x + cosTheta * inVector.y;
+    return vec2(x2, y2);
+}
+
 
 vec2 GenerateEyebrowMasks(vec2 positionWS, vec2 eyeLine, vec2 blinkDir, float ipd)
 {
@@ -127,7 +144,17 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
     vec2 eyeLine = rightEyePosition - leftEyePosition;
     float ipd = length(eyeLine);
     vec2 blinkDir = vec2(eyeLine.y, -eyeLine.x);
-    vec3 influenceMask = GenerateInfluenceMasks(positionWS, blinkDir, ipd);
+
+    vec2 mouthCornerLeft = mouthLeft;
+    vec2 mouthCornerRight = mouthRight;
+    SortMouthCorners(mouthCornerLeft, mouthCornerRight);
+
+    vec2 mouthLine = mouthCornerLeft - mouthCornerRight;
+
+    float mouthWidth = length(mouthCornerRight - mouthCornerLeft);
+    vec2 mouthDir = vec2(-mouthLine.y, mouthLine.x);
+
+    vec3 influenceMask = GenerateInfluenceMasks(positionWS, blinkDir, mouthDir, ipd, mouthWidth);
 
     //debug.xyz = influenceMask;
     vec2 eyebrowMasks = GenerateEyebrowMasks(positionWS, eyeLine, blinkDir, ipd);
@@ -144,7 +171,23 @@ vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float bli
 
     animatedPositionOS.y *= 1.0 - (influenceMask.x * blinkL);
     animatedPositionOS.y *= 1.0 - (influenceMask.y * blinkR);
-    animatedPositionOS.y -= (influenceMask.z * talk * ipd * 0.3);
+
+    float sinThetaEye = -eyeLine.y / ipd;
+    float sinThetaMouth = mouthLine.y / mouthWidth;
+
+    float thetaEye = asin(sinThetaEye);
+    float thetaMouth = asin(sinThetaMouth);
+
+    float thetaMouthLocal = thetaEye - thetaMouth;
+    float cosThetaLocal = cos(thetaMouthLocal);
+    float sinThetaLocal = sin(thetaMouthLocal);
+
+    vec2 mouthDelta = vec2(0, talk * mouthWidth * 0.5);
+    vec2 mouthOffset = RotateVector(mouthDelta, sinThetaLocal, cosThetaLocal);// / mouthWidth;
+    animatedPositionOS -= mouthOffset * influenceMask.z;
+    //float sinThetaMouthLocal = sinThetaMouth - sinThetaEye;
+    //animatedPositionOS.y -= (influenceMask.z * talk * ipd * 0.3);
+
 
     animatedPositionOS = AnimateHeadSway(animatedPositionOS, positionWS, ipd);
     animatedPositionOS = DisplaceHead(animatedPositionOS, positionWS, ipd);
