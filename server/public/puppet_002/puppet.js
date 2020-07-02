@@ -255,7 +255,7 @@ async function init () {
     // Create the background plane
     // This is just the static pet image on the plane
     // Draw this if we aren't debugging the face mesh
-    if (!debug_face_mesh) {
+    if (!debug_face_mesh || true) {
         pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
         background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
         background_mesh.scale.x = 1; // this will get set when we know what the pet image is
@@ -293,7 +293,8 @@ async function init () {
         blendEquation:  THREE.AddEquation,
         blendSrc:       THREE.SrcAlphaFactor,
         blendDst:       THREE.OneMinusSrcAlphaFactor,
-        vertexColors:   true
+        vertexColors:   true,
+        wireframe:      debug_face_mesh
     });
     mouth_mesh.renderOrder = 2;
 
