@@ -42,7 +42,9 @@ vec2 lerp(vec2 b, vec2 t, float s)
 
 
 #define EYE_INFLUENCE 0.35
-#define MOUTH_INFLUENCE 0.6
+#define MOUTH_INFLUENCE 1.3
+#define MOUTH_OFFSET 0.3
+#define MOUTH_ANIMATION_SCALE 0.4
 #define EYEBROW_DISTANCE 0.67
 
 vec3 GenerateInfluenceMasks(vec2 positionWS, vec2 blinkDir, float ipd)
