@@ -476,6 +476,16 @@ exports.models = [
                     type: 'integer DEFAULT CURRENT_TIMESTAMP',
                     desc: 'when this object was created',
                 },
+                {
+                    name: 'mouth_color',
+                    type: 'text',
+                    desc: 'a string representation of the mouth color',
+                },
+                {
+                    name: 'recipient_name',
+                    type: 'text',
+                    desc: 'the name that shows up on the envelope',
+                },
             ],
         },
     },
