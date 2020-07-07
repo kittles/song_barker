@@ -781,6 +781,7 @@ function _init_audio() {
             replay_btn.click(function () {
               clearInterval(buffer_interval);
               audio_el.currentTime = 0;
+              $('img', playback_btn).attr('src', '/puppet_002/pause.png');
               play_audio();
               big_btn_container.fadeOut(250);
             });
