@@ -15,6 +15,8 @@ var user_sess = require('./user_from_session.js');
 var uuid_validate = require('uuid-validate');
 var handlebars = require('handlebars');
 var fs = require('fs');
+var facebook_app_token = require('../credentials/facebook_app_access_token.json').access_token;
+var { curly } = require('node-libcurl');
 
 //
 // server config
@@ -28,6 +30,7 @@ app.use(express.json({
 app.set('json spaces', 2);
 app.use(morgan('combined')); // logging
 app.use(express.static('./public'));
+// TODO no uploads needed
 app.use(fileUpload({
     createParentPath: true
 }));
@@ -111,6 +114,82 @@ app.post('/openid-token/:platform', async (req, res) => {
         // see if an account with the payload's email as user_id exists
         var user = await user_sess.get_user(payload.email);
         if (user) {
+            // attach the user_id to the session
+            req.session.user_id = payload.email;
+        } else {
+            // create a new user object
+            await user_sess.add_user(payload.email, payload.name, payload.email);
+            // should verify that db insert worked
+            req.session.user_id = payload.email;
+        }
+        req.session.openid_platform = 'google';
+        return res.json({ success: true, err: null, payload: payload });
+    } catch (err) {
+        return res.json({ success: false, err: err, payload: null });
+    }
+});
+
+// facebook user creation
+app.post('/facebook-token', async (req, res) => {
+    /*
+    NOTE: you must have a valid app access token in the credentials dir
+
+    client has made a request to facebook for a token, received the token
+    and sent it here- it looks like a long string of numbers and letters
+
+    first the server has to verify the token is valid, by checking it like:
+    curl -X GET "https://graph.facebook.com/debug_token?input_token{this-is-the-token-we-are-checking}&access_token={access-token-for-k9karaoke-facebook-app}"
+
+    this comes back as a json object with some basic details, including the user_id (assuming the token is valid), something like:
+    {
+        "data": {
+            "app_id": "2622706171384608",
+            "application": "sound barker",
+            "data_access_expires_at": 1602199520,
+            "expires_at": 1594429200,
+            "is_valid": true,
+            "scopes": [
+                "public_profile"
+            ],
+            "type": "USER",
+            "user_id": "10100343189417943"
+        }
+    }
+
+    an invalid token looks like this:
+    {
+        "data": {
+            "error": {
+                "code": 190,
+                "message": "Invalid OAuth access token."
+            },
+            "is_valid": false,
+            "scopes": []
+        }
+    }
+
+    probably just use token.data.is_valid...
+
+    assuming a valid token, use the user_id to get the users email
+    */
+    try {
+        // verify token
+        // get email
+
+        //curl -X GET "https://graph.facebook.com/debug_token?input_token{this-is-the-token-we-are-checking}&access_token={access-token-for-k9karaoke-facebook-app}"
+        var verify_url = `https://graph.facebook.com/debug_token?input_token=${req.body.facebook_token}&access_token=${facebook_app_token}`;
+        var { status, data, headers } = await curly.get(verify_url);
+        data = JSON.parse(data).data;
+        if (!_.get(data, 'is_valid', false)) {
+            return res.json({ success: false, err: 'invalid token', payload: null });
+        }
+
+        var info_url = `https://graph.facebook.com/v7.0/me?fields=id%2Cname%2Cemail&access_token=${req.body.facebook_token}`;
+        var { status, data, headers } = await curly.get(info_url);
+        var payload = JSON.parse(data);
+        req.session.openid_profile = payload;
+        var user = await user_sess.get_user(payload.email);
+        if (user) {
             console.log('user exists');
             // attach the user_id to the session
             req.session.user_id = payload.email;
@@ -121,8 +200,10 @@ app.post('/openid-token/:platform', async (req, res) => {
             // should verify that db insert worked
             req.session.user_id = payload.email;
         }
+        req.session.openid_platform = 'facebook';
         return res.json({ success: true, err: null, payload: payload });
     } catch (err) {
+        console.log(err);
         return res.json({ success: false, err: err, payload: null });
     }
 });
