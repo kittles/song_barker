@@ -12,7 +12,7 @@ body params:
 - `email`
 - `password`
 
-# GET `/email-available/:email`
+## GET `/email-available/:email`
 check if an email is available. you can use this to provide feedback to user, before actually
 trying to create the account (which will also check for availability)
 
