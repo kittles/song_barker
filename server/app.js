@@ -278,7 +278,9 @@ app.post('/manual-login', async (req, res) => {
         req.session.openid_platform = 'manual';
         res.json({
             success: true,
-            // some other shit
+            payload: {
+                email: req.body.email,
+            },
         });
     } else {
         res.json({
@@ -327,7 +329,9 @@ app.post('/create-account', async (req, res) => {
     // login user
     res.json({
         success: true,
-        // some other shit
+        payload: {
+            email: req.body.email,
+        },
     });
 });
 
