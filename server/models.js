@@ -1,5 +1,6 @@
 exports.models = [
     {
+        // TODO users shouldn't be available at all through rest
         table_name: 'users',
         obj_type: 'user',
         primary_key: 'user_id',
@@ -21,6 +22,11 @@ exports.models = [
                     name: 'email',
                     type: 'text',
                     desc: 'the user specified email of the user',
+                },
+                {
+                    name: 'password',
+                    type: 'text',
+                    desc: 'heh',
                 },
                 {
                     name: 'hidden',

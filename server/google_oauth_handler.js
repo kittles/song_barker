@@ -13,7 +13,6 @@ async function android_verify (token) {
       audience: ANDROID_CLIENT_ID,
   });
   const payload = ticket.getPayload();
-  console.log(payload);
   return payload;
 }
 exports.android_verify = android_verify;
@@ -25,7 +24,6 @@ async function ios_verify (token) {
       audience: IOS_CLIENT_ID,
   });
   const payload = ticket.getPayload();
-  console.log(payload);
   return payload;
 }
 exports.ios_verify = ios_verify;

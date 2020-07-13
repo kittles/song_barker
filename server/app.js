@@ -16,11 +16,17 @@ var uuid_validate = require('uuid-validate');
 var handlebars = require('handlebars');
 var fs = require('fs');
 var facebook_app_token = require('../credentials/facebook_app_access_token.json').access_token;
+var email_config = require('../credentials/email.json');
 var { curly } = require('node-libcurl');
+var bcrypt = require('bcrypt');
+var generator = require('generate-password');
+var nodemailer = require('nodemailer');
+
 
 //
 // server config
 //
+
 
 var port = process.env.PORT || 3000;
 
@@ -29,6 +35,7 @@ app.use(express.json({
 }));
 app.set('json spaces', 2);
 app.use(morgan('combined')); // logging
+// TODO this is just for local dev, nginx should handle static on server
 app.use(express.static('./public'));
 // TODO no uploads needed
 app.use(fileUpload({
@@ -46,15 +53,20 @@ app.use(
     })
 );
 
+
 //
-// routes
+// greeting cards
 //
-// index
+
+
+// TODO  one of these needs to go i think?
+
+
 app.get('/card-flex', async (req, res) => {
     res.sendFile(path.join(__dirname + '/public/puppet/card-flex.html'));
 });
 
-// index
+
 app.get('/card/:uuid', async (req, res) => {
     // uuid gets a greeting_card object
     // greeting card is used to get necessary info to make a page
@@ -95,12 +107,33 @@ app.get('/card/:uuid', async (req, res) => {
     });
 });
 
-// index
+
+// TODO remove this
 app.get('/', (req, res) => {
     res.send(`sessionID: ${req.sessionID}, user_id: ${req.session.user_id}`);
 });
 
-// openid user creation
+
+//
+// oauth login stuff
+//
+
+
+app.get('/openid-home', (req, res) => {
+    res.send('Welcome to SongBarker!');
+});
+
+
+app.get('/openid-privacy', (req, res) => {
+    res.send('We share no information with anyone!');
+});
+
+
+app.get('/openid-tos', (req, res) => {
+    res.send('terms of service');
+});
+
+
 app.post('/openid-token/:platform', async (req, res) => {
     try {
         var payload;
@@ -208,6 +241,211 @@ app.post('/facebook-token', async (req, res) => {
     }
 });
 
+
+//
+// manual account stuff
+//
+
+
+app.post('/manual-login', async (req, res) => {
+    if (!req.body.email) {
+        res.json({
+            success: false,
+            error: 'missing email',
+        });
+        return;
+    }
+    if (!req.body.password) {
+        res.json({
+            success: false,
+            error: 'missing password',
+        });
+        return;
+    }
+    var user_obj = await user_sess.get_user(req.body.email);
+    if (!user_obj) {
+        res.json({
+            success: false,
+            error: 'no user found',
+        });
+        return;
+    }
+    console.log(req.body.password, user_obj.password);
+    var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
+
+    if (accept_password) {
+        req.session.user_id = req.body.email;
+        req.session.openid_platform = 'manual';
+        res.json({
+            success: true,
+            // some other shit
+        });
+    } else {
+        res.json({
+            success: false,
+            error: 'incorrect password',
+        });
+    }
+});
+
+
+app.post('/create-account', async (req, res) => {
+    // check that we have a email and password
+    if (!req.body.email) {
+        res.json({
+            success: false,
+            error: 'missing email',
+        });
+        return;
+    }
+    if (!req.body.password) {
+        res.json({
+            success: false,
+            error: 'missing password',
+        });
+        return;
+    }
+    if (! await email_available(req.body.email)) {
+        res.json({
+            success: false,
+            error: 'email is taken',
+        });
+        return;
+    }
+
+    var password = await hash_password(req.body.password);
+    const db = await _db.dbPromise;
+    var result = await db.run('insert into users (user_id, name, email, password) values (?, ?, ?, ?)',
+        req.body.email,
+        'Canine Friend',
+        req.body.email,
+        password,
+    );
+
+    req.session.user_id = req.body.email;
+    req.session.openid_platform = 'manual';
+    // login user
+    res.json({
+        success: true,
+        // some other shit
+    });
+});
+
+
+app.post('/change-password', async (req, res) => {
+    if (!req.body.old_password) {
+        res.json({
+            success: false,
+            error: 'missing old password',
+        });
+        return;
+    }
+    if (!req.body.new_password) {
+        res.json({
+            success: false,
+            error: 'missing new password',
+        });
+        return;
+    }
+    var user_obj = await user_sess.get_user(req.session.user_id);
+    if (!user_obj) {
+        res.json({
+            success: false,
+            error: 'no user found',
+        });
+        return;
+    }
+    var accept_password = await bcrypt.compare(req.body.old_password, user_obj.password);
+    if (accept_password) {
+        var password = await hash_password(req.body.new_password);
+        const db = await _db.dbPromise;
+        var result = await db.run('update users set password = ? where user_id = ?',
+            password,
+            user_obj.user_id
+        );
+        res.json({
+            success: true,
+            // some other shit
+        });
+    } else {
+        res.json({
+            success: false,
+            error: 'incorrect password',
+        });
+    }
+});
+
+
+app.post('/temp-password', async (req, res) => {
+    var user_obj = await user_sess.get_user(req.body.user_id);
+    if (!user_obj) {
+        res.json({
+            success: false,
+            error: 'no user found',
+        });
+        return;
+    }
+    // generate temp password
+    var temp_password = generator.generate({
+        length: 10,
+        numbers: true
+    });
+    var temp_hash_password = await hash_password(temp_password);
+    const db = await _db.dbPromise;
+    var result = await db.run('update users set password = ? where user_id = ?',
+        temp_hash_password,
+        user_obj.user_id
+    );
+
+    var transporter = nodemailer.createTransport({
+        host: email_config.GMAIL_SERVICE_HOST,
+        port: email_config.GMAIL_SERVICE_PORT,
+        secure: email_config.GMAIL_SERVICE_SECURE,
+        auth: {
+            user: email_config.GMAIL_USER_NAME,
+            pass: email_config.GMAIL_USER_PASSWORD,
+        },
+    });
+
+    await transporter.sendMail({
+        from: '"seattle city sellahs" <seattlecitysellers@gmail.com>', // sender address
+        to: user_obj.email,
+        subject: 'K9 Karaoke account recovery ✔', // Subject line
+        text: `please use this temporary password to log in to your account: ${temp_password}`,
+    });
+
+    res.json({
+        success: true,
+    });
+});
+
+
+app.get('/email-available/:email', async (req, res) => {
+    res.json({
+        email_available: await email_available(req.params.email),
+    });
+});
+
+
+async function email_available (email) {
+    // return true == email is available
+    const db = await _db.dbPromise;
+    var email_query = await db.get('select 1 from users where user_id = ?', email);
+    return !_.get(email_query, '1', false);
+}
+
+
+async function hash_password (password) {
+    var salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
+}
+
+
+//
+// account state management
+//
+
+
 // for checking if logged in
 app.get('/is-logged-in', async (req, res) => {
     var state = {
@@ -232,17 +470,6 @@ app.get('/logout', (req, res) => {
     res.json({ success: true });
 });
 
-// oauth consent screens
-app.get('/openid-home', (req, res) => {
-    res.send('Welcome to SongBarker!');
-});
-app.get('/openid-privacy', (req, res) => {
-    res.send('We share no information with anyone!');
-});
-app.get('/openid-tos', (req, res) => {
-    res.send('terms of service');
-});
-
 // puppet
 // nginx handles this
 //app.get('/puppet', (req, res) => {
@@ -262,10 +489,17 @@ app.get('/openid-tos', (req, res) => {
     });
 })();
 
+
 // model descriptions
+// TODO remove
 app.get('/describe', (req, res) => {
     res.json(models);
 });
+
+
+//
+// audio processing apis
+//
 
 // process raw audio into cropped pieces
 app.post('/to_crops', async function (req, res) {
@@ -335,6 +569,7 @@ app.post('/to_crops', async function (req, res) {
     });
 });
 
+
 // sequence audio into a song
 app.post('/to_sequence', async function (req, res) {
     // auth
@@ -401,6 +636,7 @@ app.post('/to_sequence', async function (req, res) {
         }
     });
 });
+
 
 //// for local dev with app
 //var fs = require('fs');
