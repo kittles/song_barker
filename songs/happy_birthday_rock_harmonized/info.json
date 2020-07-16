@@ -4,7 +4,8 @@
   "bpm": 160,
   "key": 0,
   "price": 1,
-  "name": "Rock",
-  "category": "harmonized",
-  "song_family": "Happy Birthday"
+  "name": "Happy Birthday",
+  "category": "Festive",
+  "style": "Rock",
+  "arrangement": "harmonized"
 }

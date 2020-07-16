@@ -1,10 +1,11 @@
 {
-    "id": 4,
-    "track_count": 3,
-    "bpm": 160,
-    "key": 0,
-    "price": 0.99,
-    "name": "Rock",
-    "category": "pitched",
-    "song_family": "Happy Birthday"
+  "id": 4,
+  "track_count": 3,
+  "bpm": 160,
+  "key": 0,
+  "price": 0.99,
+  "style": "Rock",
+  "arrangement": "pitched",
+  "name": "Happy Birthday",
+  "category": "Festive"
 }

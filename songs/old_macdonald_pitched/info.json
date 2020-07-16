@@ -5,6 +5,8 @@
   "key": 0,
   "price": 1,
   "name": "",
-  "category": "pitched",
-  "song_family": "Old Macdonald"
+  "style": "",
+  "category": "Kids",
+  "song_family": "Old Macdonald",
+  "arrangement": "pitched"
 }

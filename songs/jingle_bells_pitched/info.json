@@ -4,7 +4,8 @@
     "bpm": 103,
     "key": 0,
     "price": 0.99,
-    "name": "",
-    "category": "pitched",
-    "song_family": "Jingle Bells"
+    "style": "",
+    "category": "Festive",
+    "arrangement": "pitched",
+    "name": "Jingle Bells"
 }

@@ -4,7 +4,9 @@
   "bpm": 95,
   "key": 1,
   "price": 1,
-  "name": "",
+  "name": "Old Macdonald",
   "category": "harmonized",
-  "song_family": "Old Macdonald"
+  "style": "",
+  "arrangement": "harmonized"
+
 }

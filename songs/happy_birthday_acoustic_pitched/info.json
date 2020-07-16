@@ -1,10 +1,11 @@
 {
-    "id": 1,
-    "bpm": 120,
-    "category": "pitched",
-    "key": 0,
-    "name": "Acoustic",
-    "price": 0.99,
-    "song_family": "Happy Birthday",
-    "track_count": 3
+  "id": 1,
+  "bpm": 120,
+  "key": 0,
+  "price": 0.99,
+  "name": "Happy Birthday",
+  "category": "Festive",
+  "arrangment": "pitched",
+  "style": "Acoustic",
+  "track_count": 3
 }

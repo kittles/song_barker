@@ -4,7 +4,8 @@
     "bpm": 96,
     "key": 9,
     "price": 0.99,
-    "name": "",
-    "category": "pitched",
-    "song_family": "Star Spangled Banner"
+    "style": "",
+    "category": "National",
+    "name": "Star Spangled Banner",
+    "arrangement": "pitched"
 }

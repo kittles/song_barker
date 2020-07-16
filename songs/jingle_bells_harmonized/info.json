@@ -4,7 +4,8 @@
   "bpm": 103,
   "key": 0,
   "price": 1,
-  "name": "",
-  "category": "harmonized",
-  "song_family": "Jingle Bells"
+  "style": "",
+  "category": "Festive",
+  "arrangement": "harmonized",
+  "name": "Jingle Bells"
 }

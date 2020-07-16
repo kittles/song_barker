@@ -4,7 +4,8 @@
   "bpm": 96,
   "key": 9,
   "price": 1,
-  "name": "",
-  "category": "harmonized",
-  "song_family": "Star Spangled Banner"
+  "style": "",
+  "category": "National",
+  "name": "Star Spangled Banner",
+  "arrangement": "harmonized"
 }
