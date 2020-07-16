@@ -75,10 +75,14 @@ var face_animation_shader = {
         resolution:         { type: 'v2', value: new THREE.Vector2() },
         leftEyePosition:    { type: 'v2', value: new THREE.Vector2() },
         rightEyePosition:   { type: 'v2', value: new THREE.Vector2() },
+
         mouthPosition:      { type: 'v2', value: new THREE.Vector2() },
+        mouthLeft:          { type: 'v2', value: new THREE.Vector2() },
+        mouthRight:         { type: 'v2', value: new THREE.Vector2() },
+        mouthOpen:          { type: 'f', value: 0.0 },
+
         blinkLeft:          { type: 'f', value: 0.0 },
         blinkRight:         { type: 'f', value: 0.0 },
-        mouthOpen:          { type: 'f', value: 0.0 },
         aspectRatio:        { type: 'f', value: 1.0 },
         petImage:           { type: 't', value: new THREE.Texture() },
         // Head Sway
@@ -371,6 +375,15 @@ async function card_init () {
         init_audio();
         $('#content').css({animation: 'none'});
         $('.envelope-flap-piece').toggleClass('opened');
+        // remove clip path on content when its coming out of envelope
+        // do in a couple steps
+        setTimeout(() => {
+            $('#card-container').css('clip-path', 'polygon(0 0, 100% 0, 100% 60%, 0 60%)');
+        }, 500);
+        setTimeout(() => {
+            $('#card-container').css('clip-path', 'none');
+        }, 650);
+
         setTimeout(() => {
 
             // wait until now to resize card?
@@ -403,7 +416,7 @@ async function card_init () {
             }, 100);
             setTimeout(() => {
                 $('#card-container').css({
-                    transform: `translateX(-50%) translateY(-50%)`,
+                    transform: `translateX(-50%) translateY(-50%) scale(0.6)`,
                 });
             }, 750);
         }, 250);
@@ -765,10 +778,7 @@ function sync_objects_to_features () {
     face_mesh.rotation.set(0, 0, 0);
     face_mesh.rotateZ(rads);
 
-    rads =
-        Math.atan(mouthLine.y / mouthLine.x) * 0.5 +
-        Math.atan(eyeLine.y / eyeLine.x) * 0.5;
-    mouth_mesh.rotateY(-rads);
+    rads = Math.atan(mouthLine.y / mouthLine.x);
     mouth_mesh.rotation.y = -rads;
 
     // update the head ellipse
@@ -806,6 +816,8 @@ function update_shaders () {
     face_animation_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
     face_animation_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
     face_animation_shader.uniforms.mouthPosition.value = features.mouthPosition;
+    face_animation_shader.uniforms.mouthLeft.value = features.mouthLeft;
+    face_animation_shader.uniforms.mouthRight.value = features.mouthRight;
 
     mouth_shader.uniforms.animationNoise.value = animation_noise_texture;
     mouth_shader.uniforms.resolution.value.x = window.innerWidth;

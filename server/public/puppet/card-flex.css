@@ -1,5 +1,6 @@
 body {
-    background-color: #111;
+    background-image: url('/puppet/k9_create_background.svg');
+    background-size: contain;
     text-align: center;
     overflow: hidden;
     margin: 0;
@@ -128,22 +129,33 @@ body {
 }
 
 
+#k9-logo {
+    width: 20vw;
+    position: fixed;
+    top: 2vh;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
 /* card that comes out of the envelope */
 #card-container {
     position: fixed;
     margin: auto;
-    background-color: #21409A;
+    background-color: #DB8BA0;
     background-size: contain;
     width: calc(512px + 40px);
     height: calc(512px + 100px);
     text-align: center;
-    box-shadow: 0px 14px 20px 5px rgba(0, 0, 0, 0.76);
     top: 50%;
     left: 50%;
     transition: transform 0.5s;
     transform: translateX(-50%) translateY(-36%) scale(0.5);
     z-index: 2;
-    border-radius: 5px;
+    border-radius: 15px;
+    clip-path: polygon(0 0, 100% 0, 100% 40%, 0 40%);
+}
+.elevated {
+    box-shadow: 0px 14px 20px 5px rgba(0, 0, 0, 0.76);
 }
 #puppet-container {
     background: red;

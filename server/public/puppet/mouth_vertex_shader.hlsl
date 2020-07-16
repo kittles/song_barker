@@ -37,18 +37,20 @@ vec2 lerp(vec2 b, vec2 t, float s)
     return b + s * (t-b);
 }
 
-#define MOUTH_TO_FACE 1.0
-
 #define EYE_INFLUENCE 0.35
-#define MOUTH_INFLUENCE 0.6
+#define MOUTH_INFLUENCE 1.3
+#define MOUTH_OFFSET 0.3
+#define MOUTH_ANIMATION_SCALE 0.4
 
-vec3 GenerateInfluenceMasks(vec2 positionWS, vec2 blinkDir, float ipd)
+#define OPEN_BLEND_LIMIT 0.8
+
+vec3 GenerateInfluenceMasks(vec2 positionWS, vec2 blinkDir, vec2 mouthDir, float ipd, float mouthWidth)
 {
     float leftEyeInfluence = 0.0;
     float rightEyeInfluence = 0.0;
     float mouthInfluence =
-        1.0 - (clamp(distance(positionWS, mouthPosition + blinkDir * 0.3) /
-        (MOUTH_INFLUENCE * ipd), 0.0, 1.0));
+        1.0 - (clamp(distance(positionWS, mouthPosition + mouthDir * MOUTH_OFFSET) /
+        (MOUTH_INFLUENCE * mouthWidth), 0.0, 1.0));
 
     return vec3(leftEyeInfluence, rightEyeInfluence, mouthInfluence);
 }
@@ -100,83 +102,83 @@ vec2 AnimateHeadSway(vec2 positionOS, vec2 positionWS, float scale)
     return animatedPositionOS;
 }
 
-vec2 AnimatePositionOS(vec2 positionOS, vec2 positionWS, float blinkL, float blinkR, float talk)
+vec2 AnimatePositionOS(vec2 positionOS)
 {
-    vec2 animatedPositionOS = positionOS;
+	vec2 animatedPositionOS = positionOS;
 
-    vec2 worldPos = (modelMatrix * vec4(animatedPositionOS, 0.0, 0.0)).xy;
+	vec2 eyeLine = rightEyePosition - leftEyePosition;
+	float ipd = length(eyeLine);
+	vec2 blinkDir = vec2(eyeLine.y, -eyeLine.x);
 
-    vec2 mouthCornerLeft = mouthLeft;
-    vec2 mouthCornerRight = mouthRight;
-    SortMouthCorners(mouthCornerLeft, mouthCornerRight);
+	vec2 mouthCornerLeft = mouthLeft;
+	vec2 mouthCornerRight = mouthRight;
+	SortMouthCorners(mouthCornerLeft, mouthCornerRight);
 
-    float mouthMaskLeft = pow(clamp(-animatedPositionOS.x * 2.20, 0.0, 1.0), 1.5);
-    float mouthMaskRight = pow(clamp(animatedPositionOS.x * 2.20, 0.0, 1.0), 1.5);
+	vec2 mouthLine = mouthCornerRight - mouthCornerLeft;
+	float mouthWidth = length(mouthLine);
+	vec2 mouthDir = vec2(mouthLine.y, -mouthLine.x);
 
-    vec2 mouthLine = mouthCornerLeft - mouthCornerRight;
+	float sinTheta = -mouthLine.y / mouthWidth;
+	float theta = asin(sinTheta);
+	float cosTheta = cos(theta);
 
-    vec2 leftPointFlat = mouthPosition + mouthLine * 0.5;
-    vec2 rightPointFlat = mouthPosition - mouthLine * 0.5;
+    vec2 mouthLineNormalized = mouthLine / mouthWidth;
+    //gets the horizontal component of the vector from the mouth center to corner in mouth space
+    float mouthWidthLeft = RotateVector((mouthCornerLeft - mouthPosition), sinTheta, cosTheta).x;
+    float mouthWidthRight = RotateVector((mouthCornerRight - mouthPosition), sinTheta, cosTheta).x;
 
-    vec2 eyeLine = rightEyePosition - leftEyePosition;
-    float ipd = length(eyeLine);
-    vec2 blinkDir = vec2(eyeLine.y, -eyeLine.x);
+	vec2 leftPointFlat = mouthPosition + mouthLineNormalized * mouthWidthLeft;
+	vec2 rightPointFlat = mouthPosition + mouthLineNormalized * mouthWidthRight;
 
-    float mouthWidth = length(mouthCornerRight - mouthCornerLeft);
+    //assumes symmetrical mouth.  the approach used above should give closer values
+	//vec2 leftPointFlat = mouthPosition - mouthLine * 0.5;
+	//vec2 rightPointFlat = mouthPosition + mouthLine * 0.5;
 
-    //used to build a reverse rotation matrix to convert world vectors to local
-    float sinTheta = -eyeLine.y / ipd;
-    float theta = asin(sinTheta);
-    float cosTheta = cos(theta);
+	vec2 deltaLeftWS = mouthCornerLeft - leftPointFlat;
+	vec2 deltaRightWS = mouthCornerRight - rightPointFlat;
 
-    vec2 deltaLeftWS = mouthCornerLeft - leftPointFlat;
-    vec2 deltaRightWS = mouthCornerRight - rightPointFlat;
+	vec2 leftCornerOffset = RotateVector(deltaLeftWS, sinTheta, cosTheta) / mouthWidth;
+	vec2 rightCornerOffset = RotateVector(deltaRightWS, sinTheta, cosTheta) / mouthWidth;
 
-    vec2 leftCornerOffset = RotateVector(deltaLeftWS, sinTheta, cosTheta) / mouthWidth;
-    vec2 rightCornerOffset = RotateVector(deltaRightWS, sinTheta, cosTheta) / mouthWidth;
+	float mouthMaskLeft = pow(clamp(-positionOS.x * 2.20, 0.0, 1.0), 1.5);//TODO
+	float mouthMaskRight = pow(clamp(positionOS.x * 2.20, 0.0, 1.0), 1.5);//TODO
+	animatedPositionOS +=
+		leftCornerOffset * mouthMaskLeft +
+		rightCornerOffset * mouthMaskRight;
 
-    vec2 leftCornerOffsetAveraged = leftCornerOffset * 0.7 + rightCornerOffset * vec2(-0.3, 0.3);
-    vec2 rightCornerOffsetAveraged = rightCornerOffset * 0.7 + leftCornerOffset * vec2(-0.3, 0.3);
+	//blend to default shape around the bottom of the mouth.  Improves shape under extreme deformations
+	animatedPositionOS = lerp(animatedPositionOS, position.xz, mouthOpen * color.z * 0.5);
 
-    animatedPositionOS +=
-        leftCornerOffset * mouthMaskLeft +
-        rightCornerOffset * mouthMaskRight;
+	vec2 mouthDelta = vec2(0, mouthOpen * MOUTH_ANIMATION_SCALE);
+	vec2 mouthOffset = mouthDelta;
 
-    //blend to default shape around the bottom of the mouth.  Improves shape under extreme deformations
-    animatedPositionOS = lerp(animatedPositionOS, position.xz, mouthOpen * color.z * 0.5);
+	vec2 positionWS = (modelMatrix * vec4(animatedPositionOS.x, 0.0, animatedPositionOS.y, 1.0)).xy;
+	vec3 influenceMask = GenerateInfluenceMasks(positionWS, blinkDir, mouthDir, ipd, mouthWidth);
 
+	//animatedPositionOS.y *= 1.0 - (influenceMask.x * blinkL);
+	//animatedPositionOS.y *= 1.0 - (influenceMask.y * blinkR);
+	animatedPositionOS -= mouthOffset * influenceMask.z;
 
-    vec3 influenceMask = GenerateInfluenceMasks(positionWS, blinkDir, ipd);
+	float swayScale = ipd / mouthWidth;
 
-    animatedPositionOS.y *= 1.0 - (influenceMask.x * blinkL);
-    animatedPositionOS.y *= 1.0 - (influenceMask.y * blinkR);
-    animatedPositionOS.y -= (influenceMask.z * talk * ipd * 0.3) / mouthWidth;
-
-    float swayScale = ipd / mouthWidth;
-
-    animatedPositionOS = AnimateHeadSway(animatedPositionOS, positionWS, swayScale);
-    animatedPositionOS = DisplaceHead(animatedPositionOS, positionWS, swayScale);
-    return animatedPositionOS;
+	animatedPositionOS = AnimateHeadSway(animatedPositionOS, positionWS, swayScale);
+	animatedPositionOS = DisplaceHead(animatedPositionOS, positionWS, swayScale);
+	return animatedPositionOS;
 }
 
 void main()
 {
     debug = vec4(0.0,0.0,0.0,0.0);
-
-    //debug.xyz = color.xyz;
-
-    //alpha = (clamp(uv.x * 1.0, 0.0, 1.0) * clamp(mouthOpen * 16.0, 0.0, 1.0));
     alpha = (clamp(color.x * 1.0, 0.0, 1.0) * clamp(mouthOpen * 16.0, 0.0, 1.0));
-
-    float horizontalFalloff = clamp(sqr(abs(position.x * 2.0)), 0.0, 1.0);
 
     vec2 mouthClosedOS = vec2(uv.x - 0.5, (1.0 - uv.y) - 0.5);
 
-    vec2 animatedPositionOS = lerp(mouthClosedOS.xy, position.xz, mouthOpen);
+    vec2 animatedPositionOS = lerp(mouthClosedOS.xy, position.xz, mouthOpen * OPEN_BLEND_LIMIT);
+    //vec2 animatedPositionOS = position.xz;
 
     vec2 positionWS = (modelMatrix * vec4(animatedPositionOS.x, 0.0, animatedPositionOS.y, 1.0)).xy;
 
-    animatedPositionOS = AnimatePositionOS(animatedPositionOS, positionWS, 0.0, 0.0, mouthOpen);
+    animatedPositionOS = AnimatePositionOS(animatedPositionOS);
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(animatedPositionOS.x, position.y, animatedPositionOS.y, 1.0);
 }
