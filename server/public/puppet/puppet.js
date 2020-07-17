@@ -200,16 +200,6 @@ async function card_init () {
     }
 
 
-    function card_scale () {
-        var container_width = 512 + 40;
-        var container_height = 512 + 100;
-        var zoom_width = (window.innerWidth - 80) / container_width;
-        var zoom_height = (window.innerHeight - 80) / container_height;
-        var zoom = Math.min(zoom_width, zoom_height);
-        return zoom;
-    }
-
-
     // iOS webview sizing shim
     // TODO figure out why webviews dimensions come out undersized on ios
     iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -351,32 +341,105 @@ async function card_init () {
     animate();
     head_sway(head_sway_amplitude, head_sway_speed);
 
-    $('#decoration-image').attr('src', decoration_image_url);
-
-
     console.log('card init');
+    var content = $('#content');
+    var card_container = $('#card-container');
     var back_pieces = $('.envelope-back-piece');
     var flap = $('#envelope-flap');
     var flap_underside = $('#envelope-flap-underside');
+    var desktop_logo = $('#k9-logo-desktop');
+    var desktop_controls = $('#desktop-controls');
+    var desktop_app_links = $('#desktop-app-links');
+    var mobile_logo = $('#k9-logo');
+    var decoration_image = $('#decoration-image')
+    var mobile_bottom_controls = $('#mobile-bottom-controls');
+
+    function wide_mode () {
+        return (document.body.offsetWidth / document.body.offsetHeight) > 1.2;
+    }
+
+    // layout in the js for maxiumum job security
+    function layout_elements () {
+        var fade_duration = 500;
+        if (card_opened) {
+            if (wide_mode()) {
+                desktop_controls.fadeIn(fade_duration);
+                desktop_app_links.fadeIn(fade_duration);
+                mobile_bottom_controls.hide();
+                // position the controls and copy
+                // based on card dimensions
+                desktop_controls.css({
+                    left: (document.body.offsetWidth / 2) - (card_scale() * ((512 - 20) / 2)),
+                })
+                desktop_app_links.css({
+                    left: (document.body.offsetWidth / 2) + (card_scale() * ((512 + 10) / 2)),
+                })
+            } else {
+                desktop_controls.hide();
+                desktop_app_links.hide();
+                mobile_bottom_controls.fadeIn(fade_duration);
+            }
+        }
+        if (wide_mode()) {
+            desktop_logo.fadeIn(fade_duration);
+            mobile_logo.hide();
+        } else {
+            mobile_logo.fadeIn(fade_duration);
+            desktop_logo.hide();
+        }
+        content.css({
+            zoom: card_scale(),
+        });
+    }
+    layout_elements();
+    $(window).resize(_.debounce(layout_elements, 125, { trailing: true }));
+
+
+    function card_scale () {
+        var container_width = 512 + 40;
+        var container_height = 512 + 200;
+        var zoom_width = (window.innerWidth - 120) / container_width; // TODO why is this needed
+        var zoom_height = (window.innerHeight - 80) / container_height;
+        var zoom = Math.min(zoom_width, zoom_height);
+        var zoom = Math.max(zoom, 1);
+        console.log(window.innerWidth, zoom_width, zoom_height, zoom);
+        return wide_mode() ? zoom * 1.4 : zoom;
+    }
+
 
     // the pixel dimensions of the card
-    $('#content').css({
-        zoom: card_scale(),
-    });
     setTimeout(() => {
         $('#content').fadeIn({queue: false, duration: 300});
         $('#content').animate({top: '50%'}, 1300, 'easeOutElastic');
     }, 200);
 
+
+    // handle opening the envelope
     back_pieces.click(open_envelope);
     flap.click(open_envelope);
+    var card_opened = false;
 
     function open_envelope () {
+        card_opened = true;
+        setTimeout(layout_elements, 1800);
+        // this is probably where the extra ui elements should fade in...
+
+        // prepare for playback
+        // remove the envelope
+        // show the full card
+        // scale up the card
+
         init_audio();
+
+        // load the decoration image
+        decoration_image.attr('src', decoration_image_url);
+
         $('#content').css({animation: 'none'});
         $('.envelope-flap-piece').toggleClass('opened');
+
         // remove clip path on content when its coming out of envelope
-        // do in a couple steps
+        // do in a couple steps (i didnt have luck trying to transition this)
+        // this is so the card doesn't extend outside the envelope at any point
         setTimeout(() => {
             $('#card-container').css('clip-path', 'polygon(0 0, 100% 0, 100% 60%, 0 60%)');
         }, 500);
@@ -384,15 +447,8 @@ async function card_init () {
             $('#card-container').css('clip-path', 'none');
         }, 650);
 
+        // slide the envelope away, resize the card
         setTimeout(() => {
-
-            // wait until now to resize card?
-            $(window).resize(_.debounce(() => {
-                $('#content').css({
-                   zoom: card_scale(),
-                });
-
-            }, 125, {trailing: true}));
 
             //// after flap has flipped up, change z and transition for sliding behind card
             //flap_underside.css({
@@ -421,6 +477,14 @@ async function card_init () {
             }, 750);
         }, 250);
     }
+
+    // responsive sizing
+    // wait until now to resize card?
+    //$(window).resize(_.debounce(() => {
+    //    $('#content').css({
+    //       zoom: card_scale(),
+    //    });
+    //}, 125, {trailing: true}));
 }
 
 
@@ -606,6 +670,9 @@ async function init_audio () {
     var big_btn = $('#big-button-img');
     var replay_btn = $('#replay-control');
     var decoration_img = $('#decoration-image');
+    var play_img = '/puppet/icons/media controls play.svg';
+    var pause_img = '/puppet/icons/media controls pause.svg';
+    var replay_img = '/puppet/icons/rotate left.svg';
 
     audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${card.card_audio_id}.aac`;
     $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
@@ -622,21 +689,21 @@ async function init_audio () {
 
 
     function card_play () {
-        $('img', playback_btn).attr('src', '/puppet_002/pause.png');
+        $('img', playback_btn).attr('src', pause_img);
         play_audio();
         big_btn_container.fadeOut(250);
     }
 
 
     function card_pause () {
-        $('img', playback_btn).attr('src', '/puppet_002/play.png');
+        $('img', playback_btn).attr('src', play_img);
         pause_audio();
         big_btn_container.fadeIn(250);
     }
 
 
     function handle_click () {
-        big_btn.attr('src', '/puppet_002/play.png');
+        big_btn.attr('src', play_img);
         if (playing) {
             card_pause();
         } else {
@@ -648,7 +715,7 @@ async function init_audio () {
     replay_btn.click(() => {
         clearInterval(buffer_interval);
         audio_el.currentTime = 0;
-        $('img', playback_btn).attr('src', '/puppet_002/pause.png');
+        $('img', playback_btn).attr('src', pause_img);
         play_audio();
         big_btn_container.fadeOut(250);
     });
@@ -680,7 +747,7 @@ async function init_audio () {
 
     function handle_audio_end () {
         clearInterval(buffer_interval);
-        big_btn.attr('src', '/puppet_002/replay.png');
+        big_btn.attr('src', replay_img);
         big_btn_container.fadeIn(500);
         audio_el.currentTime = 0;
         playing = false;

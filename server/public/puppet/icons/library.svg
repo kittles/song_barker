@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="184" height="185" viewBox="0 0 184 185">
+  <g id="Group_281" data-name="Group 281" transform="translate(-113 -378)">
+    <rect id="Rectangle_4" data-name="Rectangle 4" width="184" height="185" rx="27" transform="translate(113 378)" fill="#20409a"/>
+    <text id="photo_library" data-name="photo library" transform="translate(206 410)" fill="#fffdfb" font-size="15" font-family="MuseoSansRounded-700, 'Museo Sans Rounded 700'" font-weight="700" letter-spacing="0.09em"><tspan x="-65.415" y="0">PHOTO LIBRARY</tspan></text>
+    <g id="Group_228" data-name="Group 228" transform="translate(3 -62)">
+      <g id="Rectangle_118" data-name="Rectangle 118" transform="translate(137 508)" fill="none" stroke="#fff" stroke-width="4">
+        <rect width="34" height="94" rx="9" stroke="none"/>
+        <rect x="2" y="2" width="30" height="90" rx="7" fill="none"/>
+      </g>
+      <g id="Rectangle_119" data-name="Rectangle 119" transform="translate(182 508)" fill="none" stroke="#fff" stroke-width="4">
+        <rect width="34" height="94" rx="9" stroke="none"/>
+        <rect x="2" y="2" width="30" height="90" rx="7" fill="none"/>
+      </g>
+      <g id="Rectangle_120" data-name="Rectangle 120" transform="translate(216.344 512.107) rotate(-11)" fill="none" stroke="#fff" stroke-width="4">
+        <rect width="34" height="94" rx="9" stroke="none"/>
+        <rect x="2" y="2" width="30" height="90" rx="7" fill="none"/>
+      </g>
+    </g>
+  </g>
+</svg>
