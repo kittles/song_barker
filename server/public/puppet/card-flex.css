@@ -20,8 +20,6 @@ body {
 }
 #content {
     position: fixed;
-    top: 20%;
-    left: 50%;
     display: none;
     transform: translateY(-50%) translateX(-50%);
     animation: wiggle 2s infinite;

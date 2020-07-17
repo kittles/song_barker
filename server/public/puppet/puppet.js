@@ -389,6 +389,7 @@ async function card_init () {
         }
         content.css({
             zoom: card_scale(),
+            left: (document.body.offsetWidth / 2) / card_scale(),
         });
     }
     layout_elements();

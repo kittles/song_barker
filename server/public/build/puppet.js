@@ -409,7 +409,8 @@ function _card_init() {
               }
 
               content.css({
-                zoom: card_scale()
+                zoom: card_scale(),
+                left: document.body.offsetWidth / 2 / card_scale()
               });
             };
 
