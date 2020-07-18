@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="184" height="184" viewBox="0 0 184 184">
+  <g id="Group_280" data-name="Group 280" transform="translate(-113 -170)">
+    <g id="Rectangle_4" data-name="Rectangle 4" transform="translate(113 170)" fill="#20409a" stroke="#20409a" stroke-width="4">
+      <rect width="184" height="184" rx="27" stroke="none"/>
+      <rect x="2" y="2" width="180" height="180" rx="25" fill="none"/>
+    </g>
+    <text id="Take_a_picture" data-name="Take a picture" transform="translate(206 333)" fill="#fff" font-size="15" font-family="MuseoSansRounded-700, 'Museo Sans Rounded 700'" font-weight="700" letter-spacing="0.09em"><tspan x="-65.783" y="0">TAKE A PICTURE</tspan></text>
+    <g id="Group_227" data-name="Group 227" transform="translate(-12.23 22.561)">
+      <g id="Union_1" data-name="Union 1" transform="translate(156.23 179.439)" fill="none">
+        <path d="M0,86V12.464H34.72V4a4,4,0,0,1,4-4h47.8a4,4,0,0,1,4,4v8.464H124V86Z" stroke="none"/>
+        <path d="M 120.0002059936523 81.99951171875 L 120.0002059936523 16.46409225463867 L 90.52020263671875 16.46409225463867 L 86.52020263671875 16.46409225463867 L 86.52020263671875 12.46409225463867 L 86.52000427246094 4.000014305114746 C 86.51990509033203 4.000013828277588 86.51980590820313 4.000011920928955 86.51970672607422 4.000011920928955 L 38.7202033996582 4.0002121925354 L 38.7202033996582 12.46409225463867 L 38.7202033996582 16.46409225463867 L 34.7202033996582 16.46409225463867 L 4.000002861022949 16.46409225463867 L 4.000002861022949 81.99951171875 L 120.0002059936523 81.99951171875 M 124.0002059936523 85.99951171875 L 2.996826196977054e-06 85.99951171875 L 2.996826196977054e-06 12.46409225463867 L 34.7202033996582 12.46409225463867 L 34.7202033996582 3.999592065811157 C 34.7202033996582 1.790992021560669 36.51120376586914 1.204467753268545e-05 38.71980285644531 1.204467753268545e-05 L 86.51970672607422 1.204467753268545e-05 C 88.72920227050781 1.204467753268545e-05 90.52020263671875 1.790992021560669 90.52020263671875 3.999592065811157 L 90.52020263671875 12.46409225463867 L 124.0002059936523 12.46409225463867 L 124.0002059936523 85.99951171875 Z" stroke="none" fill="#fff"/>
+      </g>
+      <g id="Ellipse_15" data-name="Ellipse 15" transform="translate(196.23 206.439)" fill="none" stroke="#fff" stroke-width="4">
+        <ellipse cx="22" cy="22.5" rx="22" ry="22.5" stroke="none"/>
+        <ellipse cx="22" cy="22.5" rx="20" ry="20.5" fill="none"/>
+      </g>
+      <g id="Rectangle_117" data-name="Rectangle 117" transform="translate(248.23 202.439)" fill="none" stroke="#fff" stroke-width="4">
+        <rect width="20" height="16" stroke="none"/>
+        <rect x="2" y="2" width="16" height="12" fill="none"/>
+      </g>
+    </g>
+  </g>
+</svg>

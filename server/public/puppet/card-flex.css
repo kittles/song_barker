@@ -1,17 +1,27 @@
+@font-face {
+    font-family: 'museo';
+    src: url('/puppet/MuseoSansRounded-700.woff2') format('woff2'),
+         url('puppet/MuseoSansRounded-700.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 body {
-    background-color: #111;
+    font-family: 'museo';
+    background-image: url('/puppet/k9_create_background.svg');
+    background-size: contain;
     text-align: center;
     overflow: hidden;
     margin: 0;
     padding: 0;
-    font-family: 'Arial', sans-serif;
     font-size: 12px;
+    color: #004692;
 }
 #content {
-    position: relative;
-    top: 20%;
+    position: fixed;
     display: none;
-    transform: translateY(-50%);
+    transform: translateY(-50%) translateX(-50%);
     animation: wiggle 2s infinite;
 }
 @keyframes wiggle {
@@ -127,23 +137,178 @@ body {
     z-index: 1;
 }
 
+#mobile-bottom-controls {
+    position: fixed;
+    left: 50%;
+    top: 90%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    display: none;
+}
+#mobile-replay-button {
+    margin-bottom: 30px;
+}
+#mobile-share-button {
+    width: 180px;
+    font-size: 2em;
+    margin: auto;
+    border: 2px solid #004692;
+    border-radius: 14px;
+    line-height: 40px;
+    letter-spacing: 1.4;
+    cursor: pointer;
+}
+#mobile-hr {
+    width: 80px;
+    border: 1px solid #004692;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+
+#k9-logo {
+    position: fixed;
+    top: 20px;
+    height: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+}
+#k9-logo-desktop {
+    position: fixed;
+    height: 80px;
+    top: 20px;
+    left: 20px;
+    display: none;
+}
+#card-message {
+    text-align: center;
+    width: 100%;
+    height: 160px;
+    font-size: 3.5em;
+    letter-spacing: 1.2;
+}
+#desktop-share-button {
+    width: 66%;
+    margin: auto;
+    border: 2px solid #004692;
+    border-radius: 14px;
+    line-height: 32px;
+    cursor: pointer;
+}
+#desktop-hr {
+    margin-top: 30px;
+    margin-bottom: 20px;
+    width: 40%;
+    border: 1px solid #004692;
+}
+#desktop-share-icons {
+    display: flex;
+    width: 80%;
+    margin: auto;
+    justify-content: space-evenly;
+}
+.desktop-share-icon {
+    flex: 1 1 0;
+}
+#desktop-playback-controls {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    margin: 40px auto auto auto;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    border-radius: 14px;
+    border: 2px solid #004692;
+    background: #004692;
+    height: 30vh;
+}
+.desktop-playback-control {
+    flex: 1 1 0;
+}
+.desktop-playback-control > img {
+    max-width: 75%;
+    max-height: 75%;
+}
+.desktop-playback-control-tall {
+    flex: 2 1 0;
+}
+.desktop-playback-control-tall input {
+    position: relative;
+    top: 40px;
+    transform: rotate(270deg);
+}
+
+#desktop-controls {
+    position: fixed;
+    width: 200px;
+    height: 400px;
+    top: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    text-align: center;
+    display: none;
+}
+#desktop-app-links {
+    position: fixed;
+    text-align: left;
+    width: 200px;
+    height: 400px;
+    top: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    display: none;
+}
+#app-tag-line {
+    font-size: 2.5em;
+    letter-spacing: 1.4;
+}
+#app-subhead {
+    margin-top: 10px;
+    font-size: 0.8em;
+    line-height: 1.6;
+}
+#app-logos {
+    margin-top: 20px;
+    display: flex;
+    text-align: center;
+}
+#app-logos > div {
+    flex: 1 1 0;
+}
+#app-logos img {
+    height: 50px;
+}
+#app-badges {
+    margin-top: 50px;
+    display: flex;
+    text-align: center;
+}
+.app-badge {
+    flex: 1 1 0;
+}
+.app-badge > img {
+    width: 90px;
+}
+
 
 /* card that comes out of the envelope */
 #card-container {
     position: fixed;
     margin: auto;
-    background-color: #21409A;
+    background-color: #DB8BA0;
     background-size: contain;
     width: calc(512px + 40px);
-    height: calc(512px + 100px);
+    height: calc(512px + 200px);
     text-align: center;
-    box-shadow: 0px 14px 20px 5px rgba(0, 0, 0, 0.76);
     top: 50%;
     left: 50%;
     transition: transform 0.5s;
-    transform: translateX(-50%) translateY(-36%) scale(0.5);
+    transform: translateX(-50%) translateY(-35%) scale(0.5);
     z-index: 2;
-    border-radius: 5px;
+    border-radius: 15px;
+    clip-path: polygon(0 0, 100% 0, 100% 40%, 0 40%);
+}
+.elevated {
+    box-shadow: 0px 14px 20px 5px rgba(0, 0, 0, 0.76);
 }
 #puppet-container {
     background: red;
@@ -154,7 +319,9 @@ body {
     display: inline-block;
 }
 #decoration-image {
+    /*
     box-shadow: inset 0px 0px 20px 1px #1e1e1e;
+    */
 }
 #big-button-container {
     position: absolute;
@@ -211,7 +378,23 @@ body {
 }
 
 
+#error {
+    position: fixed;
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    background: white;
+}
+#error-message {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+
+
 /* volume range slider */
+/*
 #progress {
     background: none;
     position: relative;
@@ -308,16 +491,98 @@ input[type=range]:focus::-ms-fill-lower {
 input[type=range]:focus::-ms-fill-upper {
   background: #605A5A;
 }
+*/
 
-#error {
-    position: fixed;
-    display: none;
-    width: 100vw;
-    height: 100vh;
-    background: white;
+
+/* white range slider */
+input[type=range] {
+  width: 100%;
+  margin: 5.5px 0;
+  background-color: transparent;
+  -webkit-appearance: none;
 }
-#error-message {
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
+input[type=range]:focus {
+  outline: none;
 }
+input[type=range]::-webkit-slider-runnable-track {
+  background: #ffffff;
+  border: 0.2px solid rgba(0, 0, 0, 0.3);
+  border-radius: 1.3px;
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  margin-top: -5.7px;
+  width: 15px;
+  height: 15px;
+  background: #ffffff;
+  border: 0;
+  border-radius: 50px;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #ffffff;
+}
+input[type=range]::-moz-range-track {
+  background: #ffffff;
+  border: 0.2px solid rgba(0, 0, 0, 0.3);
+  border-radius: 1.3px;
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #ffffff;
+  border: 0;
+  border-radius: 50px;
+  cursor: pointer;
+}
+input[type=range]::-ms-track {
+  background: transparent;
+  border-color: transparent;
+  border-width: 5.5px 0;
+  color: transparent;
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+input[type=range]::-ms-fill-lower {
+  background: #f2f2f2;
+  border: 0.2px solid rgba(0, 0, 0, 0.3);
+  border-radius: 2.6px;
+}
+input[type=range]::-ms-fill-upper {
+  background: #ffffff;
+  border: 0.2px solid rgba(0, 0, 0, 0.3);
+  border-radius: 2.6px;
+}
+input[type=range]::-ms-thumb {
+  width: 15px;
+  height: 15px;
+  background: #ffffff;
+  border: 0;
+  border-radius: 50px;
+  cursor: pointer;
+  margin-top: 0px;
+  /*Needed to keep the Edge thumb centred*/
+}
+input[type=range]:focus::-ms-fill-lower {
+  background: #ffffff;
+}
+input[type=range]:focus::-ms-fill-upper {
+  background: #ffffff;
+}
+/*TODO: Use one of the selectors from https://stackoverflow.com/a/20541859/7077589 and figure out
+how to remove the virtical space around the range input in IE*/
+@supports (-ms-ime-align:auto) {
+  /* Pre-Chromium Edge only styles, selector taken from hhttps://stackoverflow.com/a/32202953/7077589 */
+  input[type=range] {
+    margin: 0;
+    /*Edge starts the margin from the thumb, not the track as other browsers do*/
+  }
+}
+

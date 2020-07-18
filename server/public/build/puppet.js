@@ -94,15 +94,23 @@ var face_animation_shader = {
       type: 'v2',
       value: new THREE.Vector2()
     },
+    mouthLeft: {
+      type: 'v2',
+      value: new THREE.Vector2()
+    },
+    mouthRight: {
+      type: 'v2',
+      value: new THREE.Vector2()
+    },
+    mouthOpen: {
+      type: 'f',
+      value: 0.0
+    },
     blinkLeft: {
       type: 'f',
       value: 0.0
     },
     blinkRight: {
-      type: 'f',
-      value: 0.0
-    },
-    mouthOpen: {
       type: 'f',
       value: 0.0
     },
@@ -293,26 +301,38 @@ function card_init() {
 
 function _card_init() {
   _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var vh, card_scale, viewport_aspect, image_url, decoration_image_url, fts, back_pieces, flap, flap_underside, open_envelope;
+    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, wide_mode, layout_elements, card_scale, card_opened, open_envelope;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             open_envelope = function _open_envelope() {
-              init_audio();
+              card_opened = true;
+              setTimeout(layout_elements, 1800); // this is probably where the extra ui elements should fade in...
+              // prepare for playback
+              // remove the envelope
+              // show the full card
+              // scale up the card
+
+              init_audio(); // load the decoration image
+
+              decoration_image.attr('src', decoration_image_url);
               $('#content').css({
                 animation: 'none'
               });
-              $('.envelope-flap-piece').toggleClass('opened');
+              $('.envelope-flap-piece').toggleClass('opened'); // remove clip path on content when its coming out of envelope
+              // do in a couple steps (i didnt have luck trying to transition this)
+              // this is so the card doesn't extend outside the envelope at any point
+
               setTimeout(function () {
-                // wait until now to resize card?
-                $(window).resize(_.debounce(function () {
-                  $('#content').css({
-                    zoom: card_scale()
-                  });
-                }, 125, {
-                  trailing: true
-                })); //// after flap has flipped up, change z and transition for sliding behind card
+                $('#card-container').css('clip-path', 'polygon(0 0, 100% 0, 100% 60%, 0 60%)');
+              }, 500);
+              setTimeout(function () {
+                $('#card-container').css('clip-path', 'none');
+              }, 650); // slide the envelope away, resize the card
+
+              setTimeout(function () {
+                //// after flap has flipped up, change z and transition for sliding behind card
                 //flap_underside.css({
                 //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
                 //    zIndex: 1,
@@ -321,7 +341,6 @@ function _card_init() {
                 //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
                 //    zIndex: 1,
                 //});
-
                 setTimeout(function () {
                   var y_dist = vh() * 120;
                   var y_dist_flap = y_dist;
@@ -340,7 +359,7 @@ function _card_init() {
                 }, 100);
                 setTimeout(function () {
                   $('#card-container').css({
-                    transform: "translateX(-50%) translateY(-50%)"
+                    transform: "translateX(-50%) translateY(-50%) scale(0.6)"
                   });
                 }, 750);
               }, 250);
@@ -348,11 +367,55 @@ function _card_init() {
 
             card_scale = function _card_scale() {
               var container_width = 512 + 40;
-              var container_height = 512 + 100;
-              var zoom_width = (window.innerWidth - 80) / container_width;
+              var container_height = 512 + 200;
+              var zoom_width = (window.innerWidth - 120) / container_width; // TODO why is this needed
+
               var zoom_height = (window.innerHeight - 80) / container_height;
               var zoom = Math.min(zoom_width, zoom_height);
-              return zoom;
+              var zoom = Math.max(zoom, 1);
+              console.log(window.innerWidth, zoom_width, zoom_height, zoom);
+              return wide_mode() ? zoom * 1.4 : zoom;
+            };
+
+            layout_elements = function _layout_elements() {
+              var fade_duration = 500;
+
+              if (card_opened) {
+                if (wide_mode()) {
+                  desktop_controls.fadeIn(fade_duration);
+                  desktop_app_links.fadeIn(fade_duration);
+                  mobile_bottom_controls.hide(); // position the controls and copy
+                  // based on card dimensions
+
+                  desktop_controls.css({
+                    left: document.body.offsetWidth / 2 - card_scale() * ((512 - 20) / 2)
+                  });
+                  desktop_app_links.css({
+                    left: document.body.offsetWidth / 2 + card_scale() * ((512 + 10) / 2)
+                  });
+                } else {
+                  desktop_controls.hide();
+                  desktop_app_links.hide();
+                  mobile_bottom_controls.fadeIn(fade_duration);
+                }
+              }
+
+              if (wide_mode()) {
+                desktop_logo.fadeIn(fade_duration);
+                mobile_logo.hide();
+              } else {
+                mobile_logo.fadeIn(fade_duration);
+                desktop_logo.hide();
+              }
+
+              content.css({
+                zoom: card_scale(),
+                left: document.body.offsetWidth / 2 / card_scale()
+              });
+            };
+
+            wide_mode = function _wide_mode() {
+              return document.body.offsetWidth / document.body.offsetHeight > 1.2;
             };
 
             vh = function _vh() {
@@ -417,14 +480,14 @@ function _card_init() {
             //};
             //}
 
-            _context.next = 19;
+            _context.next = 21;
             return load_shader_files();
 
-          case 19:
-            _context.next = 21;
+          case 21:
+            _context.next = 23;
             return load_texture('noise_2D.png');
 
-          case 21:
+          case 23:
             animation_noise_texture = _context.sent;
             scene = new THREE.Scene();
             renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
@@ -448,10 +511,10 @@ function _card_init() {
             });
             face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
             face_mesh.renderOrder = 1;
-            _context.next = 36;
+            _context.next = 38;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
-          case 36:
+          case 38:
             mouth_gltf = _context.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
@@ -477,10 +540,10 @@ function _card_init() {
 
             image_url = "https://storage.googleapis.com/song_barker_sequences/images/".concat(card.image_id, ".jpg"); // set the pet image on the mesh and on the shader
 
-            _context.next = 49;
+            _context.next = 51;
             return load_texture(image_url);
 
-          case 49:
+          case 51:
             pet_image_texture = _context.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
@@ -497,15 +560,23 @@ function _card_init() {
             direct_render();
             animate();
             head_sway(head_sway_amplitude, head_sway_speed);
-            $('#decoration-image').attr('src', decoration_image_url);
             console.log('card init');
+            content = $('#content');
+            card_container = $('#card-container');
             back_pieces = $('.envelope-back-piece');
             flap = $('#envelope-flap');
-            flap_underside = $('#envelope-flap-underside'); // the pixel dimensions of the card
-
-            $('#content').css({
-              zoom: card_scale()
-            });
+            flap_underside = $('#envelope-flap-underside');
+            desktop_logo = $('#k9-logo-desktop');
+            desktop_controls = $('#desktop-controls');
+            desktop_app_links = $('#desktop-app-links');
+            mobile_logo = $('#k9-logo');
+            decoration_image = $('#decoration-image');
+            mobile_bottom_controls = $('#mobile-bottom-controls');
+            layout_elements();
+            $(window).resize(_.debounce(layout_elements, 125, {
+              trailing: true
+            }));
+            // the pixel dimensions of the card
             setTimeout(function () {
               $('#content').fadeIn({
                 queue: false,
@@ -514,11 +585,19 @@ function _card_init() {
               $('#content').animate({
                 top: '50%'
               }, 1300, 'easeOutElastic');
-            }, 200);
+            }, 200); // handle opening the envelope
+
             back_pieces.click(open_envelope);
             flap.click(open_envelope);
+            card_opened = false; // responsive sizing
+            // wait until now to resize card?
+            //$(window).resize(_.debounce(() => {
+            //    $('#content').css({
+            //       zoom: card_scale(),
+            //    });
+            //}, 125, {trailing: true}));
 
-          case 71:
+          case 82:
           case "end":
             return _context.stop();
         }
@@ -703,14 +782,14 @@ function init_audio() {
 
 function _init_audio() {
   _init_audio = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, replay_btn, decoration_img, card_play, card_pause, handle_click, play_audio, pause_audio, handle_audio_end;
+    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, replay_btn, decoration_img, play_img, pause_img, replay_img, card_play, card_pause, handle_click, play_audio, pause_audio, handle_audio_end;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
             handle_audio_end = function _handle_audio_end() {
               clearInterval(buffer_interval);
-              big_btn.attr('src', '/puppet_002/replay.png');
+              big_btn.attr('src', replay_img);
               big_btn_container.fadeIn(500);
               audio_el.currentTime = 0;
               playing = false;
@@ -739,7 +818,7 @@ function _init_audio() {
             };
 
             handle_click = function _handle_click() {
-              big_btn.attr('src', '/puppet_002/play.png');
+              big_btn.attr('src', play_img);
 
               if (playing) {
                 card_pause();
@@ -749,13 +828,13 @@ function _init_audio() {
             };
 
             card_pause = function _card_pause() {
-              $('img', playback_btn).attr('src', '/puppet_002/play.png');
+              $('img', playback_btn).attr('src', play_img);
               pause_audio();
               big_btn_container.fadeIn(250);
             };
 
             card_play = function _card_play() {
-              $('img', playback_btn).attr('src', '/puppet_002/pause.png');
+              $('img', playback_btn).attr('src', pause_img);
               play_audio();
               big_btn_container.fadeOut(250);
             };
@@ -766,6 +845,9 @@ function _init_audio() {
             big_btn = $('#big-button-img');
             replay_btn = $('#replay-control');
             decoration_img = $('#decoration-image');
+            play_img = '/puppet/icons/media controls play.svg';
+            pause_img = '/puppet/icons/media controls pause.svg';
+            replay_img = '/puppet/icons/rotate left.svg';
             audio_url = "https://storage.googleapis.com/k9karaoke_cards/card_audios/".concat(card.card_audio_id, ".aac");
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
             audio_el = document.querySelector('audio');
@@ -781,12 +863,12 @@ function _init_audio() {
             replay_btn.click(function () {
               clearInterval(buffer_interval);
               audio_el.currentTime = 0;
-              $('img', playback_btn).attr('src', '/puppet_002/pause.png');
+              $('img', playback_btn).attr('src', pause_img);
               play_audio();
               big_btn_container.fadeOut(250);
             });
 
-          case 21:
+          case 24:
           case "end":
             return _context3.stop();
         }
@@ -916,8 +998,7 @@ function sync_objects_to_features() {
   var rads = Math.atan(eyeLine.y / eyeLine.x);
   face_mesh.rotation.set(0, 0, 0);
   face_mesh.rotateZ(rads);
-  rads = Math.atan(mouthLine.y / mouthLine.x) * 0.5 + Math.atan(eyeLine.y / eyeLine.x) * 0.5;
-  mouth_mesh.rotateY(-rads);
+  rads = Math.atan(mouthLine.y / mouthLine.x);
   mouth_mesh.rotation.y = -rads; // update the head ellipse
 
   var top = new THREE.Vector2(features.headTop.x, features.headTop.y);
@@ -947,6 +1028,8 @@ function update_shaders() {
   face_animation_shader.uniforms.leftEyePosition.value = features.leftEyePosition;
   face_animation_shader.uniforms.rightEyePosition.value = features.rightEyePosition;
   face_animation_shader.uniforms.mouthPosition.value = features.mouthPosition;
+  face_animation_shader.uniforms.mouthLeft.value = features.mouthLeft;
+  face_animation_shader.uniforms.mouthRight.value = features.mouthRight;
   mouth_shader.uniforms.animationNoise.value = animation_noise_texture;
   mouth_shader.uniforms.resolution.value.x = window.innerWidth;
   mouth_shader.uniforms.resolution.value.y = window.innerHeight;
