@@ -222,6 +222,11 @@ exports.models = [
                     type: 'integer default 0',
                     desc: 'set to 1 if this is a default image that comes with account creation',
                 },
+                {
+                    name: 'mouth_color',
+                    type: 'text',
+                    desc: 'a string representation of the mouth color',
+                },
             ],
         },
     },
@@ -505,7 +510,7 @@ exports.models = [
                 {
                     name: 'mouth_color',
                     type: 'text',
-                    desc: 'a string representation of the mouth color',
+                    desc: 'deprecated',
                 },
                 {
                     name: 'recipient_name',
