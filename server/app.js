@@ -21,6 +21,7 @@ var { curly } = require('node-libcurl');
 var bcrypt = require('bcrypt');
 var generator = require('generate-password');
 var nodemailer = require('nodemailer');
+var validator = require('email-validator');
 
 
 //
@@ -134,6 +135,15 @@ app.get('/openid-tos', (req, res) => {
 });
 
 
+function add_stock_objects_to_user (user_id) {
+    var python_env_script = `${__dirname}/../audio_processing/.env/bin/activate`;
+    var add_stock_script = `${__dirname}/../stock_assets/add_stock_objects_to_user.py`;
+    var app_credentials = ' export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json"';
+    var cmd = `source ${python_env_script} && ${app_credentials} &&  python ${add_stock_script} --user-id "${user_id}"`;
+    exec(cmd, { shell: '/bin/bash' }, () => { console.log(`finished adding stock objects for ${user_id}`); });
+}
+
+
 app.post('/openid-token/:platform', async (req, res) => {
     try {
         var payload;
@@ -154,6 +164,8 @@ app.post('/openid-token/:platform', async (req, res) => {
             await user_sess.add_user(payload.email, payload.name, payload.email);
             // should verify that db insert worked
             req.session.user_id = payload.email;
+            // subprocess to add stock objects
+            add_stock_objects_to_user(payload.email)
         }
         req.session.openid_platform = 'google';
         return res.json({ success: true, err: null, payload: payload });
@@ -231,6 +243,8 @@ app.post('/facebook-token', async (req, res) => {
             console.log('create new user');
             await user_sess.add_user(payload.email, payload.name, payload.email);
             // should verify that db insert worked
+            // subprocess to add stock objects
+            add_stock_objects_to_user(payload.email)
             req.session.user_id = payload.email;
         }
         req.session.openid_platform = 'facebook';
@@ -291,6 +305,7 @@ app.post('/manual-login', async (req, res) => {
 });
 
 
+// TODO sanitize email
 app.post('/create-account', async (req, res) => {
     // check that we have a email and password
     if (!req.body.email) {
@@ -304,6 +319,13 @@ app.post('/create-account', async (req, res) => {
         res.json({
             success: false,
             error: 'missing password',
+        });
+        return;
+    }
+    if (!validator.validate(req.body.email)) {
+        res.json({
+            success: false,
+            error: 'invalid email',
         });
         return;
     }
@@ -326,6 +348,9 @@ app.post('/create-account', async (req, res) => {
 
     req.session.user_id = req.body.email;
     req.session.openid_platform = 'manual';
+    // subprocess to add stock objects
+    add_stock_objects_to_user(req.body.email)
+
     // login user
     res.json({
         success: true,

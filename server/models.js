@@ -284,6 +284,11 @@ exports.models = [
                     type: 'integer DEFAULT CURRENT_TIMESTAMP',
                     desc: 'when this object was created',
                 },
+                {
+                    name: 'is_stock',
+                    type: 'integer default 0',
+                    desc: 'set to 1 if this is a default bark that comes with account creation',
+                },
             ],
         },
     },
