@@ -79,6 +79,11 @@ exports.models = [
                     type: 'integer default 0',
                     desc: 'set to 1 if the user has "deleted" this object',
                 },
+                {
+                    name: 'is_stock',
+                    type: 'integer default 0',
+                    desc: 'set to 1 if this is a default bark that comes with account creation',
+                },
             ],
         },
     },
@@ -138,7 +143,17 @@ exports.models = [
                 {
                     name: 'song_family',
                     type: 'text',
-                    desc: 'the phylum of the song, like a version of happy birthday say',
+                    desc: 'deprecated',
+                },
+                {
+                    name: 'arrangement',
+                    type: 'text',
+                    desc: 'the arrangment',
+                },
+                {
+                    name: 'style',
+                    type: 'text',
+                    desc: 'the style',
                 },
                 {
                     name: 'backing_track',
@@ -201,6 +216,11 @@ exports.models = [
                     name: 'created',
                     type: 'integer DEFAULT CURRENT_TIMESTAMP',
                     desc: 'when this object was created',
+                },
+                {
+                    name: 'is_stock',
+                    type: 'integer default 0',
+                    desc: 'set to 1 if this is a default image that comes with account creation',
                 },
             ],
         },

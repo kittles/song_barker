@@ -37,9 +37,6 @@ for song_dir in song_dirs:
     if not isinstance(info['category'], str):
         print('---- ERROR: category not a string')
 
-    if not isinstance(info['song_family'], str):
-        print('---- ERROR: song_family not a string')
-
     backing_track_fps = glob.glob(os.path.join(song_dir, '*.aac'))
     print(len(backing_track_fps))
     print('\n'.join(sorted(backing_track_fps)))
@@ -52,10 +49,6 @@ print('\n'.join(sorted([
 print('\ncategory:')
 print('\n'.join(sorted([
     '   - ' + i['category'] for i in infos
-])))
-print('\nsong_family:')
-print('\n'.join(sorted([
-    '   - ' + i['song_family'] for i in infos
 ])))
 print('\nid:')
 print('\n'.join(sorted([
