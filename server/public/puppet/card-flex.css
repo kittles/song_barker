@@ -225,10 +225,15 @@ body {
 }
 .desktop-playback-control {
     flex: 1 1 0;
+    text-align: center;
 }
 .desktop-playback-control > img {
-    max-width: 75%;
-    max-height: 75%;
+    position: relative;
+    margin: 0px auto;
+    max-width: 30%;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
 }
 .desktop-playback-control-tall {
     flex: 2 1 0;

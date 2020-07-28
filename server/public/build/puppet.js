@@ -782,7 +782,7 @@ function init_audio() {
 
 function _init_audio() {
   _init_audio = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, replay_btn, decoration_img, play_img, pause_img, replay_img, card_play, card_pause, handle_click, play_audio, pause_audio, handle_audio_end;
+    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, replay_btn, decoration_img, play_img, pause_img, replay_img, desktop_volume_slider, desktop_replay, desktop_play, card_play, card_pause, handle_click, handle_replay, play_audio, pause_audio, handle_audio_end;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -817,6 +817,14 @@ function _init_audio() {
               playing = true;
             };
 
+            handle_replay = function _handle_replay() {
+              clearInterval(buffer_interval);
+              audio_el.currentTime = 0;
+              $('img', playback_btn).attr('src', pause_img);
+              play_audio();
+              big_btn_container.fadeOut(250);
+            };
+
             handle_click = function _handle_click() {
               big_btn.attr('src', play_img);
 
@@ -848,27 +856,40 @@ function _init_audio() {
             play_img = '/puppet/icons/media controls play.svg';
             pause_img = '/puppet/icons/media controls pause.svg';
             replay_img = '/puppet/icons/rotate left.svg';
+            desktop_volume_slider = $('#desktop-volume-slider');
+            desktop_replay = $('#desktop-replay');
+            desktop_play = $('#desktop-play');
             audio_url = "https://storage.googleapis.com/k9karaoke_cards/card_audios/".concat(card.card_audio_id, ".aac");
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
             audio_el = document.querySelector('audio');
             audio_el.addEventListener('ended', handle_audio_end, {
               once: true
             });
-            $('#progress').on('input', function () {
-              audio_el.volume = $('#progress').val() / 100;
+            $('#desktop-volume-slider').on('input', function () {
+              audio_el.volume = $('#desktop-volume-slider').val() / 100;
+            });
+            $('#desktop-volume-icon').on('click', function () {
+              if (desktop_volume_slider.val() > 0) {
+                desktop_volume_slider.val(0);
+              } else {
+                desktop_volume_slider.val(100);
+              }
+
+              audio_el.volume = $('#desktop-volume-slider').val() / 100;
             });
             playback_btn.click(handle_click);
             big_btn_container.click(handle_click);
             decoration_img.click(handle_click);
-            replay_btn.click(function () {
-              clearInterval(buffer_interval);
-              audio_el.currentTime = 0;
-              $('img', playback_btn).attr('src', pause_img);
-              play_audio();
-              big_btn_container.fadeOut(250);
+            desktop_play.click(function () {
+              if (playing) {// do nothing
+              } else {
+                card_play();
+              }
             });
+            replay_btn.click(handle_replay);
+            desktop_replay.click(handle_replay);
 
-          case 24:
+          case 31:
           case "end":
             return _context3.stop();
         }

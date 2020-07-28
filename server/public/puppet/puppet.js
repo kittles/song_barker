@@ -674,19 +674,38 @@ async function init_audio () {
     var play_img = '/puppet/icons/media controls play.svg';
     var pause_img = '/puppet/icons/media controls pause.svg';
     var replay_img = '/puppet/icons/rotate left.svg';
+    var desktop_volume_slider = $('#desktop-volume-slider');
+    var desktop_replay = $('#desktop-replay');
+    var desktop_play = $('#desktop-play');
 
     audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${card.card_audio_id}.aac`;
     $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
     audio_el = document.querySelector('audio');
     audio_el.addEventListener('ended', handle_audio_end, { once: true });
 
-    $('#progress').on('input', () => {
-        audio_el.volume = $('#progress').val() / 100;
+    $('#desktop-volume-slider').on('input', () => {
+        audio_el.volume = $('#desktop-volume-slider').val() / 100;
+    });
+
+    $('#desktop-volume-icon').on('click', () => {
+        if (desktop_volume_slider.val() > 0) {
+            desktop_volume_slider.val(0);
+        } else {
+            desktop_volume_slider.val(100);
+        }
+        audio_el.volume = $('#desktop-volume-slider').val() / 100;
     });
 
     playback_btn.click(handle_click);
     big_btn_container.click(handle_click);
     decoration_img.click(handle_click);
+    desktop_play.click(() => {
+        if (playing) {
+            // do nothing
+        } else {
+            card_play();
+        }
+    });
 
 
     function card_play () {
@@ -713,13 +732,16 @@ async function init_audio () {
     }
 
 
-    replay_btn.click(() => {
+    replay_btn.click(handle_replay);
+    desktop_replay.click(handle_replay);
+
+    function handle_replay () {
         clearInterval(buffer_interval);
         audio_el.currentTime = 0;
         $('img', playback_btn).attr('src', pause_img);
         play_audio();
         big_btn_container.fadeOut(250);
-    });
+    }
 
 
     function play_audio () {
