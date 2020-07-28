@@ -25,11 +25,11 @@ crop_bucket_base = 'stock_assets/crops'
 
 print('\n images \n')
 for img_dir in glob.glob(os.path.join(images_dir, '*/')):
+    print('----')
+    print('image_dir:', img_dir)
     # TODO handle other image extensions
     img_fp = glob.glob(os.path.join(img_dir, '*.jpg'))[0]
     info_fp = glob.glob(os.path.join(img_dir, 'info.json'))[0]
-    print('----')
-    print('image_dir:', img_dir)
     print('image_fp :', img_fp)
     print('info_fp  :', info_fp)
     info = json.load(open(info_fp))
