@@ -89,11 +89,11 @@ if __name__ == '__main__':
         info['uuid'] = new_uuid
         info['coordinates_json'] = json.dumps(info['coordinates_json'])
         info['mouth_color'] = json.dumps(info['mouth_color'])
-        info['bucket_url'] = os.path.join('gs://song_barker_sequences', new_blob)
-        info['bucket_fp'] = new_blob
+        info['bucket_url'] = os.path.join('gs://song_barker_sequences', old_blob)
+        info['bucket_fp'] = old_blob
         info['user_id'] = args.user_id
         info['is_stock'] = 1
-        copy_blob(old_blob, new_blob)
+        #copy_blob(old_blob, new_blob)
         db_insert('images', **info)
 
 
@@ -108,9 +108,9 @@ if __name__ == '__main__':
         old_blob = os.path.join(crop_bucket_base, info['uuid'] + '.jpg')
         new_blob = os.path.join('crops', new_uuid + '.jpg')
         info['uuid'] = new_uuid
-        info['bucket_url'] = os.path.join('gs://song_barker_sequences', new_blob)
-        info['bucket_fp'] = new_blob
+        info['bucket_url'] = os.path.join('gs://song_barker_sequences', old_blob)
+        info['bucket_fp'] = old_blob
         info['user_id'] = args.user_id
         info['is_stock'] = 1
-        copy_blob(old_blob, new_blob)
+        #copy_blob(old_blob, new_blob)
         db_insert('crops', **info)
