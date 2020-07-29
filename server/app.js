@@ -99,10 +99,12 @@ app.get('/card/:uuid', async (req, res) => {
             uuid: req.params.uuid,
             card_audio_id: card.card_audio_id,
             image_id: card.image_id,
+            image_bucket_fp: image.bucket_fp,
             image_coordinates_json: image.coordinates_json,
             decoration_image_id: card.decoration_image_id,
             animation_json: card.animation_json,
             name: card.name,
+            recipient_name: card.recipient_name,
         });
         res.send(html);
     });

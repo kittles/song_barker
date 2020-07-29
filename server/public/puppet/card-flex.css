@@ -71,6 +71,7 @@ body {
 }
 #envelope-flap {
     position: fixed;
+    line-height: 500%;
     height: 112.5px;
     width: 300px;
     z-index: 5;

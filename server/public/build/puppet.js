@@ -538,7 +538,7 @@ function _card_init() {
             container.appendChild(renderer.domElement);
             renderer.setSize(render_pixels, render_pixels); //$(renderer.domElement).css('zoom', zoom_factor);
 
-            image_url = "https://storage.googleapis.com/song_barker_sequences/images/".concat(card.image_id, ".jpg"); // set the pet image on the mesh and on the shader
+            image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.image_bucket_fp); // set the pet image on the mesh and on the shader
 
             _context.next = 51;
             return load_texture(image_url);

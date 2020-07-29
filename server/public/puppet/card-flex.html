@@ -19,10 +19,16 @@
             window.greeting_card.uuid='{{uuid}}';
             window.greeting_card.card_audio_id='{{card_audio_id}}';
             window.greeting_card.image_id='{{image_id}}';
+            window.greeting_card.image_bucket_fp='{{image_bucket_fp}}';
             window.greeting_card.decoration_image_id='{{decoration_image_id}}';
             window.greeting_card.animation_json=JSON.parse('{{{animation_json}}}');
             window.greeting_card.image_coordinates_json=JSON.parse('{{{image_coordinates_json}}}');
             window.greeting_card.name='{{name}}';
+            window.greeting_card.recipient_name='{{recipient_name}}';
+
+            if (!window.greeting_card.image_bucket_fp) {
+                window.greeting_card.image_bucket_fp = `images/${window.greeting_card.image_id}.jpg`;
+            }
         } catch (error) {
             $(document).ready(() => {
                 $('#error-message').text(`problem with greeting_card values: ${error}`);
@@ -32,12 +38,12 @@
     </script>
     <meta property="og:title" content="K9 Karaoke Card">
     <meta property="og:description" content="Someone's pet has a message for you">
-    <meta property="og:image" content="https://storage.googleapis.com/song_barker_sequences/images/{{image_id}}.jpg">
+    <meta property="og:image" content="https://storage.googleapis.com/song_barker_sequences/{{image_bucket_fp}}">
     <meta property="og:url" content="https://thedogbarksthesong.ml/card/{{uuid}}">
 
     <meta name="twitter:title" content="K9 Karaoke Card">
     <meta name="twitter:description" content="Someone's pet has a message for you">
-    <meta name="twitter:image" content="https://storage.googleapis.com/song_barker_sequences/images/{{image_id}}.jpg">
+    <meta name="twitter:image" content="https://storage.googleapis.com/song_barker_sequences/{{image_bucket_fp}}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="viewport" content="width=device-width">
 </head>
@@ -118,7 +124,7 @@
         <div id="envelope-below" class="envelope-back-piece"></div>
         -->
         <div id="envelope-flap-underside" class="envelope-flap-piece"></div>
-        <div id="envelope-flap" class="envelope-flap-piece"></div>
+        <div id="envelope-flap" class="envelope-flap-piece">To: {{recipient_name}}</div>
     </div>
     <div id="mobile-bottom-controls">
         <div id="mobile-replay-button">

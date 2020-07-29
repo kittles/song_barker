@@ -318,7 +318,7 @@ async function card_init () {
     container.appendChild(renderer.domElement);
     renderer.setSize(render_pixels, render_pixels);
     //$(renderer.domElement).css('zoom', zoom_factor);
-    var image_url = `https://storage.googleapis.com/song_barker_sequences/images/${card.image_id}.jpg`;
+    var image_url = `https://storage.googleapis.com/song_barker_sequences/${card.image_bucket_fp}`;
 
     // set the pet image on the mesh and on the shader
     pet_image_texture = await load_texture(image_url);
