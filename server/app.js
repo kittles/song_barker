@@ -22,6 +22,7 @@ var bcrypt = require('bcrypt');
 var generator = require('generate-password');
 var nodemailer = require('nodemailer');
 var validator = require('email-validator');
+var uuidv4 = require('uuid').v4;
 
 
 //
@@ -286,7 +287,13 @@ app.post('/manual-login', async (req, res) => {
         });
         return;
     }
-    console.log(req.body.password, user_obj.password);
+    if (_.get(user_obj, 'pending_confirmation') === 1) {
+        res.json({
+            success: false,
+            error: 'uncofirmed account',
+        });
+        return;
+    }
     var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
 
     if (accept_password) {
@@ -307,7 +314,6 @@ app.post('/manual-login', async (req, res) => {
 });
 
 
-// TODO sanitize email
 app.post('/create-account', async (req, res) => {
     // check that we have a email and password
     if (!req.body.email) {
@@ -331,35 +337,105 @@ app.post('/create-account', async (req, res) => {
         });
         return;
     }
+
     if (! await email_available(req.body.email)) {
-        res.json({
-            success: false,
-            error: 'email is taken',
-        });
-        return;
+        // TODO handle unconfirmed accounts with same email
+        // TODO handle email pword combo thats already an account
+        var user_obj = await user_sess.get_user(req.body.email);
+
+        // if there is an account, but its pending confirmation
+        if (user_obj.pending_confirmation) {
+            res.json({
+                success: false,
+                error: 'account already exists, but email hasnt been confirmed',
+            });
+            return;
+        }
+
+        // if there is a confirmed account, try to log in with the password
+        var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
+        if (accept_password) {
+            req.session.user_id = req.body.email;
+            req.session.openid_platform = 'manual';
+            res.json({
+                success: true,
+                payload: {
+                    email: req.body.email,
+                },
+            });
+            return;
+        } else {
+            res.json({
+                success: false,
+                error: 'account already exists, but incorrect password',
+            });
+            return;
+        }
     }
 
+    var email_confirmation_string = uuidv4();
     var password = await hash_password(req.body.password);
     const db = await _db.dbPromise;
-    var result = await db.run('insert into users (user_id, name, email, password) values (?, ?, ?, ?)',
+    // create an account that is pending confirmation
+    var result = await db.run('insert into users (user_id, name, email, password, email_confirmation_string, pending_confirmation) values (?, ?, ?, ?, ?, ?)',
         req.body.email,
         'Canine Friend',
         req.body.email,
         password,
+        email_confirmation_string,
+        1,
     );
 
-    req.session.user_id = req.body.email;
-    req.session.openid_platform = 'manual';
-    // subprocess to add stock objects
-    add_stock_objects_to_user(req.body.email)
+    var transporter = nodemailer.createTransport({
+        host: email_config.GMAIL_SERVICE_HOST,
+        port: email_config.GMAIL_SERVICE_PORT,
+        secure: email_config.GMAIL_SERVICE_SECURE,
+        auth: {
+            user: email_config.GMAIL_USER_NAME,
+            pass: email_config.GMAIL_USER_PASSWORD,
+        },
+    });
 
-    // login user
+
+    var email_confirmation_url = `https://thedogbarksthesong.ml/confirm/${email_confirmation_string}`;
+    await transporter.sendMail({
+        from: '"seattle city sellahs" <seattlecitysellers@gmail.com>', // sender address
+        to: req.body.email,
+        subject: 'K9 Karaoke email confirmation ✔', // Subject line
+        text: `Follow this link to confirm your email address: ${email_confirmation_url}`,
+    });
+
     res.json({
         success: true,
         payload: {
             email: req.body.email,
         },
     });
+});
+
+
+app.get('/confirm/:uuid', async (req, res) => {
+    if (!uuid_validate(req.params.uuid)) {
+        res.status(400).send('invalid confirmation string');
+        return;
+    }
+
+    const db = await _db.dbPromise;
+    var result = await db.get('select user_id, email from users where email_confirmation_string = ? and pending_confirmation = 1',
+       req.params.uuid,
+    );
+    if (!_.get(result, 'user_id')) {
+        res.status(400).send('no account for this confirmation string');
+        return;
+    }
+
+    var update_query = await db.run('update users set pending_confirmation = 0 where user_id = ?',
+        result.user_id,
+    );
+    // subprocess to add stock objects
+    add_stock_objects_to_user(result.user_id)
+
+    res.send('K9 Karaoke has confirmed your email address, go to the app to log in!');
 });
 
 

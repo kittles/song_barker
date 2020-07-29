@@ -33,6 +33,16 @@ exports.models = [
                     type: 'integer default 0',
                     desc: 'whether the account is active',
                 },
+                {
+                    name: 'email_confirmation_string',
+                    type: 'text',
+                    desc: 'random string used to confirm an email',
+                },
+                {
+                    name: 'pending_confirmation',
+                    type: 'integer default 0',
+                    desc: 'whether the account is waiting to be confirmed via email (this is for when users sign up manually)',
+                },
             ],
         },
     },
