@@ -84,4 +84,5 @@ if __name__ == '__main__':
             print('uploaded', remote_backing_fp)
 
         db_insert('songs', **song_info)
+        print('added to db:', song_dir)
         print('done')
