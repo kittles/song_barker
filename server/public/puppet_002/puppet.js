@@ -811,9 +811,29 @@ function right_blink_slow () { // eslint-disable-line no-unused-vars
 }
 
 
-// this is the one for having the mouth move along to a sound
+// what the app uses to move the mouth along to the sound
+var mouth_track_interval;
+
+
 function mouth_track_sound (amplitudes) { // eslint-disable-line no-unused-vars
+    // starts animating when called
+    clearInterval(mouth_track_interval);
+    feature_tickers.mouth.cancel();
+    var start_time = performance.now();
     feature_tickers.mouth.add(amplitudes);
+
+    mouth_track_interval = setInterval(() => {
+        // add the upcoming 250 ms of mouth animations based on current playback
+        var start_idx = Math.floor(((performance.now() - start_time) / 1000) * 60);
+        feature_tickers.mouth.cancel();
+        // add a little extra the interval gets delayed
+        var to_add = amplitudes.slice(start_idx, start_idx + 60)
+        if (to_add.length < 1) {
+            clearInterval(mouth_track_interval);
+        } else {
+            feature_tickers.mouth.add(to_add);
+        }
+    }, 250);
 }
 
 
@@ -1003,6 +1023,7 @@ function stop_all_animations (stop_head_sway) {
     eyebrow_left(0);
     eyebrow_right(0);
     mouth_open(0);
+    clearInterval(mouth_track_interval);
 }
 
 

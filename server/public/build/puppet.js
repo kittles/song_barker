@@ -1242,12 +1242,30 @@ function right_blink_slow() {
   setTimeout(function () {
     right_blink_to_pos(1, 0, 25, easings.easeInOutQuad);
   });
-} // this is the one for having the mouth move along to a sound
+}
 
+var mouth_track_interval;
 
 function mouth_track_sound(amplitudes) {
   // eslint-disable-line no-unused-vars
+  // starts animating when called
+  clearInterval(mouth_track_interval);
+  feature_tickers.mouth.cancel();
+  var start_time = performance.now();
   feature_tickers.mouth.add(amplitudes);
+  mouth_track_interval = setInterval(function () {
+    // add the upcoming 250 ms of mouth animations based on current playback
+    var start_idx = Math.floor((performance.now() - start_time) / 1000 * 60);
+    feature_tickers.mouth.cancel(); // add a little extra the interval gets delayed
+
+    var to_add = amplitudes.slice(start_idx, start_idx + 60);
+
+    if (to_add.length < 1) {
+      clearInterval(mouth_track_interval);
+    } else {
+      feature_tickers.mouth.add(to_add);
+    }
+  }, 250);
 }
 
 function head_displace(x, y) {
@@ -1433,6 +1451,7 @@ function stop_all_animations(stop_head_sway) {
   eyebrow_left(0);
   eyebrow_right(0);
   mouth_open(0);
+  clearInterval(mouth_track_interval);
 } // this is a constructor that makes the ticker objects for each
 // feature above
 
