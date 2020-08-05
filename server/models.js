@@ -299,6 +299,11 @@ exports.models = [
                     type: 'integer default 0',
                     desc: 'set to 1 if this is a default bark that comes with account creation',
                 },
+                {
+                    name: 'duration_seconds',
+                    type: 'real default 0',
+                    desc: 'the length of the crop',
+                },
             ],
         },
     },

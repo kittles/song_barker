@@ -50,7 +50,7 @@ app.use(
         resave: true,
         saveUninitialized: true,
         cookie: {
-            maxAge: 1000 * 60 * 60 * 24 * 30,
+            maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
         }
     })
 );
@@ -139,6 +139,8 @@ app.get('/openid-tos', (req, res) => {
 
 
 function add_stock_objects_to_user (user_id) {
+    // when new accounts are created, this runs a python script that will add
+    // db entries for stock objects for the new user
     var python_env_script = `${__dirname}/../audio_processing/.env/bin/activate`;
     var add_stock_script = `${__dirname}/../stock_assets/add_stock_objects_to_user.py`;
     var app_credentials = ' export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json"';
@@ -176,6 +178,7 @@ app.post('/openid-token/:platform', async (req, res) => {
         return res.json({ success: false, err: err, payload: null });
     }
 });
+
 
 // facebook user creation
 app.post('/facebook-token', async (req, res) => {
@@ -339,8 +342,6 @@ app.post('/create-account', async (req, res) => {
     }
 
     if (! await email_available(req.body.email)) {
-        // TODO handle unconfirmed accounts with same email
-        // TODO handle email pword combo thats already an account
         var user_obj = await user_sess.get_user(req.body.email);
 
         // if there is an account, but its pending confirmation
@@ -395,7 +396,6 @@ app.post('/create-account', async (req, res) => {
             pass: email_config.GMAIL_USER_PASSWORD,
         },
     });
-
 
     var email_confirmation_url = `https://thedogbarksthesong.ml/confirm/${email_confirmation_string}`;
     await transporter.sendMail({

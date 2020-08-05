@@ -56,7 +56,7 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         sp.call(split_cmd.format(**split_args), shell=True)
 
         # log initial split count
-        result = sp.run('ls {} | wc -l'.format(os.path.join(tmp_dir, 'crop_*.wav')), 
+        result = sp.run('ls {} | wc -l'.format(os.path.join(tmp_dir, 'crop_*.wav')),
                 stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True, shell=True)
         log(raw_uuid, 'initial split count {}'.format(
             result.stdout
@@ -72,7 +72,10 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                 if debug:
                     print('crop avg', avg)
                 if avg > THRESHOLD:
-                    good_crops.append(crop_fp)
+                    good_crops.append({
+                        'crop_fp': crop_fp,
+                        'crop_duration': len(data) / samplerate,
+                    })
             except:
                 if debug:
                     print('couldnt get crop avg')
@@ -81,7 +84,7 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         ))
         if debug:
             for crop in good_crops:
-                sp.call('play {}'.format(crop), shell=True)
+                sp.call('play {}'.format(crop['crop_fp']), shell=True)
                 keep_going = input()
                 if keep_going != 'q':
                     continue
@@ -91,7 +94,9 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         crop_info = dbq.get_crop_defaults(user_id, image_id)
 
         # upload good crops and log in db
-        for crop_fp_wav in good_crops:
+        for good_crop in good_crops:
+            crop_fp_wav = good_crop['crop_fp']
+            crop_duration = good_crop['crop_duration']
             if debug:
                 print(crop_fp_wav)
             crop_info['crop_count'] += 1
@@ -116,12 +121,13 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
             row = dbq.db_insert('crops', **{
                 'uuid': str(crop_uuid),
                 'raw_id': raw_uuid,
-                'user_id': user_id, 
+                'user_id': user_id,
                 'name': auto_name,
                 'bucket_url': bucket_url,
                 'bucket_fp': bucket_fp,
                 'stream_url': None,
                 'hidden': 0,
+                'duration_seconds': crop_duration,
             })
             if debug:
                 import pprint
