@@ -399,9 +399,9 @@ app.post('/create-account', async (req, res) => {
 
     var email_confirmation_url = `https://thedogbarksthesong.ml/confirm/${email_confirmation_string}`;
     await transporter.sendMail({
-        from: '"seattle city sellahs" <seattlecitysellers@gmail.com>', // sender address
+        from: '"K-9 Bot" <no-reply@turboblasterunlimited.com>', // sender address
         to: req.body.email,
-        subject: 'K9 Karaoke email confirmation ✔', // Subject line
+        subject: 'K-9 Karaoke email confirmation ✔', // Subject line
         text: `Follow this link to confirm your email address: ${email_confirmation_url}`,
     });
 
