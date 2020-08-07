@@ -80,12 +80,9 @@ if __name__ == '__main__':
         img_fp = glob.glob(os.path.join(img_dir, '*.jpg'))[0]
         info_fp = glob.glob(os.path.join(img_dir, 'info.json'))[0]
         info = json.load(open(info_fp))
-        # sadly need to copy the object on the bucket so uuid unique constraint isnt a problem
-        # use the info uuid to get the stock asset path
-        # make a new uuid for the user object
+        # new uuid, but use existing bucket_fp and bucket_url
         new_uuid = str(uuid.uuid4())
         old_blob = os.path.join(image_bucket_base, info['uuid'] + '.jpg')
-        new_blob = os.path.join('images', new_uuid + '.jpg')
         info['uuid'] = new_uuid
         info['coordinates_json'] = json.dumps(info['coordinates_json'])
         info['mouth_color'] = json.dumps(info['mouth_color'])
@@ -93,7 +90,6 @@ if __name__ == '__main__':
         info['bucket_fp'] = old_blob
         info['user_id'] = args.user_id
         info['is_stock'] = 1
-        #copy_blob(old_blob, new_blob)
         db_insert('images', **info)
 
 
@@ -101,16 +97,12 @@ if __name__ == '__main__':
         crop_fp = glob.glob(os.path.join(crop_dir, '*.aac'))[0]
         info_fp = glob.glob(os.path.join(crop_dir, 'info.json'))[0]
         info = json.load(open(info_fp))
-        # sadly need to copy the object on the bucket so uuid unique constraint isnt a problem
-        # use the info uuid to get the stock asset path
-        # make a new uuid for the user object
+        # new uuid, but use existing bucket_fp and bucket_url
         new_uuid = str(uuid.uuid4())
         old_blob = os.path.join(crop_bucket_base, info['uuid'] + '.jpg')
-        new_blob = os.path.join('crops', new_uuid + '.jpg')
         info['uuid'] = new_uuid
         info['bucket_url'] = os.path.join('gs://song_barker_sequences', old_blob)
         info['bucket_fp'] = old_blob
         info['user_id'] = args.user_id
         info['is_stock'] = 1
-        #copy_blob(old_blob, new_blob)
         db_insert('crops', **info)

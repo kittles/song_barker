@@ -304,6 +304,11 @@ exports.models = [
                     type: 'real default 0',
                     desc: 'the length of the crop',
                 },
+                {
+                    name: 'crop_type',
+                    type: 'text',
+                    desc: 'something like "bark", "soundfx" etc...',
+                },
             ],
         },
     },

@@ -571,11 +571,37 @@ app.get('/is-logged-in', async (req, res) => {
     res.json(state);
 });
 
+
 // disassociate user id from session
 app.get('/logout', (req, res) => {
     delete req.session.user_id;
     res.json({ success: true });
 });
+
+
+function handle_delete_account (user_id) {
+    // when new accounts are created, this runs a python script that will add
+    // db entries for stock objects for the new user
+    var python_env_script = `${__dirname}/../audio_processing/.env/bin/activate`;
+    var add_stock_script = `${__dirname}/../audio_processing/delete_account.py`;
+    var app_credentials = ' export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json"';
+    var cmd = `source ${python_env_script} && ${app_credentials} &&  python ${add_stock_script} --user-id "${user_id}"`;
+    exec(cmd, { shell: '/bin/bash' }, () => { console.log(`deleted ${user_id}`); });
+}
+
+
+// delete account and all associated stuff
+app.post('/delete-account', async function (req, res) {
+    // auth
+    if (!req.session.user_id) {
+        res.status(401).send('you must be logged in');
+        return;
+    }
+    handle_delete_account(req.session.user_id);
+    delete req.session.user_id;
+    res.json({ success: true });
+});
+
 
 // puppet
 // nginx handles this
