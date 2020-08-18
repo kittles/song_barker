@@ -17,15 +17,15 @@
         try {
             window.greeting_card = {};
             window.greeting_card.uuid='{{uuid}}';
-            window.greeting_card.card_audio_id='{{card_audio_id}}';
-            window.greeting_card.image_id='{{image_id}}';
+            window.greeting_card.card_audio_bucket_fp='{{card_audio_bucket_fp}}';
             window.greeting_card.image_bucket_fp='{{image_bucket_fp}}';
-            window.greeting_card.decoration_image_id='{{decoration_image_id}}';
+            window.greeting_card.decoration_image_bucket_fp='{{decoration_image_bucket_fp}}';
             window.greeting_card.animation_json=JSON.parse('{{{animation_json}}}');
             window.greeting_card.image_coordinates_json=JSON.parse('{{{image_coordinates_json}}}');
             window.greeting_card.name='{{name}}';
             window.greeting_card.recipient_name='{{recipient_name}}';
 
+            // TODO remember why this is here...
             if (!window.greeting_card.image_bucket_fp) {
                 window.greeting_card.image_bucket_fp = `images/${window.greeting_card.image_id}.jpg`;
             }

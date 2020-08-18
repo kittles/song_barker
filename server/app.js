@@ -94,16 +94,30 @@ app.get('/card/:uuid', async (req, res) => {
         res.status(400).send('unable to find image for card');
         return;
     }
+    // get decoration image bucket fp
+    var decoration_image = await db.get('select * from decoration_images where uuid = ?', card.decoration_image_id);
+    if (_.isUndefined(decoration_image)) {
+        res.status(400).send('unable to find decoration image for card');
+        return;
+    }
+    // card audio bucket fp
+    var card_audio = await db.get('select * from card_audios where uuid = ?', card.card_audio_id);
+    if (_.isUndefined(card_audio)) {
+        res.status(400).send('unable to find card audio');
+        return;
+    }
     fs.readFile('public/puppet/card-flex.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
         var html = template({
             uuid: req.params.uuid,
-            card_audio_id: card.card_audio_id,
-            image_id: card.image_id,
+            // asset bucket fps
+            card_audio_bucket_fp: card_audio.bucket_fp,
             image_bucket_fp: image.bucket_fp,
+            decoration_image_bucket_fp: decoration_image.bucket_fp,
+            // animation
             image_coordinates_json: image.coordinates_json,
-            decoration_image_id: card.decoration_image_id,
             animation_json: card.animation_json,
+            // card text
             name: card.name,
             recipient_name: card.recipient_name,
         });

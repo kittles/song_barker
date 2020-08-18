@@ -229,8 +229,8 @@ async function card_init () {
     var viewport_aspect = 1;
     zoom_factor = Math.min(window_width, window_height) / render_pixels;
 
-    var image_url = `https://storage.googleapis.com/song_barker_sequences/images/${card.image_id}.jpg`;
-    var decoration_image_url = `https://storage.googleapis.com/k9karaoke_cards/decoration_images/${card.decoration_image_id}.png`;
+    var image_url =            `https://storage.googleapis.com/song_barker_sequences/${card.image_bucket_fp}`;
+    var decoration_image_url = `https://storage.googleapis.com/song_barker_sequences/${card.decoration_image_bucket_fp}`;
     var fts = card.image_coordinates_json;
     features = {
         leftEyePosition: fts.leftEye,
@@ -318,7 +318,6 @@ async function card_init () {
     container.appendChild(renderer.domElement);
     renderer.setSize(render_pixels, render_pixels);
     //$(renderer.domElement).css('zoom', zoom_factor);
-    var image_url = `https://storage.googleapis.com/song_barker_sequences/${card.image_bucket_fp}`;
 
     // set the pet image on the mesh and on the shader
     pet_image_texture = await load_texture(image_url);
@@ -678,7 +677,8 @@ async function init_audio () {
     var desktop_replay = $('#desktop-replay');
     var desktop_play = $('#desktop-play');
 
-    audio_url = `https://storage.googleapis.com/k9karaoke_cards/card_audios/${card.card_audio_id}.aac`;
+    audio_url = `https://storage.googleapis.com/song_barker_sequences/${card.card_audio_bucket_fp}`;
+    // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
     $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
     audio_el = document.querySelector('audio');
     audio_el.addEventListener('ended', handle_audio_end, { once: true });

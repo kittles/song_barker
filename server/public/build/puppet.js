@@ -443,8 +443,8 @@ function _card_init() {
 
             viewport_aspect = 1;
             zoom_factor = Math.min(window_width, window_height) / render_pixels;
-            image_url = "https://storage.googleapis.com/song_barker_sequences/images/".concat(card.image_id, ".jpg");
-            decoration_image_url = "https://storage.googleapis.com/k9karaoke_cards/decoration_images/".concat(card.decoration_image_id, ".png");
+            image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.image_bucket_fp);
+            decoration_image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.decoration_image_bucket_fp);
             fts = card.image_coordinates_json;
             features = {
               leftEyePosition: fts.leftEye,
@@ -537,13 +537,12 @@ function _card_init() {
             renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
             container.appendChild(renderer.domElement);
             renderer.setSize(render_pixels, render_pixels); //$(renderer.domElement).css('zoom', zoom_factor);
+            // set the pet image on the mesh and on the shader
 
-            image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.image_bucket_fp); // set the pet image on the mesh and on the shader
-
-            _context.next = 51;
+            _context.next = 50;
             return load_texture(image_url);
 
-          case 51:
+          case 50:
             pet_image_texture = _context.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
@@ -597,7 +596,7 @@ function _card_init() {
             //    });
             //}, 125, {trailing: true}));
 
-          case 82:
+          case 81:
           case "end":
             return _context.stop();
         }
@@ -859,7 +858,8 @@ function _init_audio() {
             desktop_volume_slider = $('#desktop-volume-slider');
             desktop_replay = $('#desktop-replay');
             desktop_play = $('#desktop-play');
-            audio_url = "https://storage.googleapis.com/k9karaoke_cards/card_audios/".concat(card.card_audio_id, ".aac");
+            audio_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
+
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
             audio_el = document.querySelector('audio');
             audio_el.addEventListener('ended', handle_audio_end, {
