@@ -1,17 +1,5 @@
 "use strict";
 
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -301,7 +289,7 @@ function card_init() {
 
 function _card_init() {
   _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, wide_mode, layout_elements, card_scale, card_opened, open_envelope;
+    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, prep_card_for_display, wide_mode, fade_flex, layout_elements, card_maximize_scale, card_screen_width, card_top, card_scale, open_envelope;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -314,9 +302,7 @@ function _card_init() {
               // show the full card
               // scale up the card
 
-              init_audio(); // load the decoration image
-
-              decoration_image.attr('src', decoration_image_url);
+              init_audio();
               $('#content').css({
                 animation: 'none'
               });
@@ -359,39 +345,55 @@ function _card_init() {
                 }, 100);
                 setTimeout(function () {
                   $('#card-container').css({
-                    transform: "translateX(-50%) translateY(-50%) scale(0.6)"
+                    transform: "translateX(-50%) translateY(-45%) scale(".concat(card_maximize_scale, ")")
                   });
                 }, 750);
               }, 250);
             };
 
             card_scale = function _card_scale() {
-              var container_width = 512 + 40;
-              var container_height = 512 + 200;
-              var zoom_width = (window.innerWidth - 120) / container_width; // TODO why is this needed
-
-              var zoom_height = (window.innerHeight - 80) / container_height;
+              var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
+              var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
               var zoom = Math.min(zoom_width, zoom_height);
-              var zoom = Math.max(zoom, 1);
-              console.log(window.innerWidth, zoom_width, zoom_height, zoom);
-              return wide_mode() ? zoom * 1.4 : zoom;
+              zoom *= 0.9; //var zoom = Math.max(zoom, 1);
+
+              console.log(wide_mode() ? zoom * 1 : zoom);
+              return wide_mode() ? zoom * 1 : zoom;
+            };
+
+            card_top = function _card_top() {
+              return card_container.position().top * card_scale();
+            };
+
+            card_screen_width = function _card_screen_width() {
+              // assuming card is open
+              return card_width() * card_scale() * card_maximize_scale;
             };
 
             layout_elements = function _layout_elements() {
               var fade_duration = 500;
+              content.css({
+                zoom: card_scale(),
+                left: document.body.offsetWidth / 2 / card_scale()
+              });
 
               if (card_opened) {
                 if (wide_mode()) {
-                  desktop_controls.fadeIn(fade_duration);
+                  fade_flex(desktop_controls, fade_duration);
                   desktop_app_links.fadeIn(fade_duration);
                   mobile_bottom_controls.hide(); // position the controls and copy
-                  // based on card dimensions
+                  // based on the left and right edges of the card
 
                   desktop_controls.css({
-                    left: document.body.offsetWidth / 2 - card_scale() * ((512 - 20) / 2)
+                    left: -170 + (window.innerWidth - card_screen_width()) / 2,
+                    //top: card_top(),
+                    height: Math.min(500, window.innerHeight * 0.6),
+                    width: Math.min(140, window.innerHeight * 0.6 * 0.5)
                   });
                   desktop_app_links.css({
-                    left: document.body.offsetWidth / 2 + card_scale() * ((512 + 10) / 2)
+                    left: 30 + (window.innerWidth + card_screen_width()) / 2 //height: window.innerHeight * 0.6,
+                    //top: card_top(),
+
                   });
                 } else {
                   desktop_controls.hide();
@@ -407,15 +409,104 @@ function _card_init() {
                 mobile_logo.fadeIn(fade_duration);
                 desktop_logo.hide();
               }
+            };
 
-              content.css({
-                zoom: card_scale(),
-                left: document.body.offsetWidth / 2 / card_scale()
-              });
+            fade_flex = function _fade_flex(jq_el, fade_duration) {
+              jq_el.css('display', 'flex').hide().fadeIn(fade_duration);
             };
 
             wide_mode = function _wide_mode() {
               return document.body.offsetWidth / document.body.offsetHeight > 1.2;
+            };
+
+            prep_card_for_display = function _prep_card_for_displa() {
+              if (img_for_dimensions.width === 656) {
+                // 512 x 512 image with 72px frame
+                console.log('decoration image with frame'); //decoration_image.css({
+                //    top: -72,
+                //    left: 20 - 72,
+                //});
+                // need to shrink the puppet so the overall
+                // card size is the same
+
+                card_has_frame = true;
+              } else {
+                card_has_frame = false;
+              }
+
+              decoration_image.attr('src', decoration_image_url);
+              set_card_dimensions(); // size everything
+
+              layout_elements();
+              $(window).resize(_.debounce(layout_elements, 125, {
+                trailing: true
+              })); // handle opening the envelope
+
+              back_pieces.click(open_envelope);
+              flap.click(open_envelope); // queue up the card coming in to view
+
+              setTimeout(function () {
+                $('#content').fadeIn({
+                  queue: false,
+                  duration: 300
+                });
+                $('#content').animate({
+                  top: '50%'
+                }, 1300, 'easeOutElastic');
+              }, 200);
+            };
+
+            set_card_dimensions = function _set_card_dimensions() {
+              card_container.css({
+                width: card_width(),
+                height: card_height(),
+                top: 0,
+                left: 0
+              });
+              big_button_container.css({
+                width: card_square_side(),
+                height: card_square_side(),
+                top: 0,
+                left: 0
+              });
+              puppet_container.css({
+                width: card_square_side(),
+                height: card_square_side(),
+                top: 0,
+                left: 0
+              });
+              $('#puppet-container > canvas ').css({
+                width: card_square_side(),
+                height: card_square_side()
+              });
+
+              if (card_has_frame) {
+                decoration_image.css({
+                  width: card_square_side(),
+                  height: 1 / frame_aspect_ratio * card_square_side(),
+                  top: 0,
+                  left: 0
+                });
+              } else {
+                decoration_image.css({
+                  width: 512,
+                  height: 512,
+                  top: 0,
+                  left: 0
+                });
+              }
+            };
+
+            card_square_side = function _card_square_side() {
+              return card_has_frame ? 512 - 72 : 512;
+            };
+
+            card_height = function _card_height() {
+              return card_has_frame ? 512 * (1 / frame_aspect_ratio) : 512;
+            };
+
+            card_width = function _card_width() {
+              return card_has_frame ? 512 - 72 : 512;
             };
 
             vh = function _vh() {
@@ -480,14 +571,14 @@ function _card_init() {
             //};
             //}
 
-            _context.next = 21;
+            _context.next = 29;
             return load_shader_files();
 
-          case 21:
-            _context.next = 23;
+          case 29:
+            _context.next = 31;
             return load_texture('noise_2D.png');
 
-          case 23:
+          case 31:
             animation_noise_texture = _context.sent;
             scene = new THREE.Scene();
             renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
@@ -511,10 +602,10 @@ function _card_init() {
             });
             face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
             face_mesh.renderOrder = 1;
-            _context.next = 38;
+            _context.next = 46;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
-          case 38:
+          case 46:
             mouth_gltf = _context.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
@@ -539,10 +630,10 @@ function _card_init() {
             renderer.setSize(render_pixels, render_pixels); //$(renderer.domElement).css('zoom', zoom_factor);
             // set the pet image on the mesh and on the shader
 
-            _context.next = 50;
+            _context.next = 58;
             return load_texture(image_url);
 
-          case 50:
+          case 58:
             pet_image_texture = _context.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
@@ -559,7 +650,8 @@ function _card_init() {
             direct_render();
             animate();
             head_sway(head_sway_amplitude, head_sway_speed);
-            console.log('card init');
+            console.log('card init'); // jquery handles on dom elements
+
             content = $('#content');
             card_container = $('#card-container');
             back_pieces = $('.envelope-back-piece');
@@ -571,32 +663,25 @@ function _card_init() {
             mobile_logo = $('#k9-logo');
             decoration_image = $('#decoration-image');
             mobile_bottom_controls = $('#mobile-bottom-controls');
-            layout_elements();
-            $(window).resize(_.debounce(layout_elements, 125, {
-              trailing: true
-            }));
-            // the pixel dimensions of the card
-            setTimeout(function () {
-              $('#content').fadeIn({
-                queue: false,
-                duration: 300
-              });
-              $('#content').animate({
-                top: '50%'
-              }, 1300, 'easeOutElastic');
-            }, 200); // handle opening the envelope
+            big_button_container = $('#big-button-container');
+            puppet_container = $('#puppet-container');
+            card_opened = false;
+            frame_aspect_ratio = 656 / 787; // decoration images can include a 72 pixel a side frame
+            // load the decoration image here to see if its framed or not
 
-            back_pieces.click(open_envelope);
-            flap.click(open_envelope);
-            card_opened = false; // responsive sizing
-            // wait until now to resize card?
-            //$(window).resize(_.debounce(() => {
-            //    $('#content').css({
-            //       zoom: card_scale(),
-            //    });
-            //}, 125, {trailing: true}));
+            img_for_dimensions = new Image();
+            img_for_dimensions.onload = prep_card_for_display; // this will trigger the rest of the init sequence
 
-          case 81:
+            img_for_dimensions.src = decoration_image_url; // the total width of the card should be 512 px
+            // so when there is a frame, the puppet and other elements
+            // need to be a bit smaller to maintain the overall 512 px wide
+            // footprint
+
+            ;
+            window.layout_elements = layout_elements;
+            card_maximize_scale = 0.8;
+
+          case 93:
           case "end":
             return _context.stop();
         }
@@ -1428,7 +1513,13 @@ var keep_n = 60 * 10;
 function frame_render_times(time_ms) {
   if (_render_times.length === keep_n) {
     // log summary stats
-    log("\n            frame render ms summary (last ".concat(keep_n, " frames):\n                MIN: ").concat(Math.min.apply(Math, _toConsumableArray(_render_times)).toFixed(2), " ms\n                AVG: ").concat(math.mean(_render_times).toFixed(2), " ms\n                MAX: ").concat(Math.max.apply(Math, _toConsumableArray(_render_times)).toFixed(2), " ms\n                STD: ").concat(math.std(_render_times).toFixed(2), "\n        "));
+    //log(`
+    //    frame render ms summary (last ${keep_n} frames):
+    //        MIN: ${Math.min(..._render_times).toFixed(2)} ms
+    //        AVG: ${math.mean(_render_times).toFixed(2)} ms
+    //        MAX: ${Math.max(..._render_times).toFixed(2)} ms
+    //        STD: ${math.std(_render_times).toFixed(2)}
+    //`);
     _render_times = [time_ms];
   } else {
     _render_times.push(time_ms);

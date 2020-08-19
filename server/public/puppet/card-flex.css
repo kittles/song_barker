@@ -175,6 +175,7 @@ body {
     transform: translateX(-50%);
     display: none;
 }
+
 #k9-logo-desktop {
     position: fixed;
     height: 80px;
@@ -182,85 +183,117 @@ body {
     left: 20px;
     display: none;
 }
-#card-message {
+
+
+/* desktop controls on the left */
+
+#desktop-controls {
+    position: absolute;
+    width: 135px;
+    height: 500px;
+    top: 50%;
+    transform: translateY(-50%);
     text-align: center;
-    width: 100%;
-    height: 160px;
-    font-size: 3.5em;
-    letter-spacing: 1.2;
+    display: none;
+    /*display: flex;*/
+    flex-direction: column;
 }
-#desktop-share-button {
-    width: 66%;
-    margin: auto;
+
+/* each subsection is one of these */
+
+.left-control {
+    flex: 1 1 0;
+}
+.left-control-tall {
+    flex: 5 1 0;
+}
+
+/* the subsections */
+
+#share-button {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    width: 98%;
     border: 2px solid #004692;
     border-radius: 14px;
     line-height: 32px;
     cursor: pointer;
 }
+
+
 #desktop-hr {
-    margin-top: 30px;
-    margin-bottom: 20px;
-    width: 40%;
-    border: 1px solid #004692;
-}
-#desktop-share-icons {
-    display: flex;
     width: 80%;
+    border: 1px solid #004692;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+
+#desktop-share-icons {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    width: 100%;
     margin: auto;
     justify-content: space-evenly;
 }
 .desktop-share-icon {
     flex: 1 1 0;
 }
+
+/* the blue vertical bar with play and pause and such */
+
 #desktop-playback-controls {
+    position: relative;
+    padding-top: 10%;
+    padding-bottom: 10%;
+    height: 80%;
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%) translateX(-50%);
     display: flex;
     flex-direction: column;
-    width: 50%;
-    margin: 40px auto auto auto;
-    padding-top: 15px;
-    padding-bottom: 15px;
+    width: 70%;
     border-radius: 14px;
     border: 2px solid #004692;
     background: #004692;
-    height: 30vh;
 }
 .desktop-playback-control {
     flex: 1 1 0;
     text-align: center;
 }
+.desktop-playback-control-tall {
+    flex: 2 1 0;
+    text-align: center;
+}
 .desktop-playback-control > img {
     position: relative;
     margin: 0px auto;
-    max-width: 30%;
+    max-width: 19%;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
 }
-.desktop-playback-control-tall {
-    flex: 2 1 0;
-}
 .desktop-playback-control-tall input {
     position: relative;
-    top: 40px;
+    top: 60%;
+    width: 9vh;
     transform: rotate(270deg);
 }
 
-#desktop-controls {
-    position: fixed;
-    width: 200px;
-    height: 400px;
-    top: 50%;
-    transform: translateY(-50%) translateX(-50%);
-    text-align: center;
-    display: none;
-}
+/* the links and text on the right of the card */
+
 #desktop-app-links {
     position: fixed;
     text-align: left;
     width: 200px;
     height: 400px;
     top: 50%;
-    transform: translateY(-50%) translateX(-50%);
+    transform: translateY(-50%);
     display: none;
 }
 #app-tag-line {
@@ -268,12 +301,12 @@ body {
     letter-spacing: 1.4;
 }
 #app-subhead {
-    margin-top: 10px;
+    margin-top: 2.5%;
     font-size: 0.8em;
     line-height: 1.6;
 }
 #app-logos {
-    margin-top: 20px;
+    margin-top: 5%;
     display: flex;
     text-align: center;
 }
@@ -300,10 +333,12 @@ body {
 #card-container {
     position: fixed;
     margin: auto;
+    /*
     background-color: #DB8BA0;
     background-size: contain;
     width: calc(512px + 40px);
     height: calc(512px + 200px);
+    */
     text-align: center;
     top: 50%;
     left: 50%;
@@ -317,14 +352,16 @@ body {
     box-shadow: 0px 14px 20px 5px rgba(0, 0, 0, 0.76);
 }
 #puppet-container {
+    /*
     background: red;
     width: 512px;
     height: 512px;
-    margin: auto;
     margin-top: 20px;
-    display: inline-block;
+    */
+    position: absolute;
 }
 #decoration-image {
+    position: absolute;
     /*
     box-shadow: inset 0px 0px 20px 1px #1e1e1e;
     */
@@ -332,10 +369,19 @@ body {
 #big-button-container {
     position: absolute;
     background: rgba(255, 255, 255, 0.5);
+    /*
     width: 512px;
     height: 512px;
     left: 20px;
     top: 20px;
+    */
+}
+#decoration-image {
+    position: absolute;
+    /*
+    top: 20px;
+    left: 20px;
+    */
 }
 #big-button-img {
     position: relative;
@@ -349,11 +395,6 @@ body {
 }
 #controls-container > div {
     height: 40px;
-}
-#decoration-image {
-    position: absolute;
-    top: 20px;
-    left: 20px;
 }
 #play-control {
     flex: 1 1 0;
@@ -391,113 +432,8 @@ body {
     height: 100vh;
     background: white;
 }
-#error-message {
-    position: relative;
-    top: 50%;
     transform: translateY(-50%);
 }
-
-
-
-/* volume range slider */
-/*
-#progress {
-    background: none;
-    position: relative;
-    top: -13px;
-    width: 90%;
-}
-
-input[type=range] {
-  height: 46px;
-  -webkit-appearance: none;
-  margin: 10px 0;
-  width: 100%;
-}
-input[type=range]:focus {
-  outline: none;
-}
-input[type=range]::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 30px;
-  cursor: pointer;
-  animate: 0.2s;
-  box-shadow: 1px 1px 1px #50555C;
-  background: #605A5A;
-  border-radius: 28px;
-  border: 0px solid #000000;
-}
-input[type=range]::-webkit-slider-thumb {
-  box-shadow: 0px 0px 0px #000000;
-  border: 0px solid #000000;
-  height: 40px;
-  width: 40px;
-  border-radius: 24px;
-  cursor: pointer;
-  background: #9A2020;
-  -webkit-appearance: none;
-  margin-top: -5px;
-}
-input[type=range]:focus::-webkit-slider-runnable-track {
-  background: #605A5A;
-}
-input[type=range]::-moz-range-track {
-  width: 100%;
-  height: 30px;
-  cursor: pointer;
-  animate: 0.2s;
-  box-shadow: 1px 1px 1px #50555C;
-  background: #605A5A;
-  border-radius: 28px;
-  border: 0px solid #000000;
-}
-input[type=range]::-moz-range-thumb {
-  box-shadow: 0px 0px 0px #000000;
-  border: 0px solid #000000;
-  height: 40px;
-  width: 40px;
-  border-radius: 24px;
-  background: #9A2020;
-  cursor: pointer;
-}
-input[type=range]::-ms-track {
-  width: 100%;
-  height: 30px;
-  cursor: pointer;
-  animate: 0.2s;
-  background: transparent;
-  border-color: transparent;
-  color: transparent;
-}
-input[type=range]::-ms-fill-lower {
-  background: #605A5A;
-  border: 0px solid #000000;
-  border-radius: 56px;
-  box-shadow: 1px 1px 1px #50555C;
-}
-input[type=range]::-ms-fill-upper {
-  background: #605A5A;
-  border: 0px solid #000000;
-  border-radius: 56px;
-  box-shadow: 1px 1px 1px #50555C;
-}
-input[type=range]::-ms-thumb {
-  margin-top: 1px;
-  box-shadow: 0px 0px 0px #000000;
-  border: 0px solid #000000;
-  height: 40px;
-  width: 40px;
-  border-radius: 24px;
-  background: #9A2020;
-  cursor: pointer;
-}
-input[type=range]:focus::-ms-fill-lower {
-  background: #605A5A;
-}
-input[type=range]:focus::-ms-fill-upper {
-  background: #605A5A;
-}
-*/
 
 
 /* white range slider */

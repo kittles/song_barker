@@ -341,6 +341,8 @@ async function card_init () {
     head_sway(head_sway_amplitude, head_sway_speed);
 
     console.log('card init');
+
+    // jquery handles on dom elements
     var content = $('#content');
     var card_container = $('#card-container');
     var back_pieces = $('.envelope-back-piece');
@@ -352,26 +354,143 @@ async function card_init () {
     var mobile_logo = $('#k9-logo');
     var decoration_image = $('#decoration-image')
     var mobile_bottom_controls = $('#mobile-bottom-controls');
+    var big_button_container = $('#big-button-container');
+    var puppet_container = $('#puppet-container');
+
+    var card_opened = false;
+
+    var card_has_frame;
+    var frame_aspect_ratio = 656 / 787;
+
+    // decoration images can include a 72 pixel a side frame
+    // load the decoration image here to see if its framed or not
+    var img_for_dimensions = new Image();
+    img_for_dimensions.onload = prep_card_for_display;
+    // this will trigger the rest of the init sequence
+    img_for_dimensions.src = decoration_image_url;
+
+
+    // the total width of the card should be 512 px
+    // so when there is a frame, the puppet and other elements
+    // need to be a bit smaller to maintain the overall 512 px wide
+    // footprint
+    function card_width () {
+        return card_has_frame ? 512 - 72 : 512;
+    }
+    function card_height () {
+        return card_has_frame ? 512 * (1 / frame_aspect_ratio) : 512;
+    }
+    // just an alias for width, to avoid saying height: width
+    function card_square_side () {
+        return card_has_frame ? 512 - 72 : 512;
+    }
+    function set_card_dimensions () {
+        card_container.css({
+            width: card_width(),
+            height: card_height(),
+            top: 0,
+            left: 0,
+        });
+        big_button_container.css({
+            width: card_square_side(),
+            height: card_square_side(),
+            top: 0,
+            left: 0,
+        });
+        puppet_container.css({
+            width: card_square_side(),
+            height: card_square_side(),
+            top: 0,
+            left: 0,
+        });
+        $('#puppet-container > canvas ').css({
+            width: card_square_side(),
+            height: card_square_side(),
+        });
+        if (card_has_frame) {
+            decoration_image.css({
+                width: card_square_side(),
+                height: (1 / frame_aspect_ratio) * card_square_side(),
+                top: 0,
+                left: 0,
+            });
+        } else {
+            decoration_image.css({
+                width: 512,
+                height: 512,
+                top: 0,
+                left: 0,
+            });
+        }
+    }
+
+
+    function prep_card_for_display () {
+        if (img_for_dimensions.width === 656) {
+            // 512 x 512 image with 72px frame
+            console.log('decoration image with frame');
+            //decoration_image.css({
+            //    top: -72,
+            //    left: 20 - 72,
+            //});
+            // need to shrink the puppet so the overall
+            // card size is the same
+            card_has_frame = true;
+        } else {
+            card_has_frame = false;
+        }
+        decoration_image.attr('src', decoration_image_url);
+        set_card_dimensions();
+
+        // size everything
+        layout_elements();
+        $(window).resize(_.debounce(layout_elements, 125, { trailing: true }));
+
+        // handle opening the envelope
+        back_pieces.click(open_envelope);
+        flap.click(open_envelope);
+
+        // queue up the card coming in to view
+        setTimeout(() => {
+            $('#content').fadeIn({queue: false, duration: 300});
+            $('#content').animate({top: '50%'}, 1300, 'easeOutElastic');
+        }, 200);
+
+    };
 
     function wide_mode () {
         return (document.body.offsetWidth / document.body.offsetHeight) > 1.2;
+    }
+    function fade_flex (jq_el, fade_duration) {
+        jq_el.css('display', 'flex')
+            .hide()
+            .fadeIn(fade_duration);
     }
 
     // layout in the js for maxiumum job security
     function layout_elements () {
         var fade_duration = 500;
+        content.css({
+            zoom: card_scale(),
+            left: (document.body.offsetWidth / 2) / card_scale(),
+        });
         if (card_opened) {
             if (wide_mode()) {
-                desktop_controls.fadeIn(fade_duration);
+                fade_flex(desktop_controls, fade_duration);
                 desktop_app_links.fadeIn(fade_duration);
                 mobile_bottom_controls.hide();
                 // position the controls and copy
-                // based on card dimensions
+                // based on the left and right edges of the card
                 desktop_controls.css({
-                    left: (document.body.offsetWidth / 2) - (card_scale() * ((512 - 20) / 2)),
-                })
+                    left:-170 + (window.innerWidth - card_screen_width()) / 2,
+                    //top: card_top(),
+                    height:Math.min(500, window.innerHeight * 0.6),
+                    width: Math.min(140, window.innerHeight * 0.6 * 0.5),
+                });
                 desktop_app_links.css({
-                    left: (document.body.offsetWidth / 2) + (card_scale() * ((512 + 10) / 2)),
+                    left: 30 + (window.innerWidth + card_screen_width()) / 2,
+                    //height: window.innerHeight * 0.6,
+                    //top: card_top(),
                 })
             } else {
                 desktop_controls.hide();
@@ -386,38 +505,28 @@ async function card_init () {
             mobile_logo.fadeIn(fade_duration);
             desktop_logo.hide();
         }
-        content.css({
-            zoom: card_scale(),
-            left: (document.body.offsetWidth / 2) / card_scale(),
-        });
     }
-    layout_elements();
-    $(window).resize(_.debounce(layout_elements, 125, { trailing: true }));
+    window.layout_elements = layout_elements;
 
+    var card_maximize_scale = 0.8;
+
+    function card_screen_width () {
+        // assuming card is open
+        return card_width() * card_scale() * card_maximize_scale;
+    }
+    function card_top () {
+        return card_container.position().top * card_scale();
+    }
 
     function card_scale () {
-        var container_width = 512 + 40;
-        var container_height = 512 + 200;
-        var zoom_width = (window.innerWidth - 120) / container_width; // TODO why is this needed
-        var zoom_height = (window.innerHeight - 80) / container_height;
+        var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
+        var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
         var zoom = Math.min(zoom_width, zoom_height);
-        var zoom = Math.max(zoom, 1);
-        console.log(window.innerWidth, zoom_width, zoom_height, zoom);
-        return wide_mode() ? zoom * 1.4 : zoom;
+        zoom *= 0.9;
+        //var zoom = Math.max(zoom, 1);
+        console.log(wide_mode() ? zoom * 1 : zoom);
+        return wide_mode() ? zoom * 1 : zoom;
     }
-
-
-    // the pixel dimensions of the card
-    setTimeout(() => {
-        $('#content').fadeIn({queue: false, duration: 300});
-        $('#content').animate({top: '50%'}, 1300, 'easeOutElastic');
-    }, 200);
-
-
-    // handle opening the envelope
-    back_pieces.click(open_envelope);
-    flap.click(open_envelope);
-    var card_opened = false;
 
     function open_envelope () {
         card_opened = true;
@@ -430,9 +539,6 @@ async function card_init () {
         // scale up the card
 
         init_audio();
-
-        // load the decoration image
-        decoration_image.attr('src', decoration_image_url);
 
         $('#content').css({animation: 'none'});
         $('.envelope-flap-piece').toggleClass('opened');
@@ -472,19 +578,11 @@ async function card_init () {
             }, 100);
             setTimeout(() => {
                 $('#card-container').css({
-                    transform: `translateX(-50%) translateY(-50%) scale(0.6)`,
+                    transform: `translateX(-50%) translateY(-45%) scale(${card_maximize_scale})`,
                 });
             }, 750);
         }, 250);
     }
-
-    // responsive sizing
-    // wait until now to resize card?
-    //$(window).resize(_.debounce(() => {
-    //    $('#content').css({
-    //       zoom: card_scale(),
-    //    });
-    //}, 125, {trailing: true}));
 }
 
 
@@ -1289,13 +1387,13 @@ var keep_n = 60 * 10;
 function frame_render_times (time_ms) {
     if (_render_times.length === keep_n) {
         // log summary stats
-        log(`
-            frame render ms summary (last ${keep_n} frames):
-                MIN: ${Math.min(..._render_times).toFixed(2)} ms
-                AVG: ${math.mean(_render_times).toFixed(2)} ms
-                MAX: ${Math.max(..._render_times).toFixed(2)} ms
-                STD: ${math.std(_render_times).toFixed(2)}
-        `);
+        //log(`
+        //    frame render ms summary (last ${keep_n} frames):
+        //        MIN: ${Math.min(..._render_times).toFixed(2)} ms
+        //        AVG: ${math.mean(_render_times).toFixed(2)} ms
+        //        MAX: ${Math.max(..._render_times).toFixed(2)} ms
+        //        STD: ${math.std(_render_times).toFixed(2)}
+        //`);
         _render_times = [time_ms];
     } else {
         _render_times.push(time_ms);
