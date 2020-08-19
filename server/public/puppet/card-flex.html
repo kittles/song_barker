@@ -52,31 +52,45 @@
     -->
     <img id="k9-logo" src="/puppet/k9_logotype_small.png"></img>
     <img id="k9-logo-desktop" src="/puppet/k9_logotype_small.png"></img>
+
+    <!-- all the controls on the left side -->
     <div id="desktop-controls">
-        <div class="left-control">
-            <div id="share-button">SHARE</div>
+        <!-- share button -->
+        <div style="height: 20%">
+            <div id="share-button">
+                <div id="share-text">SHARE</div>
+            </div>
         </div>
-        <div class="left-control">
+        <!-- hr -->
+        <div style="height: 8%">
             <hr id="desktop-hr"></hr>
         </div>
-        <div class="left-control">
+        <!-- share icons -->
+        <div style="height: 15%">
             <div id="desktop-share-icons">
                 <div class="desktop-share-icon"><img src="/puppet/icons/social facebook.svg"></img></div>
                 <div class="desktop-share-icon"><img src="/puppet/icons/social instagram.svg"></img></div>
                 <div class="desktop-share-icon"><img src="/puppet/icons/social twitter.svg"></img></div>
             </div>
         </div>
-        <div class="left-control-tall">
-            <div id="desktop-playback-controls">
-                <div class="desktop-playback-control" id="desktop-play"><img src="/puppet/play.svg"></img></div>
-                <div class="desktop-playback-control" id="desktop-replay"><img src="/puppet/replay.svg"></img></div>
-                <div class="desktop-playback-control" id="desktop-volume-icon"><img src="/puppet/volume.svg"></img></div>
-                <div class="desktop-playback-control-tall">
-                    <input type="range" id="desktop-volume-slider"></input>
-                </div>
+        <!-- playback controls -->
+        <div class="blue-background" style="height: auto; width: 100%; margin-top: 15%">
+            <div id="desktop-play" style="height: 15%; padding-top: 13%">
+                <img class="flex-icon v-center" src="/puppet/play.svg"></img>
+            </div>
+            <div id="desktop-replay" style="height: 15%">
+                <img class="flex-icon v-center" src="/puppet/replay.svg"></img>
+            </div>
+            <div id="desktop-volume-icon" style="height: 15%">
+                <img class="flex-icon v-center" src="/puppet/volume.svg"></img>
+            </div>
+            <div style="height: 65%">
+                <input class="v-center" orient="vertical" type="range" id="desktop-volume-slider"></input>
             </div>
         </div>
     </div>
+
+    <!-- controls on the right side -->
     <div id="desktop-app-links">
         <div id="app-tag-line">MAKE YOUR PETS SING!</div>
         <div id="app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>

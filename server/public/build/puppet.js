@@ -354,6 +354,8 @@ function _card_init() {
             card_scale = function _card_scale() {
               var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
               var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
+              console.log('card width', card_width(), 'card height', card_height());
+              console.log('zoom width', zoom_width, 'zoom height', zoom_height);
               var zoom = Math.min(zoom_width, zoom_height);
               zoom *= 0.9; //var zoom = Math.max(zoom, 1);
 
@@ -379,16 +381,20 @@ function _card_init() {
 
               if (card_opened) {
                 if (wide_mode()) {
-                  fade_flex(desktop_controls, fade_duration);
+                  //fade_flex(desktop_controls, fade_duration);
+                  desktop_controls.fadeIn(fade_duration);
                   desktop_app_links.fadeIn(fade_duration);
                   mobile_bottom_controls.hide(); // position the controls and copy
                   // based on the left and right edges of the card
+                  // dont be bigger than 350 px
 
+                  var control_height = Math.min(350, window.innerHeight * 0.3);
+                  var control_width = Math.min(140, window.innerHeight * 0.3 * 0.5);
                   desktop_controls.css({
-                    left: -170 + (window.innerWidth - card_screen_width()) / 2,
-                    //top: card_top(),
-                    height: Math.min(500, window.innerHeight * 0.6),
-                    width: Math.min(140, window.innerHeight * 0.6 * 0.5)
+                    left: -control_width - 32 + (window.innerWidth - card_screen_width()) / 2,
+                    //top: (window.innerHeight + control_height) / 2,
+                    height: control_height,
+                    width: control_width
                   });
                   desktop_app_links.css({
                     left: 30 + (window.innerWidth + card_screen_width()) / 2 //height: window.innerHeight * 0.6,
@@ -502,7 +508,8 @@ function _card_init() {
             };
 
             card_height = function _card_height() {
-              return card_has_frame ? 512 * (1 / frame_aspect_ratio) : 512;
+              //return card_has_frame ? 512 * (1 / frame_aspect_ratio) : 512;
+              return 512 * (1 / frame_aspect_ratio);
             };
 
             card_width = function _card_width() {
