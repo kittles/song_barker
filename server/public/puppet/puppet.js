@@ -344,6 +344,8 @@ async function card_init () {
 
     // jquery handles on dom elements
     var content = $('#content');
+    var global_scale_el = $('#content-holder');
+    //var global_scale_el = $('body');
     var card_container = $('#card-container');
     var back_pieces = $('.envelope-back-piece');
     var flap = $('#envelope-flap');
@@ -370,15 +372,13 @@ async function card_init () {
     img_for_dimensions.src = decoration_image_url;
 
 
-    // the total width of the card should be 512 px
-    // so when there is a frame, the puppet and other elements
-    // need to be a bit smaller to maintain the overall 512 px wide
-    // footprint
+    function wide_mode () {
+        return (document.body.offsetWidth / document.body.offsetHeight) > 1.56;
+    }
     function card_width () {
         return card_has_frame ? 512 - 72 : 512;
     }
     function card_height () {
-        //return card_has_frame ? 512 * (1 / frame_aspect_ratio) : 512;
         return 512 * (1 / frame_aspect_ratio);
     }
     // just an alias for width, to avoid saying height: width
@@ -427,6 +427,14 @@ async function card_init () {
 
 
     function prep_card_for_display () {
+        // this scales the whole assembly up or down depending on
+        // viewport
+        global_scale_el.css({
+            transform: `scale(${page_scale()}`,
+        });
+
+        // determine if card has a frame here, since the image has
+        // now been loaded and dimensions can be inspected
         if (img_for_dimensions.width === 656) {
             // 512 x 512 image with 72px frame
             console.log('decoration image with frame');
@@ -441,9 +449,11 @@ async function card_init () {
             card_has_frame = false;
         }
         decoration_image.attr('src', decoration_image_url);
+
+        // set the dimensions of the actual card assembly
         set_card_dimensions();
 
-        // size everything
+        // layout the entire page
         layout_elements();
         $(window).resize(_.debounce(layout_elements, 125, { trailing: true }));
 
@@ -453,56 +463,76 @@ async function card_init () {
 
         // queue up the card coming in to view
         setTimeout(() => {
+            // card drops in from above, waiting to be opened
             $('#content').fadeIn({queue: false, duration: 300});
-            $('#content').animate({top: '50%'}, 1300, 'easeOutElastic');
+            $('#content').css({top: '0px'}); // more performant to have this css transitioned
         }, 200);
 
     };
 
-    function wide_mode () {
-        return (document.body.offsetWidth / document.body.offsetHeight) > 1.2;
-    }
-    function fade_flex (jq_el, fade_duration) {
-        jq_el.css('display', 'flex')
-            .hide()
-            .fadeIn(fade_duration);
-    }
 
     // layout in the js for maxiumum job security
     function layout_elements () {
-        var fade_duration = 500;
-        content.css({
-            zoom: card_scale(),
-            left: (document.body.offsetWidth / 2) / card_scale(),
+        // desktop controls
+        // w/frame: left -284 top -202
+        // w/o: left -306 top -202
+
+        // desktop app links
+        // w/frame: left 200 top -135
+        // w/o: left 228 top -202
+
+
+        // this is called whenever the window is resized
+
+        // set the page scale (except for logo)
+        global_scale_el.css({
+            transform: `scale(${page_scale()}`,
         });
+
+        // move the controls and copy horzontally to account for a frame
+        if (card_has_frame) {
+            desktop_controls.css({
+                left: -284,
+                top: -202,
+            });
+            desktop_app_links.css({
+                left: 200,
+                top: -135,
+            });
+        } else { // no frame
+            desktop_controls.css({
+                left: -306,
+                top: -210,
+            });
+            desktop_app_links.css({
+                left: 228,
+                top: -135,
+            });
+        }
+
+        // if the mode has changed between wide and regular,
+        // elements fade out or in
+        var fade_duration = 500;
+
         if (card_opened) {
             if (wide_mode()) {
                 //fade_flex(desktop_controls, fade_duration);
                 desktop_controls.fadeIn(fade_duration);
                 desktop_app_links.fadeIn(fade_duration);
                 mobile_bottom_controls.hide();
-                // position the controls and copy
-                // based on the left and right edges of the card
-
-                // dont be bigger than 350 px
-                var control_height = Math.min(350, window.innerHeight * 0.3);
-                var control_width = Math.min(140, window.innerHeight * 0.3 * 0.5);
-
-                desktop_controls.css({
-                    left: -control_width -32 + (window.innerWidth - card_screen_width()) / 2,
-                    //top: (window.innerHeight + control_height) / 2,
-                    height: control_height,
-                    width: control_width,
-                });
-                desktop_app_links.css({
-                    left: 30 + (window.innerWidth + card_screen_width()) / 2,
-                    //height: window.innerHeight * 0.6,
-                    //top: card_top(),
-                })
             } else {
                 desktop_controls.hide();
                 desktop_app_links.hide();
                 mobile_bottom_controls.fadeIn(fade_duration);
+            }
+            if (!wide_mode()) {
+                $('body').css({
+                    overflow: 'scroll',
+                });
+            } else {
+                $('body').css({
+                    overflow: 'hide',
+                });
             }
         }
         if (wide_mode()) {
@@ -513,19 +543,11 @@ async function card_init () {
             desktop_logo.hide();
         }
     }
-    window.layout_elements = layout_elements;
 
     var card_maximize_scale = 0.8;
 
-    function card_screen_width () {
-        // assuming card is open
-        return card_width() * card_scale() * card_maximize_scale;
-    }
-    function card_top () {
-        return card_container.position().top * card_scale();
-    }
 
-    function card_scale () {
+    function page_scale () {
         var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
         var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
         console.log('card width', card_width(), 'card height', card_height());
@@ -540,7 +562,6 @@ async function card_init () {
     function open_envelope () {
         card_opened = true;
         setTimeout(layout_elements, 1800);
-        // this is probably where the extra ui elements should fade in...
 
         // prepare for playback
         // remove the envelope
@@ -549,7 +570,13 @@ async function card_init () {
 
         init_audio();
 
-        $('#content').css({animation: 'none'});
+        // stop the animation, but retain the translation that was included in it
+        $('#content').css({
+            animation: 'none',
+            transform: `translate(-50% -50%)`,
+        });
+
+        // trigger css transform on envelope flap
         $('.envelope-flap-piece').toggleClass('opened');
 
         // remove clip path on content when its coming out of envelope
@@ -574,20 +601,41 @@ async function card_init () {
             //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
             //    zIndex: 1,
             //});
+
+            // overwrite css transforms on envelope pieces
+            flap_underside.css({
+                transition: 'top 1s',
+            });
+            back_pieces.css({
+                transition: 'top 1s',
+            });
+
             setTimeout(() => {
-                var y_dist = vh() * 120;
-                var y_dist_flap = y_dist;
-                flap_underside.animate({top: y_dist}, 1000);
-                back_pieces.animate({top: y_dist}, 1000, on_complete);
+                var y_dist = 600;
+                back_pieces.css({top: y_dist});
+                flap_underside.css({top: y_dist});
+
+                setTimeout(on_complete, 1000);
+
                 function on_complete () {
                     back_pieces.fadeOut(100);
                     flap_underside.fadeOut(100);
                     flap.fadeOut(100);
+                    if (!wide_mode()) {
+                        $('body').css({
+                            overflow: 'scroll',
+                        });
+                    } else {
+                        $('body').css({
+                            overflow: 'hide',
+                        });
+                    }
                 }
             }, 100);
             setTimeout(() => {
                 $('#card-container').css({
                     transform: `translateX(-50%) translateY(-45%) scale(${card_maximize_scale})`,
+                    //transform: `translateX(-50%) translateY(-45%)`,
                 });
             }, 750);
         }, 250);

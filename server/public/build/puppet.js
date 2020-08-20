@@ -289,23 +289,25 @@ function card_init() {
 
 function _card_init() {
   _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, prep_card_for_display, wide_mode, fade_flex, layout_elements, card_maximize_scale, card_screen_width, card_top, card_scale, open_envelope;
+    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, wide_mode, card_width, card_height, card_square_side, set_card_dimensions, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             open_envelope = function _open_envelope() {
               card_opened = true;
-              setTimeout(layout_elements, 1800); // this is probably where the extra ui elements should fade in...
-              // prepare for playback
+              setTimeout(layout_elements, 1800); // prepare for playback
               // remove the envelope
               // show the full card
               // scale up the card
 
-              init_audio();
+              init_audio(); // stop the animation, but retain the translation that was included in it
+
               $('#content').css({
-                animation: 'none'
-              });
+                animation: 'none',
+                transform: "translate(-50% -50%)"
+              }); // trigger css transform on envelope flap
+
               $('.envelope-flap-piece').toggleClass('opened'); // remove clip path on content when its coming out of envelope
               // do in a couple steps (i didnt have luck trying to transition this)
               // this is so the card doesn't extend outside the envelope at any point
@@ -327,31 +329,49 @@ function _card_init() {
                 //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
                 //    zIndex: 1,
                 //});
+                // overwrite css transforms on envelope pieces
+                flap_underside.css({
+                  transition: 'top 1s'
+                });
+                back_pieces.css({
+                  transition: 'top 1s'
+                });
                 setTimeout(function () {
-                  var y_dist = vh() * 120;
-                  var y_dist_flap = y_dist;
-                  flap_underside.animate({
+                  var y_dist = 600;
+                  back_pieces.css({
                     top: y_dist
-                  }, 1000);
-                  back_pieces.animate({
+                  });
+                  flap_underside.css({
                     top: y_dist
-                  }, 1000, on_complete);
+                  });
+                  setTimeout(on_complete, 1000);
 
                   function on_complete() {
                     back_pieces.fadeOut(100);
                     flap_underside.fadeOut(100);
                     flap.fadeOut(100);
+
+                    if (!wide_mode()) {
+                      $('body').css({
+                        overflow: 'scroll'
+                      });
+                    } else {
+                      $('body').css({
+                        overflow: 'hide'
+                      });
+                    }
                   }
                 }, 100);
                 setTimeout(function () {
                   $('#card-container').css({
-                    transform: "translateX(-50%) translateY(-45%) scale(".concat(card_maximize_scale, ")")
+                    transform: "translateX(-50%) translateY(-45%) scale(".concat(card_maximize_scale, ")") //transform: `translateX(-50%) translateY(-45%)`,
+
                   });
                 }, 750);
               }, 250);
             };
 
-            card_scale = function _card_scale() {
+            page_scale = function _page_scale() {
               var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
               var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
               console.log('card width', card_width(), 'card height', card_height());
@@ -363,48 +383,64 @@ function _card_init() {
               return wide_mode() ? zoom * 1 : zoom;
             };
 
-            card_top = function _card_top() {
-              return card_container.position().top * card_scale();
-            };
-
-            card_screen_width = function _card_screen_width() {
-              // assuming card is open
-              return card_width() * card_scale() * card_maximize_scale;
-            };
-
             layout_elements = function _layout_elements() {
+              // desktop controls
+              // w/frame: left -284 top -202
+              // w/o: left -306 top -202
+              // desktop app links
+              // w/frame: left 200 top -135
+              // w/o: left 228 top -202
+              // this is called whenever the window is resized
+              // set the page scale (except for logo)
+              global_scale_el.css({
+                transform: "scale(".concat(page_scale())
+              }); // move the controls and copy horzontally to account for a frame
+
+              if (card_has_frame) {
+                desktop_controls.css({
+                  left: -284,
+                  top: -202
+                });
+                desktop_app_links.css({
+                  left: 200,
+                  top: -135
+                });
+              } else {
+                // no frame
+                desktop_controls.css({
+                  left: -306,
+                  top: -210
+                });
+                desktop_app_links.css({
+                  left: 228,
+                  top: -135
+                });
+              } // if the mode has changed between wide and regular,
+              // elements fade out or in
+
+
               var fade_duration = 500;
-              content.css({
-                zoom: card_scale(),
-                left: document.body.offsetWidth / 2 / card_scale()
-              });
 
               if (card_opened) {
                 if (wide_mode()) {
                   //fade_flex(desktop_controls, fade_duration);
                   desktop_controls.fadeIn(fade_duration);
                   desktop_app_links.fadeIn(fade_duration);
-                  mobile_bottom_controls.hide(); // position the controls and copy
-                  // based on the left and right edges of the card
-                  // dont be bigger than 350 px
-
-                  var control_height = Math.min(350, window.innerHeight * 0.3);
-                  var control_width = Math.min(140, window.innerHeight * 0.3 * 0.5);
-                  desktop_controls.css({
-                    left: -control_width - 32 + (window.innerWidth - card_screen_width()) / 2,
-                    //top: (window.innerHeight + control_height) / 2,
-                    height: control_height,
-                    width: control_width
-                  });
-                  desktop_app_links.css({
-                    left: 30 + (window.innerWidth + card_screen_width()) / 2 //height: window.innerHeight * 0.6,
-                    //top: card_top(),
-
-                  });
+                  mobile_bottom_controls.hide();
                 } else {
                   desktop_controls.hide();
                   desktop_app_links.hide();
                   mobile_bottom_controls.fadeIn(fade_duration);
+                }
+
+                if (!wide_mode()) {
+                  $('body').css({
+                    overflow: 'scroll'
+                  });
+                } else {
+                  $('body').css({
+                    overflow: 'hide'
+                  });
                 }
               }
 
@@ -417,15 +453,14 @@ function _card_init() {
               }
             };
 
-            fade_flex = function _fade_flex(jq_el, fade_duration) {
-              jq_el.css('display', 'flex').hide().fadeIn(fade_duration);
-            };
-
-            wide_mode = function _wide_mode() {
-              return document.body.offsetWidth / document.body.offsetHeight > 1.2;
-            };
-
             prep_card_for_display = function _prep_card_for_displa() {
+              // this scales the whole assembly up or down depending on
+              // viewport
+              global_scale_el.css({
+                transform: "scale(".concat(page_scale())
+              }); // determine if card has a frame here, since the image has
+              // now been loaded and dimensions can be inspected
+
               if (img_for_dimensions.width === 656) {
                 // 512 x 512 image with 72px frame
                 console.log('decoration image with frame'); //decoration_image.css({
@@ -440,8 +475,9 @@ function _card_init() {
                 card_has_frame = false;
               }
 
-              decoration_image.attr('src', decoration_image_url);
-              set_card_dimensions(); // size everything
+              decoration_image.attr('src', decoration_image_url); // set the dimensions of the actual card assembly
+
+              set_card_dimensions(); // layout the entire page
 
               layout_elements();
               $(window).resize(_.debounce(layout_elements, 125, {
@@ -452,13 +488,14 @@ function _card_init() {
               flap.click(open_envelope); // queue up the card coming in to view
 
               setTimeout(function () {
+                // card drops in from above, waiting to be opened
                 $('#content').fadeIn({
                   queue: false,
                   duration: 300
                 });
-                $('#content').animate({
-                  top: '50%'
-                }, 1300, 'easeOutElastic');
+                $('#content').css({
+                  top: '0px'
+                }); // more performant to have this css transitioned
               }, 200);
             };
 
@@ -508,12 +545,15 @@ function _card_init() {
             };
 
             card_height = function _card_height() {
-              //return card_has_frame ? 512 * (1 / frame_aspect_ratio) : 512;
               return 512 * (1 / frame_aspect_ratio);
             };
 
             card_width = function _card_width() {
               return card_has_frame ? 512 - 72 : 512;
+            };
+
+            wide_mode = function _wide_mode() {
+              return document.body.offsetWidth / document.body.offsetHeight > 1.56;
             };
 
             vh = function _vh() {
@@ -578,14 +618,14 @@ function _card_init() {
             //};
             //}
 
-            _context.next = 29;
+            _context.next = 26;
             return load_shader_files();
 
-          case 29:
-            _context.next = 31;
+          case 26:
+            _context.next = 28;
             return load_texture('noise_2D.png');
 
-          case 31:
+          case 28:
             animation_noise_texture = _context.sent;
             scene = new THREE.Scene();
             renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
@@ -609,10 +649,10 @@ function _card_init() {
             });
             face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
             face_mesh.renderOrder = 1;
-            _context.next = 46;
+            _context.next = 43;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
-          case 46:
+          case 43:
             mouth_gltf = _context.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
@@ -637,10 +677,10 @@ function _card_init() {
             renderer.setSize(render_pixels, render_pixels); //$(renderer.domElement).css('zoom', zoom_factor);
             // set the pet image on the mesh and on the shader
 
-            _context.next = 58;
+            _context.next = 55;
             return load_texture(image_url);
 
-          case 58:
+          case 55:
             pet_image_texture = _context.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
@@ -660,6 +700,8 @@ function _card_init() {
             console.log('card init'); // jquery handles on dom elements
 
             content = $('#content');
+            global_scale_el = $('#content-holder'); //var global_scale_el = $('body');
+
             card_container = $('#card-container');
             back_pieces = $('.envelope-back-piece');
             flap = $('#envelope-flap');
@@ -679,16 +721,12 @@ function _card_init() {
             img_for_dimensions = new Image();
             img_for_dimensions.onload = prep_card_for_display; // this will trigger the rest of the init sequence
 
-            img_for_dimensions.src = decoration_image_url; // the total width of the card should be 512 px
-            // so when there is a frame, the puppet and other elements
-            // need to be a bit smaller to maintain the overall 512 px wide
-            // footprint
+            img_for_dimensions.src = decoration_image_url;
+            ; // layout in the js for maxiumum job security
 
-            ;
-            window.layout_elements = layout_elements;
             card_maximize_scale = 0.8;
 
-          case 93:
+          case 90:
           case "end":
             return _context.stop();
         }

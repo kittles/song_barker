@@ -53,107 +53,133 @@
     <img id="k9-logo" src="/puppet/k9_logotype_small.png"></img>
     <img id="k9-logo-desktop" src="/puppet/k9_logotype_small.png"></img>
 
-    <!-- all the controls on the left side -->
-    <div id="desktop-controls">
-        <!-- share button -->
-        <div style="height: 20%">
-            <div id="share-button">
-                <div id="share-text">SHARE</div>
-            </div>
-        </div>
-        <!-- hr -->
-        <div style="height: 8%">
-            <hr id="desktop-hr"></hr>
-        </div>
-        <!-- share icons -->
-        <div style="height: 15%">
-            <div id="desktop-share-icons">
-                <div class="desktop-share-icon"><img src="/puppet/icons/social facebook.svg"></img></div>
-                <div class="desktop-share-icon"><img src="/puppet/icons/social instagram.svg"></img></div>
-                <div class="desktop-share-icon"><img src="/puppet/icons/social twitter.svg"></img></div>
-            </div>
-        </div>
-        <!-- playback controls -->
-        <div class="blue-background" style="height: auto; width: 100%; margin-top: 15%">
-            <div id="desktop-play" style="height: 15%; padding-top: 13%">
-                <img class="flex-icon v-center" src="/puppet/play.svg"></img>
-            </div>
-            <div id="desktop-replay" style="height: 15%">
-                <img class="flex-icon v-center" src="/puppet/replay.svg"></img>
-            </div>
-            <div id="desktop-volume-icon" style="height: 15%">
-                <img class="flex-icon v-center" src="/puppet/volume.svg"></img>
-            </div>
-            <div style="height: 65%">
-                <input class="v-center" orient="vertical" type="range" id="desktop-volume-slider"></input>
-            </div>
-        </div>
-    </div>
+    <div id="content-holder"> <!-- this is for scaling -->
+        <div id="content">
 
-    <!-- controls on the right side -->
-    <div id="desktop-app-links">
-        <div id="app-tag-line">MAKE YOUR PETS SING!</div>
-        <div id="app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
-        <div id="app-logos">
-            <div>
-                <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
+            <!-- all the controls on the left side -->
+            <div id="desktop-controls">
+                <!-- share button -->
+                <div style="height: 20%">
+                    <div id="share-button">
+                        <div id="share-text">SHARE</div>
+                    </div>
+                </div>
+                <!-- hr -->
+                <div style="height: 8%">
+                    <hr id="desktop-hr"></hr>
+                </div>
+                <!-- share icons -->
+                <div style="height: 15%">
+                    <div id="desktop-share-icons">
+                        <div class="desktop-share-icon"><img src="/puppet/icons/social facebook.svg"></img></div>
+                        <div class="desktop-share-icon"><img src="/puppet/icons/social instagram.svg"></img></div>
+                        <div class="desktop-share-icon"><img src="/puppet/icons/social twitter.svg"></img></div>
+                    </div>
+                </div>
+                <!-- playback controls -->
+                <div class="blue-background" style="height: auto; width: 100%; margin-top: 15%">
+                    <div id="desktop-play" style="height: 15%; padding-top: 13%">
+                        <img class="flex-icon v-center" src="/puppet/play.svg"></img>
+                    </div>
+                    <div id="desktop-replay" style="height: 15%">
+                        <img class="flex-icon v-center" src="/puppet/replay.svg"></img>
+                    </div>
+                    <div id="desktop-volume-icon" style="height: 15%">
+                        <img class="flex-icon v-center" src="/puppet/volume.svg"></img>
+                    </div>
+                    <div style="height: 65%">
+                        <input class="v-center" orient="vertical" type="range" id="desktop-volume-slider"></input>
+                    </div>
+                </div>
             </div>
-            <div>
-                <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
+
+            <!-- the card assembly -->
+            <div id="card-container">
+                <div id="puppet-container"></div>
+                <div id="big-button-container">
+                    <img id="big-button-img" src="/puppet/icons/media controls play.svg"></img>
+                </div>
+                <img id="decoration-image"></img>
+                <!--
+                <div id="controls-container">
+                    <div id="play-control">
+                        <img class="flex-icon" src="/puppet/play.png"></img>
+                    </div>
+                    <div id="replay-control">
+                        <img class="flex-icon" src="/puppet/replay.png"></img>
+                    </div>
+                    <div id="volume-slider">
+                        <input id="progress" type="range" min="0" max="100" step="1" value="100" data-before />
+                    </div>
+                    <div id="volume-icon">
+                        <img class="flex-icon" src="/puppet/volume_loud.png"></img>
+                    </div>
+                </div>
+                -->
             </div>
-        </div>
-        <div id="app-badges">
-            <div class="app-badge">
-                <img src="/puppet/app-store-badge.png"></img>
-            </div>
-            <div class="app-badge">
-                <img src="/puppet/google-play-badge.png"></img>
-            </div>
-        </div>
-    </div>
-    <div id="content">
-        <div id="card-container">
-            <div id="puppet-container"></div>
-            <div id="big-button-container">
-                <img id="big-button-img" src="/puppet/icons/media controls play.svg"></img>
-            </div>
-            <img id="decoration-image"></img>
+            <div id="envelope-back" class="envelope-back-piece"></div>
+            <div id="envelope-pouch" class="envelope-back-piece"></div>
             <!--
-            <div id="controls-container">
-                <div id="play-control">
-                    <img class="flex-icon" src="/puppet/play.png"></img>
+            <div id="envelope-below" class="envelope-back-piece"></div>
+            -->
+            <div id="envelope-flap-underside" class="envelope-flap-piece"></div>
+            <div id="envelope-flap" class="envelope-flap-piece">To: {{recipient_name}}</div>
+
+            <!-- controls on the right side -->
+            <div id="desktop-app-links">
+                <div id="app-tag-line">MAKE YOUR PETS SING!</div>
+                <div id="app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
+                <div id="app-logos">
+                    <div>
+                        <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
+                    </div>
+                    <div>
+                        <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
+                    </div>
                 </div>
-                <div id="replay-control">
-                    <img class="flex-icon" src="/puppet/replay.png"></img>
-                </div>
-                <div id="volume-slider">
-                    <input id="progress" type="range" min="0" max="100" step="1" value="100" data-before />
-                </div>
-                <div id="volume-icon">
-                    <img class="flex-icon" src="/puppet/volume_loud.png"></img>
+                <div id="app-badges">
+                    <div class="app-badge">
+                        <img src="/puppet/app-store-badge.png"></img>
+                    </div>
+                    <div class="app-badge">
+                        <img src="/puppet/google-play-badge.png"></img>
+                    </div>
                 </div>
             </div>
-            -->
+
+            <!-- mobile stuff all goes below the puppet -->
+            <div id="mobile-bottom-controls">
+                <div id="mobile-replay-button">
+                    <img src="/puppet/icons/rotate left.svg"></img>
+                </div>
+                <div id="mobile-share-button">
+                    <div>SHARE</div>
+                </div>
+                <hr id="mobile-hr"></hr>
+                <div id="app-tag-line">MAKE YOUR PETS SING!</div>
+                <div id="app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
+                <div id="app-logos">
+                    <div>
+                        <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
+                    </div>
+                    <div>
+                        <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
+                    </div>
+                </div>
+                <div id="app-badges">
+                    <div class="app-badge">
+                        <img src="/puppet/app-store-badge.png"></img>
+                    </div>
+                    <div class="app-badge">
+                        <img src="/puppet/google-play-badge.png"></img>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="envelope-back" class="envelope-back-piece"></div>
-        <div id="envelope-pouch" class="envelope-back-piece"></div>
-        <!--
-        <div id="envelope-below" class="envelope-back-piece"></div>
-        -->
-        <div id="envelope-flap-underside" class="envelope-flap-piece"></div>
-        <div id="envelope-flap" class="envelope-flap-piece">To: {{recipient_name}}</div>
-    </div>
-    <div id="mobile-bottom-controls">
-        <div id="mobile-replay-button">
-            <img src="/puppet/icons/rotate left.svg"></img>
-        </div>
-        <div id="mobile-share-button">
-            <div>SHARE</div>
-        </div>
-        <hr id="mobile-hr"></hr>
-    </div>
+    </div> <!-- content holder -->
     <div id="error">
         <div id="error-message">im sad</div>
     </div>
+
     <script src="/build/puppet.js"></script>
 </body>
