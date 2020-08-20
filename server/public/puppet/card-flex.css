@@ -10,7 +10,7 @@
 body {
     font-family: 'museo';
     background-image: url('/puppet/k9_create_background.svg');
-    background-size: contain;
+    background-size: cover;
     text-align: center;
     overflow: hidden;
     margin: 0;
@@ -217,6 +217,7 @@ body {
     transform: translate(-50%, -50%);
     text-align: center;
     display: none;
+    margin-bottom: 40px;
 }
 #mobile-replay-button {
     margin-bottom: 30px;

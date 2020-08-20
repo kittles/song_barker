@@ -1,4 +1,12 @@
 /* global _, Print, THREE, $, Stats, math */
+
+/*
+card TODO
+    - play button change to pause while playing (mobile and desktop)
+    - cursor pointer on share icons and playback controls and app icon links and badges
+    - performance! why does it suck
+*/
+
 var fp = _.noConflict(); // lodash fp and lodash at the same time
 
 // so nginx can server static assets

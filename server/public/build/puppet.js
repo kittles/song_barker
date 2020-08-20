@@ -5,6 +5,13 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 /* global _, Print, THREE, $, Stats, math */
+
+/*
+card TODO
+    - play button change to pause while playing (mobile and desktop)
+    - cursor pointer on share icons and playback controls and app icon links and badges
+    - performance! why does it suck
+*/
 var fp = _.noConflict(); // lodash fp and lodash at the same time
 // so nginx can server static assets
 
