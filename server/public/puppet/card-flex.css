@@ -213,7 +213,7 @@ body {
 
 #mobile-bottom-controls {
     position: absolute;
-    top: 300px;
+    top: 430px;
     transform: translate(-50%, -50%);
     text-align: center;
     display: none;
