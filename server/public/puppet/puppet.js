@@ -840,6 +840,10 @@ async function init_audio () {
     var desktop_replay = $('#desktop-replay');
     var desktop_play = $('#desktop-play');
 
+    var control_play_img = '/puppet/play.svg';
+    var control_pause_img = '/puppet/pause.png'; // TODO: need a real pause icon
+    var control_replay_img = '/puppet/icons/rotate left.svg';
+
     audio_url = `https://storage.googleapis.com/song_barker_sequences/${card.card_audio_bucket_fp}`;
     // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
     $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
@@ -862,17 +866,14 @@ async function init_audio () {
     playback_btn.click(handle_click);
     big_btn_container.click(handle_click);
     decoration_img.click(handle_click);
-    desktop_play.click(() => {
-        if (playing) {
-            // do nothing
-        } else {
-            card_play();
-        }
-    });
+    desktop_play.click(handle_click);
+    $('#mobile-replay-button').click(handle_click);
 
 
     function card_play () {
         $('img', playback_btn).attr('src', pause_img);
+        $('#desktop-play > img').attr('src', control_pause_img);
+        $('#mobile-replay-button > img').attr('src', control_pause_img);
         play_audio();
         big_btn_container.fadeOut(250);
     }
@@ -880,6 +881,8 @@ async function init_audio () {
 
     function card_pause () {
         $('img', playback_btn).attr('src', play_img);
+        $('#desktop-play > img').attr('src', control_play_img);
+        $('#mobile-replay-button > img').attr('src', control_play_img);
         pause_audio();
         big_btn_container.fadeIn(250);
     }
@@ -933,6 +936,7 @@ async function init_audio () {
 
     function handle_audio_end () {
         clearInterval(buffer_interval);
+        $('#mobile-replay-button > img').attr('src', control_replay_img);
         big_btn.attr('src', replay_img);
         big_btn_container.fadeIn(500);
         audio_el.currentTime = 0;

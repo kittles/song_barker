@@ -48,12 +48,14 @@
     <meta name="viewport" content="width=device-width">
 </head>
 <body>
-    <!--
-    -->
+    <!-- mobile logo goes middle top -->
     <img id="k9-logo" src="/puppet/k9_logotype_small.png"></img>
+    <!-- desktop logo goes left top -->
     <img id="k9-logo-desktop" src="/puppet/k9_logotype_small.png"></img>
 
-    <div id="content-holder"> <!-- this is for scaling -->
+     <!-- this is for scaling TODO is this redundant -->
+    <div id="content-holder">
+        <!-- this is for animating -->
         <div id="content">
 
             <!-- all the controls on the left side -->
@@ -100,28 +102,11 @@
                     <img id="big-button-img" src="/puppet/icons/media controls play.svg"></img>
                 </div>
                 <img id="decoration-image"></img>
-                <!--
-                <div id="controls-container">
-                    <div id="play-control">
-                        <img class="flex-icon" src="/puppet/play.png"></img>
-                    </div>
-                    <div id="replay-control">
-                        <img class="flex-icon" src="/puppet/replay.png"></img>
-                    </div>
-                    <div id="volume-slider">
-                        <input id="progress" type="range" min="0" max="100" step="1" value="100" data-before />
-                    </div>
-                    <div id="volume-icon">
-                        <img class="flex-icon" src="/puppet/volume_loud.png"></img>
-                    </div>
-                </div>
-                -->
             </div>
+
+            <!-- envelope assembly -->
             <div id="envelope-back" class="envelope-back-piece"></div>
             <div id="envelope-pouch" class="envelope-back-piece"></div>
-            <!--
-            <div id="envelope-below" class="envelope-back-piece"></div>
-            -->
             <div id="envelope-flap-underside" class="envelope-flap-piece"></div>
             <div id="envelope-flap" class="envelope-flap-piece">To: {{recipient_name}}</div>
 
@@ -149,16 +134,20 @@
 
             <!-- mobile stuff all goes below the puppet -->
             <div id="mobile-bottom-controls">
+                <!-- play pause button -->
                 <div id="mobile-replay-button">
-                    <img src="/puppet/icons/rotate left.svg"></img>
+                    <img src="/puppet/play.svg"></img>
                 </div>
+                <!-- share -->
                 <div id="mobile-share-button">
                     <div>SHARE</div>
                 </div>
+                <!-- hr -->
                 <hr id="mobile-hr"></hr>
-                <div id="app-tag-line">MAKE YOUR PETS SING!</div>
-                <div id="app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
-                <div id="app-logos">
+                <!-- app links and such -->
+                <div id="mobile-app-tag-line">MAKE YOUR PETS SING!</div>
+                <div id="mobile-app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
+                <div id="mobile-app-logos">
                     <div>
                         <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
                     </div>
@@ -166,7 +155,7 @@
                         <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
                     </div>
                 </div>
-                <div id="app-badges">
+                <div id="mobile-app-badges">
                     <div class="app-badge">
                         <img src="/puppet/app-store-badge.png"></img>
                     </div>
@@ -176,7 +165,10 @@
                 </div>
             </div>
         </div>
+
     </div> <!-- content holder -->
+
+    <!-- this is a catchall -->
     <div id="error">
         <div id="error-message">im sad</div>
     </div>

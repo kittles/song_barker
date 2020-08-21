@@ -918,13 +918,14 @@ function init_audio() {
 
 function _init_audio() {
   _init_audio = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, replay_btn, decoration_img, play_img, pause_img, replay_img, desktop_volume_slider, desktop_replay, desktop_play, card_play, card_pause, handle_click, handle_replay, play_audio, pause_audio, handle_audio_end;
+    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, replay_btn, decoration_img, play_img, pause_img, replay_img, desktop_volume_slider, desktop_replay, desktop_play, control_play_img, control_pause_img, control_replay_img, card_play, card_pause, handle_click, handle_replay, play_audio, pause_audio, handle_audio_end;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
             handle_audio_end = function _handle_audio_end() {
               clearInterval(buffer_interval);
+              $('#mobile-replay-button > img').attr('src', control_replay_img);
               big_btn.attr('src', replay_img);
               big_btn_container.fadeIn(500);
               audio_el.currentTime = 0;
@@ -973,12 +974,16 @@ function _init_audio() {
 
             card_pause = function _card_pause() {
               $('img', playback_btn).attr('src', play_img);
+              $('#desktop-play > img').attr('src', control_play_img);
+              $('#mobile-replay-button > img').attr('src', control_play_img);
               pause_audio();
               big_btn_container.fadeIn(250);
             };
 
             card_play = function _card_play() {
               $('img', playback_btn).attr('src', pause_img);
+              $('#desktop-play > img').attr('src', control_pause_img);
+              $('#mobile-replay-button > img').attr('src', control_pause_img);
               play_audio();
               big_btn_container.fadeOut(250);
             };
@@ -995,6 +1000,10 @@ function _init_audio() {
             desktop_volume_slider = $('#desktop-volume-slider');
             desktop_replay = $('#desktop-replay');
             desktop_play = $('#desktop-play');
+            control_play_img = '/puppet/play.svg';
+            control_pause_img = '/puppet/pause.png'; // TODO: need a real pause icon
+
+            control_replay_img = '/puppet/icons/rotate left.svg';
             audio_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
 
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
@@ -1017,16 +1026,12 @@ function _init_audio() {
             playback_btn.click(handle_click);
             big_btn_container.click(handle_click);
             decoration_img.click(handle_click);
-            desktop_play.click(function () {
-              if (playing) {// do nothing
-              } else {
-                card_play();
-              }
-            });
+            desktop_play.click(handle_click);
+            $('#mobile-replay-button').click(handle_click);
             replay_btn.click(handle_replay);
             desktop_replay.click(handle_replay);
 
-          case 31:
+          case 35:
           case "end":
             return _context3.stop();
         }

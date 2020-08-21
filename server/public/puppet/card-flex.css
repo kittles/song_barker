@@ -6,11 +6,19 @@
     font-style: normal;
     font-display: swap;
 }
+@keyframes wiggle {
+    0% { transform:   translate(-50%, -50%) rotate(0deg); }
+    80% { transform:  translate(-50%, -50%) rotate(0deg); }
+    85% { transform:  translate(-50%, -50%) rotate(5deg); }
+    95% { transform:  translate(-50%, -50%) rotate(-5deg); }
+    100% { transform: translate(-50%, -50%) rotate(0deg); }
+}
 
 body {
     font-family: 'museo';
     background-image: url('/puppet/k9_create_background.svg');
     background-size: cover;
+    background-attachment: fixed; /* cover was still showing a seam oddly */
     text-align: center;
     overflow: hidden;
     margin: 0;
@@ -19,12 +27,22 @@ body {
     color: #004692;
     height: 100%; /* ff needs this */
 }
+
+/*
+this receives a scale transform (from js) based on the viewport size
+which scales the entire page (except for the logo) up or down
+ */
 #content-holder {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translateY(-50%) translateX(-50%);
 }
+
+/*
+this contains the card and envelope, and provides a way to manipuate them
+in unison. it gets faded in and slid in from the top after the page loads.
+its the target for the wiggle animation
+*/
 #content {
     position: absolute;
     display: none;
@@ -38,13 +56,9 @@ body {
          -o-transition: top 700ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
             transition: top 700ms cubic-bezier(0.175, 0.885, 0.320, 1.275); /* easeOutBack */
 }
-@keyframes wiggle {
-    0% { transform:   translate(-50%, -50%) rotate(0deg); }
-    80% { transform:  translate(-50%, -50%) rotate(0deg); }
-    85% { transform:  translate(-50%, -50%) rotate(5deg); }
-    95% { transform:  translate(-50%, -50%) rotate(-5deg); }
-    100% { transform: translate(-50%, -50%) rotate(0deg); }
-}
+
+
+/* the envelope pieces */
 #envelope-back {
     width: 300px;
     height: 150px;
@@ -93,17 +107,13 @@ body {
     -webkit-clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
     clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
     background: repeating-linear-gradient(-45deg, #c1ab8e, #c1ab8e 10px, #e74c3c 10px, #e74c3c 20px, #c1ab8e 20px, #c1ab8e 30px, #1e90ff 30px, #1e90ff 40px) 0 0/100% 5px no-repeat, #c1ab8e;
-
     -webkit-transition: -webkit-transform 0.25s 0.5s;
     transition: -webkit-transform 0.25s 0.5s;
     transition: transform 0.25s 0.5s;
-
     -webkit-transform-origin: top center;
     transform-origin: top center;
-
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-
     cursor: pointer;
 }
 #envelope-flap-underside {
@@ -132,7 +142,10 @@ body {
 }
 
 
-/* opening the top flap of the envelope */
+/*
+opening the top flap of the envelope is handled here with transitions.
+the sliding away of the envelope after opening is done in js for now
+ */
 #envelope-flap.opened {
     -webkit-transition:-webkit-transform 0.25s 0s;
     transition: -webkit-transform 0.25s 0s;
@@ -155,7 +168,7 @@ body {
 
 /* card that comes out of the envelope */
 
-/* this is for moving and scaling the whole card assembly */
+/* this is for moving and scaling the whole card sub assembly */
 #card-container {
     position: absolute;
     margin: auto;
@@ -176,41 +189,52 @@ body {
 #decoration-image {
     position: absolute;
 }
-/* white overlay over puppet when paused or replay waiting */
+/*
+white translucent overlay over puppet when paused or replay waiting.
+the big button sits inside this
+ */
 #big-button-container {
     position: absolute;
     background: rgba(255, 255, 255, 0.5);
 }
+/*
+button on top of puppet showing play icon
+*/
 #big-button-img {
-    position: relative;
+    position: relative; /* TODO: why doesnt absolute work here */
     top: 50%;
     transform: translateY(-50%);
+    width: 175px;
 }
 
 
-/* the ui elements that fade in after opening a card */
+/*
+the ui elements that accomany the card after the envelope is opened
+are faded in with js. theyre positions are hardcoded based on eye,
+and the content holder is responsible for scaling things correctly.
+so the layout is always the same, relatively between elements.
+
+there is a wide mode where the playback controls are on the left,
+and app links are on the right
+
+there is a mobile mode where they are below
+
+the js uses the viewport aspect ratio to determine which mode to use,
+and hides and shows elements accordingly
+*/
+
+/* mobile mode stuff */
 
 /* logo */
-
 #k9-logo {
     position: absolute;
     top: 2%;
-    height: 7%;
+    height: 5%;
     left: 50%;
     transform: translateX(-50%);
     display: none;
 }
-
-#k9-logo-desktop {
-    position: absolute;
-    height: 80px;
-    top: 20px;
-    left: 20px;
-    display: none;
-}
-
 /* mobile stuff below the card */
-
 #mobile-bottom-controls {
     position: absolute;
     top: 430px;
@@ -218,9 +242,13 @@ body {
     text-align: center;
     display: none;
     margin-bottom: 40px;
+    z-index: 10; /* card overlaps so this needs to be on top */
 }
 #mobile-replay-button {
     margin-bottom: 30px;
+}
+#mobile-replay-button > img {
+    width: 45px;
 }
 #mobile-share-button {
     width: 180px;
@@ -238,9 +266,49 @@ body {
     margin-top: 30px;
     margin-bottom: 10px;
 }
+#mobile-app-tag-line {
+    font-size: 2.5em;
+    letter-spacing: 1.4;
+}
+#mobile-app-subhead {
+    margin-top: 2.5%;
+    font-size: 0.8em;
+    line-height: 1.6;
+}
+#mobile-app-logos {
+    margin-top: 5%;
+    display: flex;
+    text-align: center;
+}
+#mobile-app-logos > div {
+    flex: 1 1 0;
+}
+#mobile-app-logos img {
+    height: 50px;
+}
+#mobile-app-badges {
+    margin-top: 50px;
+    display: flex;
+    text-align: center;
+}
+.app-badge {
+    flex: 1 1 0;
+}
+.app-badge > img {
+    width: 90px;
+}
 
+/* desktop control stuff */
+
+/* logo */
+#k9-logo-desktop {
+    position: absolute;
+    top: 2%;
+    height: 7%;
+    left: 2%;
+    display: none;
+}
 /* desktop controls on the left */
-
 #desktop-controls {
     position: absolute;
     display: none;
@@ -251,8 +319,7 @@ body {
     left: -284px;
 }
 
-/* the subsections */
-
+/* the subsections of the left controls */
 #share-button {
     height: 50%;
     position: relative;
@@ -270,8 +337,6 @@ body {
     margin: auto;
     transform: translateY(-50%);
 }
-
-
 #desktop-hr {
     width: 80%;
     border: 1px solid #004692;
@@ -279,8 +344,6 @@ body {
     top: 50%;
     transform: translateY(-50%);
 }
-
-
 #desktop-share-icons {
     position: relative;
     top: 50%;
@@ -295,7 +358,6 @@ body {
 }
 
 /* the blue vertical bar with play and pause and such */
-
 .blue-background {
     border-radius: 14px;
     background: #004692;
@@ -330,7 +392,6 @@ input[type=range][orient=vertical] {
 }
 
 /* the links and text on the right of the card */
-
 #desktop-app-links {
     position: absolute;
     text-align: left;
@@ -374,7 +435,6 @@ input[type=range][orient=vertical] {
 }
 
 /* cover the screen with an error message if something goes wrong */
-
 #error {
     position: fixed;
     display: none;
