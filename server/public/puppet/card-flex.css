@@ -247,11 +247,12 @@ and hides and shows elements accordingly
 /* logo */
 #k9-logo {
     position: absolute;
-    top: 0.5%;
+    top: 10px;
     height: 8%;
     left: 50%;
     transform: translateX(-50%);
     display: none;
+    min-height: 7%;
 }
 /* mobile stuff below the card */
 #mobile-replay-button {

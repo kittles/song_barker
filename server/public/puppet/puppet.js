@@ -535,6 +535,9 @@ async function card_init () {
             $('#mobile-replay-button').css({
                 left: 157,
             });
+            $('#k9-logo').css({
+                height: 'calc(200px - 17vw)',
+            });
         } else { // no frame
             desktop_controls.css({
                 left: -306,
@@ -549,6 +552,9 @@ async function card_init () {
             });
             $('#mobile-replay-button').css({
                 left: 200,
+            });
+            $('#k9-logo').css({
+                height: 'calc(200px - 17vw)',
             });
         }
 
