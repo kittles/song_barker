@@ -300,7 +300,7 @@ function card_init() {
 
 function _card_init() {
   _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, get_url_param, prep_card_for_display, mobile_replay_fade_once, layout_elements, card_maximize_scale, page_scale, open_envelope;
+    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, get_url_param, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -450,16 +450,10 @@ function _card_init() {
                   desktop_controls.fadeIn(fade_duration);
                   desktop_app_links.fadeIn(fade_duration);
                   mobile_bottom_controls.hide();
-                  $('#mobile-replay-button').hide();
                 } else {
                   desktop_controls.hide();
                   desktop_app_links.hide();
                   mobile_bottom_controls.fadeIn(fade_duration);
-
-                  if (!mobile_replay_fade_once) {
-                    $('#mobile-replay-button').fadeIn(fade_duration);
-                    mobile_replay_fade_once = true;
-                  }
                 }
 
                 if (!wide_mode()) {
@@ -517,7 +511,15 @@ function _card_init() {
               })); // handle opening the envelope
 
               back_pieces.click(open_envelope);
-              flap.click(open_envelope); // queue up the card coming in to view
+              flap.click(open_envelope); // hide mobile replay button on wide mode
+
+              if (wide_mode()) {
+                $('#big-play-button-overlay').show();
+              } else {
+                $('#big-play-button-overlay').show();
+                $('#mobile-replay-button').show();
+              } // queue up the card coming in to view
+
 
               setTimeout(function () {
                 // card drops in from above, waiting to be opened
@@ -760,13 +762,11 @@ function _card_init() {
             img_for_dimensions.onload = prep_card_for_display; // this will trigger the rest of the init sequence
 
             img_for_dimensions.src = decoration_image_url;
-            ;
-            mobile_replay_fade_once = false; // TODO what a hack
-            // layout in the js for maxiumum job security
+            ; // layout in the js for maxiumum job security
 
             card_maximize_scale = 0.8;
 
-          case 91:
+          case 90:
           case "end":
             return _context.stop();
         }
@@ -1047,20 +1047,20 @@ function _init_audio() {
             desktop_replay = $('#desktop-replay');
             desktop_play = $('#desktop-play'); // TODO: update these
 
-            play_img = '/puppet/k9-icons/play-white.png';
-            pause_img = '/puppet/k9-icons/pause-white.png';
-            replay_img = '/puppet/k9-icons/replay-white.png';
-            control_play_img = '/puppet/k9-icons/play-white.png';
+            play_img = '/puppet/k9-icons/play-no-border-white.png';
+            pause_img = '/puppet/k9-icons/pause-no-border-white.png';
+            replay_img = '/puppet/k9-icons/replay-no-border-white.png';
+            control_play_img = '/puppet/k9-icons/play-no-border-white.png';
             blue_play_img = '/puppet/k9-icons/play-blue.png';
-            control_pause_img = '/puppet/k9-icons/pause-white.png';
-            control_replay_img = '/puppet/k9-icons/replay-white.png';
-            control_volume_on_img = '/puppet/k9-icons/volume-on-white.png';
-            control_volume_off_img = '/puppet/k9-icons/volume-off-white.png';
+            control_pause_img = '/puppet/k9-icons/pause-no-border-white.png';
+            control_replay_img = '/puppet/k9-icons/replay-no-border-white.png';
+            control_volume_on_img = '/puppet/k9-icons/volume-on-no-border-white.png';
+            control_volume_off_img = '/puppet/k9-icons/volume-off-no-border-white.png';
             mobile_play_img = '/puppet/k9-icons/play-blue.png';
             mobile_pause_img = '/puppet/k9-icons/pause-blue.png';
             mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
-            mobile_volume_on_img = '/puppet/k9-icons/volume-on-blue.png';
-            mobile_volume_off_img = '/puppet/k9-icons/volume-off-blue.png';
+            mobile_volume_on_img = '/puppet/k9-icons/volume-on-no-border-blue.png';
+            mobile_volume_off_img = '/puppet/k9-icons/volume-off-no-border-blue.png';
             audio_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
 
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));

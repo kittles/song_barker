@@ -482,6 +482,14 @@ async function card_init () {
         back_pieces.click(open_envelope);
         flap.click(open_envelope);
 
+        // hide mobile replay button on wide mode
+        if (wide_mode()) {
+            $('#big-play-button-overlay').show();
+        } else {
+            $('#big-play-button-overlay').show();
+            $('#mobile-replay-button').show();
+        }
+
         // queue up the card coming in to view
         setTimeout(() => {
             // card drops in from above, waiting to be opened
@@ -492,7 +500,6 @@ async function card_init () {
     };
 
 
-    var mobile_replay_fade_once = false; // TODO what a hack
 
     // layout in the js for maxiumum job security
     function layout_elements () {
@@ -555,15 +562,10 @@ async function card_init () {
                 desktop_controls.fadeIn(fade_duration);
                 desktop_app_links.fadeIn(fade_duration);
                 mobile_bottom_controls.hide();
-                $('#mobile-replay-button').hide();
             } else {
                 desktop_controls.hide();
                 desktop_app_links.hide();
                 mobile_bottom_controls.fadeIn(fade_duration);
-                if (!mobile_replay_fade_once) {
-                    $('#mobile-replay-button').fadeIn(fade_duration);
-                    mobile_replay_fade_once = true;
-                }
             }
             if (!wide_mode()) {
                 $('body').css({
@@ -872,22 +874,22 @@ async function init_audio () {
     var desktop_play = $('#desktop-play');
 
     // TODO: update these
-    var play_img = '/puppet/k9-icons/play-white.png';
-    var pause_img = '/puppet/k9-icons/pause-white.png';
-    var replay_img = '/puppet/k9-icons/replay-white.png';
+    var play_img = '/puppet/k9-icons/play-no-border-white.png';
+    var pause_img = '/puppet/k9-icons/pause-no-border-white.png';
+    var replay_img = '/puppet/k9-icons/replay-no-border-white.png';
 
-    var control_play_img = '/puppet/k9-icons/play-white.png';
+    var control_play_img = '/puppet/k9-icons/play-no-border-white.png';
     var blue_play_img = '/puppet/k9-icons/play-blue.png';
-    var control_pause_img = '/puppet/k9-icons/pause-white.png';
-    var control_replay_img = '/puppet/k9-icons/replay-white.png';
-    var control_volume_on_img = '/puppet/k9-icons/volume-on-white.png';
-    var control_volume_off_img = '/puppet/k9-icons/volume-off-white.png';
+    var control_pause_img = '/puppet/k9-icons/pause-no-border-white.png';
+    var control_replay_img = '/puppet/k9-icons/replay-no-border-white.png';
+    var control_volume_on_img = '/puppet/k9-icons/volume-on-no-border-white.png';
+    var control_volume_off_img = '/puppet/k9-icons/volume-off-no-border-white.png';
 
     var mobile_play_img = '/puppet/k9-icons/play-blue.png';
     var mobile_pause_img = '/puppet/k9-icons/pause-blue.png';
     var mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
-    var mobile_volume_on_img = '/puppet/k9-icons/volume-on-blue.png';
-    var mobile_volume_off_img = '/puppet/k9-icons/volume-off-blue.png';
+    var mobile_volume_on_img = '/puppet/k9-icons/volume-on-no-border-blue.png';
+    var mobile_volume_off_img = '/puppet/k9-icons/volume-off-no-border-blue.png';
 
     audio_url = `https://storage.googleapis.com/song_barker_sequences/${card.card_audio_bucket_fp}`;
     // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
