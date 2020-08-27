@@ -1,3 +1,7 @@
+html {
+    touch-action: manipulation; /* remove touch delay */
+    -ms-touch-action: manipulation;
+}
 @font-face {
     font-family: 'museo';
     src: url('/puppet/MuseoSansRounded-700.woff2') format('woff2'),
