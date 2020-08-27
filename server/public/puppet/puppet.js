@@ -435,8 +435,13 @@ async function card_init () {
 
     // set the logo size and position by card zoom etc
     function top_of_card () {
-        var height_for_top = (1 / frame_aspect_ratio) * card_square_side()
-        return $('#content-holder').position().top - ((height_for_top * page_scale() * card_maximize_scale) / 2);
+        if (card_has_frame) {
+            var height_for_top = (1 / frame_aspect_ratio) * card_square_side()
+            return $('#content-holder').position().top - ((height_for_top * page_scale() * card_maximize_scale) / 2);
+        } else {
+            var height_for_top = card_width();
+            return $('#content-holder').position().top - ((height_for_top * page_scale() * card_maximize_scale) / 2);
+        }
     }
 
     function get_url_param (name) {
@@ -517,8 +522,8 @@ async function card_init () {
         // w/frame: left 200 top -135
         // w/o: left 228 top -202
         mobile_logo.css({
-            height: top_of_card() - 20,
-            top: 5,
+            height: top_of_card() - (card_has_frame ? 20 : 40),
+            top: card_has_frame ? 5 : 10,
         });
 
 
