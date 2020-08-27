@@ -300,7 +300,7 @@ function card_init() {
 
 function _card_init() {
   _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, get_url_param, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
+    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, get_url_param, prep_card_for_display, mobile_replay_fade_once, layout_elements, card_maximize_scale, page_scale, open_envelope;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -443,7 +443,11 @@ function _card_init() {
                   desktop_controls.hide();
                   desktop_app_links.hide();
                   mobile_bottom_controls.fadeIn(fade_duration);
-                  $('#mobile-replay-button').fadeIn(fade_duration);
+
+                  if (!mobile_replay_fade_once) {
+                    $('#mobile-replay-button').fadeIn(fade_duration);
+                    mobile_replay_fade_once = true;
+                  }
                 }
 
                 if (!wide_mode()) {
@@ -744,11 +748,13 @@ function _card_init() {
             img_for_dimensions.onload = prep_card_for_display; // this will trigger the rest of the init sequence
 
             img_for_dimensions.src = decoration_image_url;
-            ; // layout in the js for maxiumum job security
+            ;
+            mobile_replay_fade_once = false; // TODO what a hack
+            // layout in the js for maxiumum job security
 
             card_maximize_scale = 0.8;
 
-          case 90:
+          case 91:
           case "end":
             return _context.stop();
         }

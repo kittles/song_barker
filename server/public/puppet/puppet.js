@@ -492,6 +492,8 @@ async function card_init () {
     };
 
 
+    var mobile_replay_fade_once = false; // TODO what a hack
+
     // layout in the js for maxiumum job security
     function layout_elements () {
         // desktop controls
@@ -546,7 +548,10 @@ async function card_init () {
                 desktop_controls.hide();
                 desktop_app_links.hide();
                 mobile_bottom_controls.fadeIn(fade_duration);
-                $('#mobile-replay-button').fadeIn(fade_duration);
+                if (!mobile_replay_fade_once) {
+                    $('#mobile-replay-button').fadeIn(fade_duration);
+                    mobile_replay_fade_once = true;
+                }
             }
             if (!wide_mode()) {
                 $('body').css({
