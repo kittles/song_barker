@@ -516,8 +516,8 @@ function _card_init() {
               if (wide_mode()) {
                 $('#big-play-button-overlay').show();
               } else {
-                $('#big-play-button-overlay').show();
-                $('#mobile-replay-button').show();
+                $('#big-play-button-overlay').show(); // dont show replay until card has played and is paused
+                //$('#mobile-replay-button').show();
               } // queue up the card coming in to view
 
 

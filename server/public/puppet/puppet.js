@@ -498,7 +498,8 @@ async function card_init () {
             $('#big-play-button-overlay').show();
         } else {
             $('#big-play-button-overlay').show();
-            $('#mobile-replay-button').show();
+            // dont show replay until card has played and is paused
+            //$('#mobile-replay-button').show();
         }
 
         // queue up the card coming in to view
