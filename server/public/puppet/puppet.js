@@ -433,6 +433,12 @@ async function card_init () {
         }
     }
 
+    // set the logo size and position by card zoom etc
+    function top_of_card () {
+        var height_for_top = (1 / frame_aspect_ratio) * card_square_side()
+        return $('#content-holder').position().top - ((height_for_top * page_scale() * card_maximize_scale) / 2);
+    }
+
     function get_url_param (name) {
         var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
         if (results==null) {
@@ -510,6 +516,10 @@ async function card_init () {
         // desktop app links
         // w/frame: left 200 top -135
         // w/o: left 228 top -202
+        mobile_logo.css({
+            height: top_of_card() - 20,
+            top: 5,
+        });
 
 
         // this is called whenever the window is resized
@@ -535,9 +545,6 @@ async function card_init () {
             $('#mobile-replay-button').css({
                 left: 157,
             });
-            $('#k9-logo').css({
-                height: 'calc(200px - 17vw)',
-            });
         } else { // no frame
             desktop_controls.css({
                 left: -306,
@@ -552,9 +559,6 @@ async function card_init () {
             });
             $('#mobile-replay-button').css({
                 left: 200,
-            });
-            $('#k9-logo').css({
-                height: 'calc(200px - 17vw)',
             });
         }
 
@@ -598,12 +602,8 @@ async function card_init () {
     function page_scale () {
         var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
         var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
-        console.log('card width', card_width(), 'card height', card_height());
-        console.log('zoom width', zoom_width, 'zoom height', zoom_height);
         var zoom = Math.min(zoom_width, zoom_height);
         zoom *= 0.9;
-        //var zoom = Math.max(zoom, 1);
-        console.log(wide_mode() ? zoom * 1 : zoom);
         return wide_mode() ? zoom * 1 : zoom;
     }
 

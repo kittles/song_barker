@@ -300,7 +300,7 @@ function card_init() {
 
 function _card_init() {
   _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, get_url_param, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
+    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, top_of_card, get_url_param, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -385,12 +385,8 @@ function _card_init() {
             page_scale = function _page_scale() {
               var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
               var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
-              console.log('card width', card_width(), 'card height', card_height());
-              console.log('zoom width', zoom_width, 'zoom height', zoom_height);
               var zoom = Math.min(zoom_width, zoom_height);
-              zoom *= 0.9; //var zoom = Math.max(zoom, 1);
-
-              console.log(wide_mode() ? zoom * 1 : zoom);
+              zoom *= 0.9;
               return wide_mode() ? zoom * 1 : zoom;
             };
 
@@ -401,8 +397,12 @@ function _card_init() {
               // desktop app links
               // w/frame: left 200 top -135
               // w/o: left 228 top -202
-              // this is called whenever the window is resized
+              mobile_logo.css({
+                height: top_of_card() - 20,
+                top: 5
+              }); // this is called whenever the window is resized
               // set the page scale (except for logo)
+
               global_scale_el.css({
                 transform: "scale(".concat(page_scale())
               }); // move the controls and copy horzontally to account for a frame
@@ -422,9 +422,6 @@ function _card_init() {
                 $('#mobile-replay-button').css({
                   left: 157
                 });
-                $('#k9-logo').css({
-                  height: 'calc(200px - 17vw)'
-                });
               } else {
                 // no frame
                 desktop_controls.css({
@@ -440,9 +437,6 @@ function _card_init() {
                 });
                 $('#mobile-replay-button').css({
                   left: 200
-                });
-                $('#k9-logo').css({
-                  height: 'calc(200px - 17vw)'
                 });
               } // if the mode has changed between wide and regular,
               // elements fade out or in
@@ -547,6 +541,11 @@ function _card_init() {
               }
 
               return decodeURI(results[1]) || 0;
+            };
+
+            top_of_card = function _top_of_card() {
+              var height_for_top = 1 / frame_aspect_ratio * card_square_side();
+              return $('#content-holder').position().top - height_for_top * page_scale() * card_maximize_scale / 2;
             };
 
             set_card_dimensions = function _set_card_dimensions() {
@@ -664,14 +663,14 @@ function _card_init() {
             //};
             //}
 
-            _context.next = 26;
+            _context.next = 27;
             return load_shader_files();
 
-          case 26:
-            _context.next = 28;
+          case 27:
+            _context.next = 29;
             return load_texture('noise_2D.png');
 
-          case 28:
+          case 29:
             animation_noise_texture = _context.sent;
             scene = new THREE.Scene();
             renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
@@ -695,10 +694,10 @@ function _card_init() {
             });
             face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
             face_mesh.renderOrder = 1;
-            _context.next = 43;
+            _context.next = 44;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
-          case 43:
+          case 44:
             mouth_gltf = _context.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
@@ -723,10 +722,10 @@ function _card_init() {
             renderer.setSize(render_pixels, render_pixels); //$(renderer.domElement).css('zoom', zoom_factor);
             // set the pet image on the mesh and on the shader
 
-            _context.next = 55;
+            _context.next = 56;
             return load_texture(image_url);
 
-          case 55:
+          case 56:
             pet_image_texture = _context.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
@@ -772,7 +771,7 @@ function _card_init() {
 
             card_maximize_scale = 0.8;
 
-          case 90:
+          case 91:
           case "end":
             return _context.stop();
         }
