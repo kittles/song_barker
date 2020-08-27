@@ -199,6 +199,9 @@ $('document').ready(() => {
     }
 });
 
+function wide_mode () {
+    return (document.body.offsetWidth / document.body.offsetHeight) > 1.56;
+}
 
 async function card_init () {
 
@@ -380,9 +383,6 @@ async function card_init () {
     img_for_dimensions.src = decoration_image_url;
 
 
-    function wide_mode () {
-        return (document.body.offsetWidth / document.body.offsetHeight) > 1.56;
-    }
     function card_width () {
         return card_has_frame ? 512 - 72 : 512;
     }
@@ -433,8 +433,21 @@ async function card_init () {
         }
     }
 
+    function get_url_param (name) {
+        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+        if (results==null) {
+           return null;
+        }
+        return decodeURI(results[1]) || 0;
+    }
+
 
     function prep_card_for_display () {
+        // set the recipient name from url param
+        var recipient_name = get_url_param('recipient_name') || 'You';
+        $('#envelope-flap').text(`To: ${recipient_name}`);
+
+
         // this scales the whole assembly up or down depending on
         // viewport
         global_scale_el.css({
@@ -528,10 +541,12 @@ async function card_init () {
                 desktop_controls.fadeIn(fade_duration);
                 desktop_app_links.fadeIn(fade_duration);
                 mobile_bottom_controls.hide();
+                $('#mobile-replay-button').hide();
             } else {
                 desktop_controls.hide();
                 desktop_app_links.hide();
                 mobile_bottom_controls.fadeIn(fade_duration);
+                $('#mobile-replay-button').fadeIn(fade_duration);
             }
             if (!wide_mode()) {
                 $('body').css({
@@ -829,20 +844,33 @@ async function init_audio () {
     var buffer_interval;
     var playing = false;
     var playback_btn = $('#play-control');
-    var big_btn_container = $('#big-button-container');
-    var big_btn = $('#big-button-img');
+    var big_btn_container = $('#big-play-button-overlay');
+    var big_btn = $('#big-play-button');
+    var mobile_replay = $('#mobile-replay-button');
     var replay_btn = $('#replay-control');
     var decoration_img = $('#decoration-image');
-    var play_img = '/puppet/icons/media controls play.svg';
-    var pause_img = '/puppet/icons/media controls pause.svg';
-    var replay_img = '/puppet/icons/rotate left.svg';
     var desktop_volume_slider = $('#desktop-volume-slider');
+    var mobile_volume_slider = $('#mobile-volume-slider');
     var desktop_replay = $('#desktop-replay');
     var desktop_play = $('#desktop-play');
 
-    var control_play_img = '/puppet/play.svg';
-    var control_pause_img = '/puppet/pause.png'; // TODO: need a real pause icon
-    var control_replay_img = '/puppet/icons/rotate left.svg';
+    // TODO: update these
+    var play_img = '/puppet/k9-icons/play-white.png';
+    var pause_img = '/puppet/k9-icons/pause-white.png';
+    var replay_img = '/puppet/k9-icons/replay-white.png';
+
+    var control_play_img = '/puppet/k9-icons/play-white.png';
+    var blue_play_img = '/puppet/k9-icons/play-blue.png';
+    var control_pause_img = '/puppet/k9-icons/pause-white.png';
+    var control_replay_img = '/puppet/k9-icons/replay-white.png';
+    var control_volume_on_img = '/puppet/k9-icons/volume-on-white.png';
+    var control_volume_off_img = '/puppet/k9-icons/volume-off-white.png';
+
+    var mobile_play_img = '/puppet/k9-icons/play-blue.png';
+    var mobile_pause_img = '/puppet/k9-icons/pause-blue.png';
+    var mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
+    var mobile_volume_on_img = '/puppet/k9-icons/volume-on-blue.png';
+    var mobile_volume_off_img = '/puppet/k9-icons/volume-off-blue.png';
 
     audio_url = `https://storage.googleapis.com/song_barker_sequences/${card.card_audio_bucket_fp}`;
     // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
@@ -850,41 +878,77 @@ async function init_audio () {
     audio_el = document.querySelector('audio');
     audio_el.addEventListener('ended', handle_audio_end, { once: true });
 
+    // TODO consolidate volume slider logic
+
+    $('#mobile-volume-slider').on('input', () => {
+        audio_el.volume = $('#mobile-volume-slider').val() / 100;
+        if (audio_el.volume > 0) {
+            $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
+        } else {
+            $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
+        }
+    });
+
     $('#desktop-volume-slider').on('input', () => {
         audio_el.volume = $('#desktop-volume-slider').val() / 100;
+        if (audio_el.volume > 0) {
+            $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
+        } else {
+            $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
+        }
     });
+
+    var last_slider_val = 75;
 
     $('#desktop-volume-icon').on('click', () => {
         if (desktop_volume_slider.val() > 0) {
+            last_slider_val = desktop_volume_slider.val();
             desktop_volume_slider.val(0);
+            $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
         } else {
-            desktop_volume_slider.val(100);
+            desktop_volume_slider.val(last_slider_val);
+            $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
         }
         audio_el.volume = $('#desktop-volume-slider').val() / 100;
+    });
+
+    $('#mobile-volume-icon').on('click', () => {
+        if (mobile_volume_slider.val() > 0) {
+            last_slider_val = mobile_volume_slider.val();
+            mobile_volume_slider.val(0);
+            $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
+        } else {
+            mobile_volume_slider.val(last_slider_val);
+            $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
+        }
+        audio_el.volume = $('#mobile-volume-slider').val() / 100;
     });
 
     playback_btn.click(handle_click);
     big_btn_container.click(handle_click);
     decoration_img.click(handle_click);
     desktop_play.click(handle_click);
-    $('#mobile-replay-button').click(handle_click);
 
 
     function card_play () {
         $('img', playback_btn).attr('src', pause_img);
         $('#desktop-play > img').attr('src', control_pause_img);
-        $('#mobile-replay-button > img').attr('src', control_pause_img);
         play_audio();
         big_btn_container.fadeOut(250);
+        if (!wide_mode()) {
+            mobile_replay.fadeOut(250);
+        }
     }
 
 
     function card_pause () {
         $('img', playback_btn).attr('src', play_img);
         $('#desktop-play > img').attr('src', control_play_img);
-        $('#mobile-replay-button > img').attr('src', control_play_img);
         pause_audio();
         big_btn_container.fadeIn(250);
+        if (!wide_mode()) {
+            mobile_replay.fadeIn(250);
+        }
     }
 
 
@@ -900,13 +964,18 @@ async function init_audio () {
 
     replay_btn.click(handle_replay);
     desktop_replay.click(handle_replay);
+    mobile_replay.click(handle_replay);
 
     function handle_replay () {
         clearInterval(buffer_interval);
         audio_el.currentTime = 0;
-        $('img', playback_btn).attr('src', pause_img);
+        $('img', playback_btn).attr('src', control_pause_img);
+        $('img', desktop_play).attr('src', control_pause_img);
         play_audio();
         big_btn_container.fadeOut(250);
+        if (!wide_mode()) {
+            mobile_replay.fadeOut(250);
+        }
     }
 
 
@@ -936,9 +1005,12 @@ async function init_audio () {
 
     function handle_audio_end () {
         clearInterval(buffer_interval);
-        $('#mobile-replay-button > img').attr('src', control_replay_img);
         big_btn.attr('src', replay_img);
         big_btn_container.fadeIn(500);
+        // dont want two replay buttons
+        //if (!wide_mode()) {
+        //    mobile_replay.fadeIn(500);
+        //}
         audio_el.currentTime = 0;
         playing = false;
     }

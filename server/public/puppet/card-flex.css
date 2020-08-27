@@ -200,6 +200,18 @@ the big button sits inside this
 /*
 button on top of puppet showing play icon
 */
+#big-play-button-overlay {
+    position: absolute;
+    top: 150px;
+    left: 157px;
+    background: #004692;
+    border-radius: 136px;
+    /* width: 201px; */
+    z-index: 100;
+}
+#big-play-button {
+    width: 114px;
+}
 #big-button-img {
     position: relative; /* TODO: why doesnt absolute work here */
     top: 50%;
@@ -229,12 +241,25 @@ and hides and shows elements accordingly
 #k9-logo {
     position: absolute;
     top: 2%;
-    height: 5%;
+    height: 6%;
     left: 50%;
     transform: translateX(-50%);
     display: none;
 }
 /* mobile stuff below the card */
+#mobile-replay-button {
+    position: absolute;
+    top: 288px;
+    left: 157px;
+    background: #004692;
+    border-radius: 136px;
+    /* width: 201px; */
+    z-index: 100;
+    display: none;
+}
+#mobile-replay-img {
+    width: 114px;
+}
 #mobile-bottom-controls {
     position: absolute;
     top: 430px;
@@ -244,11 +269,18 @@ and hides and shows elements accordingly
     margin-bottom: 40px;
     z-index: 10; /* card overlaps so this needs to be on top */
 }
-#mobile-replay-button {
-    margin-bottom: 30px;
+#mobile-volume-slider {
+    position: absolute;
+    top: -42px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120%;
 }
-#mobile-replay-button > img {
-    width: 45px;
+#mobile-volume-icon {
+    position: absolute;
+    width: 40px;
+    top: -52px;
+    left: 228px;
 }
 #mobile-share-button {
     width: 180px;
@@ -366,7 +398,8 @@ and hides and shows elements accordingly
     border: 1px solid red;
 }
 .flex-icon {
-    width: 18%;
+    width: 36%;
+    cursor: pointer;
 }
 .v-center {
     position: relative;

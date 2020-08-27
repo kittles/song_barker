@@ -285,6 +285,10 @@ $('document').ready(function () {
   }
 });
 
+function wide_mode() {
+  return document.body.offsetWidth / document.body.offsetHeight > 1.56;
+}
+
 function card_init() {
   return _card_init.apply(this, arguments);
 } // prepare a threejs scene for puppet creation
@@ -296,7 +300,7 @@ function card_init() {
 
 function _card_init() {
   _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, wide_mode, card_width, card_height, card_square_side, set_card_dimensions, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
+    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, get_url_param, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -434,10 +438,12 @@ function _card_init() {
                   desktop_controls.fadeIn(fade_duration);
                   desktop_app_links.fadeIn(fade_duration);
                   mobile_bottom_controls.hide();
+                  $('#mobile-replay-button').hide();
                 } else {
                   desktop_controls.hide();
                   desktop_app_links.hide();
                   mobile_bottom_controls.fadeIn(fade_duration);
+                  $('#mobile-replay-button').fadeIn(fade_duration);
                 }
 
                 if (!wide_mode()) {
@@ -461,8 +467,11 @@ function _card_init() {
             };
 
             prep_card_for_display = function _prep_card_for_displa() {
-              // this scales the whole assembly up or down depending on
+              // set the recipient name from url param
+              var recipient_name = get_url_param('recipient_name') || 'You';
+              $('#envelope-flap').text("To: ".concat(recipient_name)); // this scales the whole assembly up or down depending on
               // viewport
+
               global_scale_el.css({
                 transform: "scale(".concat(page_scale())
               }); // determine if card has a frame here, since the image has
@@ -504,6 +513,16 @@ function _card_init() {
                   top: '0px'
                 }); // more performant to have this css transitioned
               }, 200);
+            };
+
+            get_url_param = function _get_url_param(name) {
+              var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+
+              if (results == null) {
+                return null;
+              }
+
+              return decodeURI(results[1]) || 0;
             };
 
             set_card_dimensions = function _set_card_dimensions() {
@@ -557,10 +576,6 @@ function _card_init() {
 
             card_width = function _card_width() {
               return card_has_frame ? 512 - 72 : 512;
-            };
-
-            wide_mode = function _wide_mode() {
-              return document.body.offsetWidth / document.body.offsetHeight > 1.56;
             };
 
             vh = function _vh() {
@@ -918,16 +933,19 @@ function init_audio() {
 
 function _init_audio() {
   _init_audio = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, replay_btn, decoration_img, play_img, pause_img, replay_img, desktop_volume_slider, desktop_replay, desktop_play, control_play_img, control_pause_img, control_replay_img, card_play, card_pause, handle_click, handle_replay, play_audio, pause_audio, handle_audio_end;
+    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, mobile_replay, replay_btn, decoration_img, desktop_volume_slider, mobile_volume_slider, desktop_replay, desktop_play, play_img, pause_img, replay_img, control_play_img, blue_play_img, control_pause_img, control_replay_img, control_volume_on_img, control_volume_off_img, mobile_play_img, mobile_pause_img, mobile_replay_img, mobile_volume_on_img, mobile_volume_off_img, last_slider_val, card_play, card_pause, handle_click, handle_replay, play_audio, pause_audio, handle_audio_end;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
             handle_audio_end = function _handle_audio_end() {
               clearInterval(buffer_interval);
-              $('#mobile-replay-button > img').attr('src', control_replay_img);
               big_btn.attr('src', replay_img);
-              big_btn_container.fadeIn(500);
+              big_btn_container.fadeIn(500); // dont want two replay buttons
+              //if (!wide_mode()) {
+              //    mobile_replay.fadeIn(500);
+              //}
+
               audio_el.currentTime = 0;
               playing = false;
             };
@@ -957,9 +975,14 @@ function _init_audio() {
             handle_replay = function _handle_replay() {
               clearInterval(buffer_interval);
               audio_el.currentTime = 0;
-              $('img', playback_btn).attr('src', pause_img);
+              $('img', playback_btn).attr('src', control_pause_img);
+              $('img', desktop_play).attr('src', control_pause_img);
               play_audio();
               big_btn_container.fadeOut(250);
+
+              if (!wide_mode()) {
+                mobile_replay.fadeOut(250);
+              }
             };
 
             handle_click = function _handle_click() {
@@ -975,63 +998,111 @@ function _init_audio() {
             card_pause = function _card_pause() {
               $('img', playback_btn).attr('src', play_img);
               $('#desktop-play > img').attr('src', control_play_img);
-              $('#mobile-replay-button > img').attr('src', control_play_img);
               pause_audio();
               big_btn_container.fadeIn(250);
+
+              if (!wide_mode()) {
+                mobile_replay.fadeIn(250);
+              }
             };
 
             card_play = function _card_play() {
               $('img', playback_btn).attr('src', pause_img);
               $('#desktop-play > img').attr('src', control_pause_img);
-              $('#mobile-replay-button > img').attr('src', control_pause_img);
               play_audio();
               big_btn_container.fadeOut(250);
+
+              if (!wide_mode()) {
+                mobile_replay.fadeOut(250);
+              }
             };
 
             playing = false;
             playback_btn = $('#play-control');
-            big_btn_container = $('#big-button-container');
-            big_btn = $('#big-button-img');
+            big_btn_container = $('#big-play-button-overlay');
+            big_btn = $('#big-play-button');
+            mobile_replay = $('#mobile-replay-button');
             replay_btn = $('#replay-control');
             decoration_img = $('#decoration-image');
-            play_img = '/puppet/icons/media controls play.svg';
-            pause_img = '/puppet/icons/media controls pause.svg';
-            replay_img = '/puppet/icons/rotate left.svg';
             desktop_volume_slider = $('#desktop-volume-slider');
+            mobile_volume_slider = $('#mobile-volume-slider');
             desktop_replay = $('#desktop-replay');
-            desktop_play = $('#desktop-play');
-            control_play_img = '/puppet/play.svg';
-            control_pause_img = '/puppet/pause.png'; // TODO: need a real pause icon
+            desktop_play = $('#desktop-play'); // TODO: update these
 
-            control_replay_img = '/puppet/icons/rotate left.svg';
+            play_img = '/puppet/k9-icons/play-white.png';
+            pause_img = '/puppet/k9-icons/pause-white.png';
+            replay_img = '/puppet/k9-icons/replay-white.png';
+            control_play_img = '/puppet/k9-icons/play-white.png';
+            blue_play_img = '/puppet/k9-icons/play-blue.png';
+            control_pause_img = '/puppet/k9-icons/pause-white.png';
+            control_replay_img = '/puppet/k9-icons/replay-white.png';
+            control_volume_on_img = '/puppet/k9-icons/volume-on-white.png';
+            control_volume_off_img = '/puppet/k9-icons/volume-off-white.png';
+            mobile_play_img = '/puppet/k9-icons/play-blue.png';
+            mobile_pause_img = '/puppet/k9-icons/pause-blue.png';
+            mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
+            mobile_volume_on_img = '/puppet/k9-icons/volume-on-blue.png';
+            mobile_volume_off_img = '/puppet/k9-icons/volume-off-blue.png';
             audio_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
 
             $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
             audio_el = document.querySelector('audio');
             audio_el.addEventListener('ended', handle_audio_end, {
               once: true
+            }); // TODO consolidate volume slider logic
+
+            $('#mobile-volume-slider').on('input', function () {
+              audio_el.volume = $('#mobile-volume-slider').val() / 100;
+
+              if (audio_el.volume > 0) {
+                $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
+              } else {
+                $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
+              }
             });
             $('#desktop-volume-slider').on('input', function () {
               audio_el.volume = $('#desktop-volume-slider').val() / 100;
+
+              if (audio_el.volume > 0) {
+                $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
+              } else {
+                $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
+              }
             });
+            last_slider_val = 75;
             $('#desktop-volume-icon').on('click', function () {
               if (desktop_volume_slider.val() > 0) {
+                last_slider_val = desktop_volume_slider.val();
                 desktop_volume_slider.val(0);
+                $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
               } else {
-                desktop_volume_slider.val(100);
+                desktop_volume_slider.val(last_slider_val);
+                $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
               }
 
               audio_el.volume = $('#desktop-volume-slider').val() / 100;
+            });
+            $('#mobile-volume-icon').on('click', function () {
+              if (mobile_volume_slider.val() > 0) {
+                last_slider_val = mobile_volume_slider.val();
+                mobile_volume_slider.val(0);
+                $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
+              } else {
+                mobile_volume_slider.val(last_slider_val);
+                $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
+              }
+
+              audio_el.volume = $('#mobile-volume-slider').val() / 100;
             });
             playback_btn.click(handle_click);
             big_btn_container.click(handle_click);
             decoration_img.click(handle_click);
             desktop_play.click(handle_click);
-            $('#mobile-replay-button').click(handle_click);
             replay_btn.click(handle_replay);
             desktop_replay.click(handle_replay);
+            mobile_replay.click(handle_replay);
 
-          case 35:
+          case 48:
           case "end":
             return _context3.stop();
         }

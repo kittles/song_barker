@@ -81,13 +81,13 @@
                 <!-- playback controls -->
                 <div class="blue-background" style="height: auto; width: 100%; margin-top: 15%">
                     <div id="desktop-play" style="height: 15%; padding-top: 13%">
-                        <img class="flex-icon v-center" src="/puppet/play.svg"></img>
+                        <img class="flex-icon v-center" src="/puppet/k9-icons/play-white.png"></img>
                     </div>
                     <div id="desktop-replay" style="height: 15%">
-                        <img class="flex-icon v-center" src="/puppet/replay.svg"></img>
+                        <img class="flex-icon v-center" src="/puppet/k9-icons/rewind-white.png"></img>
                     </div>
                     <div id="desktop-volume-icon" style="height: 15%">
-                        <img class="flex-icon v-center" src="/puppet/volume.svg"></img>
+                        <img class="flex-icon v-center" src="/puppet/k9-icons/volume-on-white.png"></img>
                     </div>
                     <div style="height: 65%">
                         <input class="v-center" orient="vertical" type="range" id="desktop-volume-slider"></input>
@@ -98,8 +98,11 @@
             <!-- the card assembly -->
             <div id="card-container">
                 <div id="puppet-container"></div>
-                <div id="big-button-container">
-                    <img id="big-button-img" src="/puppet/icons/media controls play.svg"></img>
+                <div id="big-play-button-overlay">
+                    <img id="big-play-button" src="/puppet/k9-icons/play-white.png"></img>
+                </div>
+                <div id="mobile-replay-button">
+                    <img id="mobile-replay-img" src="/puppet/k9-icons/replay-white.png"></img>
                 </div>
                 <img id="decoration-image"></img>
             </div>
@@ -135,8 +138,9 @@
             <!-- mobile stuff all goes below the puppet -->
             <div id="mobile-bottom-controls">
                 <!-- play pause button -->
-                <div id="mobile-replay-button">
-                    <img src="/puppet/play.svg"></img>
+                <div id="mobile-volume">
+                    <input type="range" id="mobile-volume-slider"></input>
+                    <img id="mobile-volume-icon" src="/puppet/k9-icons/volume-on-blue.png"></img>
                 </div>
                 <!-- share -->
                 <div id="mobile-share-button">
