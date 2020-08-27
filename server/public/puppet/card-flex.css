@@ -282,14 +282,14 @@ and hides and shows elements accordingly
     top: -42px;
     left: 50%;
     transform: translateX(-50%);
-    width: 120%;
+    width: 95%;
     height: 17px;
 }
 #mobile-volume-icon {
     position: absolute;
     width: 52px;
     top: -58px;
-    left: -65px;
+    left: -55px;
 }
 #mobile-share-button {
     width: 180px;
