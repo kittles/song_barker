@@ -522,6 +522,12 @@ async function card_init () {
                 left: 200,
                 top: -135,
             });
+            $('#big-play-button-overlay').css({
+                left: 157,
+            });
+            $('#mobile-replay-button').css({
+                left: 157,
+            });
         } else { // no frame
             desktop_controls.css({
                 left: -306,
@@ -530,6 +536,12 @@ async function card_init () {
             desktop_app_links.css({
                 left: 228,
                 top: -135,
+            });
+            $('#big-play-button-overlay').css({
+                left: 200,
+            });
+            $('#mobile-replay-button').css({
+                left: 200,
             });
         }
 

@@ -416,6 +416,12 @@ function _card_init() {
                   left: 200,
                   top: -135
                 });
+                $('#big-play-button-overlay').css({
+                  left: 157
+                });
+                $('#mobile-replay-button').css({
+                  left: 157
+                });
               } else {
                 // no frame
                 desktop_controls.css({
@@ -425,6 +431,12 @@ function _card_init() {
                 desktop_app_links.css({
                   left: 228,
                   top: -135
+                });
+                $('#big-play-button-overlay').css({
+                  left: 200
+                });
+                $('#mobile-replay-button').css({
+                  left: 200
                 });
               } // if the mode has changed between wide and regular,
               // elements fade out or in
