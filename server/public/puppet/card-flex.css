@@ -270,11 +270,11 @@ and hides and shows elements accordingly
 }
 #mobile-bottom-controls {
     position: absolute;
-    top: 430px;
+    top: 453px;
     transform: translate(-50%, -50%);
     text-align: center;
     display: none;
-    margin-bottom: 40px;
+    padding-bottom: 40px;
     z-index: 10; /* card overlaps so this needs to be on top */
 }
 #mobile-volume-slider {
