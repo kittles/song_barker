@@ -584,6 +584,12 @@ function _card_init() {
                   top: 0,
                   left: 0
                 });
+                $('#puppet-container > canvas').css({
+                  width: 344,
+                  height: 344,
+                  top: 48,
+                  position: 'relative'
+                });
               } else {
                 decoration_image.css({
                   width: 512,
