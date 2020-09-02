@@ -599,13 +599,14 @@ async function card_init () {
                 });
             }
         }
-        if (wide_mode()) {
-            desktop_logo.fadeIn(fade_duration);
-            mobile_logo.hide();
-        } else {
-            mobile_logo.fadeIn(fade_duration);
-            desktop_logo.hide();
-        }
+        //if (wide_mode()) {
+        //    desktop_logo.fadeIn(fade_duration);
+        //    mobile_logo.hide();
+        //} else {
+        //    mobile_logo.fadeIn(fade_duration);
+        //    desktop_logo.hide();
+        //}
+        mobile_logo.fadeIn(fade_duration);
     }
 
     var card_maximize_scale = 0.8;

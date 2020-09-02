@@ -465,15 +465,16 @@ function _card_init() {
                     overflow: 'hide'
                   });
                 }
-              }
+              } //if (wide_mode()) {
+              //    desktop_logo.fadeIn(fade_duration);
+              //    mobile_logo.hide();
+              //} else {
+              //    mobile_logo.fadeIn(fade_duration);
+              //    desktop_logo.hide();
+              //}
 
-              if (wide_mode()) {
-                desktop_logo.fadeIn(fade_duration);
-                mobile_logo.hide();
-              } else {
-                mobile_logo.fadeIn(fade_duration);
-                desktop_logo.hide();
-              }
+
+              mobile_logo.fadeIn(fade_duration);
             };
 
             prep_card_for_display = function _prep_card_for_displa() {
