@@ -543,18 +543,19 @@ input[type=range].range-vertical::-webkit-slider-runnable-track {
   border: 0;
   border-radius: 25px;
   width: 100%;
-  height: 13px;
+  height: 8px;
   cursor: pointer;
 }
 input[type=range].range-vertical::-webkit-slider-thumb {
   margin-top: -6.5px;
-  width: 26px;
-  height: 26px;
+  width: 20px;
+  height: 20px;
   background: #ffffff;
   border: 0;
   border-radius: 15px;
   cursor: pointer;
   -webkit-appearance: none;
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.4);
 }
 input[type=range].range-vertical:focus::-webkit-slider-runnable-track {
   background: #8cb4e5;
@@ -564,7 +565,7 @@ input[type=range].range-vertical::-moz-range-track {
   border: 0;
   border-radius: 25px;
   width: 100%;
-  height: 13px;
+  height: 8px;
   cursor: pointer;
 }
 input[type=range].range-vertical::-moz-range-thumb {
@@ -574,6 +575,7 @@ input[type=range].range-vertical::-moz-range-thumb {
   border: 0;
   border-radius: 15px;
   cursor: pointer;
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.4);
 }
 input[type=range].range-vertical::-ms-track {
   background: transparent;
@@ -581,7 +583,7 @@ input[type=range].range-vertical::-ms-track {
   border-width: 7.4px 0;
   color: transparent;
   width: 100%;
-  height: 13px;
+  height: 8px;
   cursor: pointer;
 }
 input[type=range].range-vertical::-ms-fill-lower {
@@ -603,6 +605,7 @@ input[type=range].range-vertical::-ms-thumb {
   cursor: pointer;
   margin-top: 0px;
   /*Needed to keep the Edge thumb centred*/
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.4);
 }
 input[type=range].range-vertical:focus::-ms-fill-lower {
   background: #6fa1de;
@@ -621,7 +624,11 @@ how to remove the virtical space around the range input in IE*/
 }
 
 
+
+
+
 /* horizontal slider */
+
 input[type=range].range-horizontal {
   width: 100%;
   margin: 6.5px 0;
@@ -636,18 +643,19 @@ input[type=range].range-horizontal::-webkit-slider-runnable-track {
   border: 0;
   border-radius: 25px;
   width: 100%;
-  height: 13px;
+  height: 9px;
   cursor: pointer;
 }
 input[type=range].range-horizontal::-webkit-slider-thumb {
-  margin-top: -6.5px;
-  width: 26px;
-  height: 26px;
+  margin-top: -5.5px;
+  width: 20px;
+  height: 20px;
   background: #004692;
   border: 0;
   border-radius: 15px;
   cursor: pointer;
   -webkit-appearance: none;
+  box-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 0.4);
 }
 input[type=range].range-horizontal:focus::-webkit-slider-runnable-track {
   background: #5f95ce;
@@ -657,16 +665,17 @@ input[type=range].range-horizontal::-moz-range-track {
   border: 0;
   border-radius: 25px;
   width: 100%;
-  height: 13px;
+  height: 9px;
   cursor: pointer;
 }
 input[type=range].range-horizontal::-moz-range-thumb {
-  width: 26px;
-  height: 26px;
+  width: 20px;
+  height: 20px;
   background: #004692;
   border: 0;
   border-radius: 15px;
   cursor: pointer;
+  box-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 0.4);
 }
 input[type=range].range-horizontal::-ms-track {
   background: transparent;
@@ -674,7 +683,7 @@ input[type=range].range-horizontal::-ms-track {
   border-width: 7.4px 0;
   color: transparent;
   width: 100%;
-  height: 13px;
+  height: 9px;
   cursor: pointer;
 }
 input[type=range].range-horizontal::-ms-fill-lower {
@@ -688,14 +697,15 @@ input[type=range].range-horizontal::-ms-fill-upper {
   border-radius: 50px;
 }
 input[type=range].range-horizontal::-ms-thumb {
-  width: 26px;
-  height: 26px;
+  width: 20px;
+  height: 20px;
   background: #004692;
   border: 0;
   border-radius: 15px;
   cursor: pointer;
   margin-top: 0px;
   /*Needed to keep the Edge thumb centred*/
+  box-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 0.4);
 }
 input[type=range].range-horizontal:focus::-ms-fill-lower {
   background: #4483c6;
