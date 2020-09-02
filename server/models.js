@@ -428,6 +428,11 @@ exports.models = [
                     type: 'integer DEFAULT CURRENT_TIMESTAMP',
                     desc: 'when this object was created',
                 },
+                {
+                    name: 'has_frame_dimension',
+                    type: 'integer',
+                    desc: 'whether there is a frame dimension',
+                },
             ],
         },
     },
@@ -541,6 +546,11 @@ exports.models = [
                     name: 'recipient_name',
                     type: 'text',
                     desc: 'the name that shows up on the envelope',
+                },
+                {
+                    name: 'song_id',
+                    type: 'text',
+                    desc: 'the foreign key to the song',
                 },
             ],
         },
