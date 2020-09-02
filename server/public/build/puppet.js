@@ -417,10 +417,10 @@ function _card_init() {
                   top: -135
                 });
                 $('#big-play-button-overlay').css({
-                  left: 157
+                  left: 172
                 });
                 $('#mobile-replay-button').css({
-                  left: 157
+                  left: 172
                 });
               } else {
                 // no frame
@@ -433,10 +433,10 @@ function _card_init() {
                   top: -135
                 });
                 $('#big-play-button-overlay').css({
-                  left: 200
+                  left: 215
                 });
                 $('#mobile-replay-button').css({
-                  left: 200
+                  left: 215
                 });
               } // if the mode has changed between wide and regular,
               // elements fade out or in
