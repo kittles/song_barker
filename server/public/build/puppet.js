@@ -1046,10 +1046,7 @@ function _init_audio() {
               $('#desktop-play > img').attr('src', control_pause_img);
               play_audio();
               big_btn_container.fadeOut(250);
-
-              if (!wide_mode()) {
-                mobile_replay.fadeOut(250);
-              }
+              mobile_replay.fadeOut(250);
             };
 
             playing = false;
