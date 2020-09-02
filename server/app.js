@@ -120,6 +120,7 @@ app.get('/card/:uuid', async (req, res) => {
             // card text
             name: card.name,
             recipient_name: card.recipient_name,
+            mouth_color: image.mouth_color,
         });
         res.send(html);
     });
