@@ -23,6 +23,7 @@ var generator = require('generate-password');
 var nodemailer = require('nodemailer');
 var validator = require('email-validator');
 var uuidv4 = require('uuid').v4;
+var signed_url = require('./signed_url.js')
 
 
 //
@@ -648,6 +649,25 @@ app.get('/describe', (req, res) => {
 //
 // audio processing apis
 //
+
+// signed uploads from app instead of giving them the credential
+app.post('/signed-upload-url', async (req, res) => {
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    if (!req.body.filepath) {
+        res.status(400).send('no filepath included in body');
+        return;
+    }
+    var url = await signed_url.to_signed_upload_url(req.body.filepath);
+    return res.json({
+        url: url,
+        success: true,
+    });
+});
+
+
 
 // process raw audio into cropped pieces
 app.post('/to_crops', async function (req, res) {
