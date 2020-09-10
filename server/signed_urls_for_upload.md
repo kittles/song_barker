@@ -1,7 +1,7 @@
 # signed urls for uploading
 
 ## request and response
-from an authenticated session, POST to `signed-upload-url` with a body that looks like
+from an authenticated session, POST to `/signed-upload-url` with a body that looks like
 ```json
 {
     "filename": "raws/myrawfile.aac"
