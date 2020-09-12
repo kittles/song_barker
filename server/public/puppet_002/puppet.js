@@ -181,6 +181,27 @@ function log (msg) {
 
 $('document').ready(init);
 
+function log_viewport_info () {
+    log(`VIEWPORT DIMENSION INFO:
+
+    - width
+    window.innerWidth: ${window.innerWidth}
+    document.body.offsetWidth: ${document.body.offsetWidth}
+    document.body.clientWidth: ${document.body.clientWidth}
+    document.documentElement.clientWidth: ${document.documentElement.clientWidth}
+
+    - height
+    window.innerHeight: ${window.innerHeight}
+    document.body.offsetHeight: ${document.body.offsetHeight}
+    document.body.clientHeight: ${document.body.clientHeight}
+    document.documentElement.clientHeight: ${document.documentElement.clientHeight}
+
+    USING:
+    window_width: ${window_width}
+    window_height: ${window_height}
+    `);
+}
+
 
 // prepare a threejs scene for puppet creation
 // this includes establishing info about the environment
@@ -199,20 +220,13 @@ async function init () {
     log(`navigator.userAgent: ${navigator.userAgent}`);
     log(`iOS = ${iOS}`);
     if (iOS) {
-        window_width = document.body.offsetWidth + 20;
-        window_height = document.body.offsetHeight + 20;
+        window_width = window.innerWidth + 20;
+        window_height = window.innerHeight + 20;
     } else {
-        window_width = document.body.offsetWidth;
-        window_height = document.body.offsetHeight;
+        window_width = window.innerWidth;
+        window_height = window.innerHeight;
     }
-    log(`WIDTH INFO:
-    window.innerWidth: ${window.innerWidth}
-    document.body.offsetWidth: ${document.body.offsetWidth}
-    document.body.clientWidth: ${document.body.clientWidth}
-    USING:
-    window_width: ${window_width}
-    window_height: ${window_height}
-    `);
+    log_viewport_info();
 
     // for turning images into b64
     // this is just to help test in a browser
@@ -323,6 +337,24 @@ async function init () {
     zoom_factor = Math.min(window_width, window_height) / render_pixels;
     $(renderer.domElement).css('zoom', zoom_factor);
     log(`renderer zoom factor: ${zoom_factor}`);
+
+    function handle_resize () {
+        if (iOS) {
+            // dimensions need an extra 20 px for some reason
+            window_width = window.innerWidth + 20
+            window_height = window.innerHeight + 20
+        } else {
+            window_width = window.innerWidth;
+            window_height = window.innerHeight;
+            //window_width = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+            //window_height = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+        }
+        zoom_factor = Math.min(window_width, window_height) / render_pixels;
+        $(renderer.domElement).css('zoom', zoom_factor);
+        log_viewport_info();
+    }
+
+    $(window).on('resize', _.debounce(handle_resize, 250));
 
 
     if (enable_controls) {
