@@ -312,7 +312,7 @@ function card_init() {
 
 function _card_init() {
   _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var vh, viewport_aspect, image_url, decoration_image_url, fts, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, top_of_card, get_url_param, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
+    var vh, viewport_aspect, image_url, decoration_image_url, fts, random_gesture, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, top_of_card, get_url_param, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -625,6 +625,42 @@ function _card_init() {
               return card_has_frame ? 512 - 72 : 512;
             };
 
+            random_gesture = function _random_gesture() {
+              var blinks = [[left_blink_quick, right_blink_quick], [left_blink_slow, right_blink_slow]];
+
+              function random_blink() {
+                var fns = Math.random() > 0.5 ? blinks[0] : blinks[1];
+
+                if (!document.hidden) {
+                  _.each(fns, function (f) {
+                    f();
+                  });
+                }
+
+                setTimeout(random_blink, Math.random() * 6000);
+              }
+
+              random_blink();
+              var brows = [[left_brow_furrow, right_brow_furrow], [left_brow_raise, right_brow_raise]];
+
+              function random_brow() {
+                var fns = Math.random() > 0.5 ? brows[0] : brows[1];
+                var amplitude = 0.25 + Math.random() / 4;
+                var speed = Math.max(Math.floor(Math.random() * 25), 10);
+                var duration = 250 + Math.random() * 500;
+
+                if (!document.hidden) {
+                  _.each(fns, function (f) {
+                    f(amplitude, speed, duration);
+                  });
+                }
+
+                setTimeout(random_brow, duration + Math.random() * 6000);
+              }
+
+              random_brow();
+            };
+
             vh = function _vh() {
               return window.innerHeight / 100;
             };
@@ -687,14 +723,14 @@ function _card_init() {
             //};
             //}
 
-            _context.next = 27;
+            _context.next = 28;
             return load_shader_files();
 
-          case 27:
-            _context.next = 29;
+          case 28:
+            _context.next = 30;
             return load_texture('noise_2D.png');
 
-          case 29:
+          case 30:
             animation_noise_texture = _context.sent;
             scene = new THREE.Scene();
             renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
@@ -718,10 +754,10 @@ function _card_init() {
             });
             face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
             face_mesh.renderOrder = 1;
-            _context.next = 44;
+            _context.next = 45;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
-          case 44:
+          case 45:
             mouth_gltf = _context.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
@@ -746,10 +782,10 @@ function _card_init() {
             renderer.setSize(render_pixels, render_pixels); //$(renderer.domElement).css('zoom', zoom_factor);
             // set the pet image on the mesh and on the shader
 
-            _context.next = 56;
+            _context.next = 57;
             return load_texture(image_url);
 
-          case 56:
+          case 57:
             pet_image_texture = _context.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
@@ -773,6 +809,7 @@ function _card_init() {
             direct_render();
             animate();
             head_sway(head_sway_amplitude, head_sway_speed);
+            random_gesture();
             console.log('card init'); // jquery handles on dom elements
 
             content = $('#content');
@@ -802,7 +839,7 @@ function _card_init() {
 
             card_maximize_scale = 0.8;
 
-          case 92:
+          case 94:
           case "end":
             return _context.stop();
         }

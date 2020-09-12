@@ -356,7 +356,50 @@ async function card_init () {
     direct_render();
     animate();
     head_sway(head_sway_amplitude, head_sway_speed);
+    random_gesture();
 
+    function random_gesture () {
+        var blinks = [
+            [
+                left_blink_quick,
+                right_blink_quick,
+            ],
+            [
+                left_blink_slow,
+                right_blink_slow,
+            ],
+        ]
+        function random_blink () {
+            var fns = Math.random() > 0.5 ? blinks[0] : blinks[1];
+            if (!document.hidden) {
+                _.each(fns, (f) => { f(); })
+            }
+            setTimeout(random_blink, Math.random() * 6000);
+        }
+        random_blink();
+
+        var brows = [
+            [
+                left_brow_furrow,
+                right_brow_furrow,
+            ],
+            [
+                left_brow_raise,
+                right_brow_raise,
+            ],
+        ]
+        function random_brow () {
+            var fns = Math.random() > 0.5 ? brows[0] : brows[1];
+            var amplitude = 0.25 + (Math.random() / 4);
+            var speed = Math.max(Math.floor(Math.random() * 25), 10);
+            var duration = 250 + (Math.random() * 500);
+            if (!document.hidden) {
+                _.each(fns, (f) => { f(amplitude, speed, duration); })
+            }
+            setTimeout(random_brow, duration + (Math.random() * 6000));
+        }
+        random_brow();
+    }
     console.log('card init');
 
     // jquery handles on dom elements
