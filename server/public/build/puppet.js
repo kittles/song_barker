@@ -828,7 +828,7 @@ function _card_init() {
             big_button_container = $('#big-button-container');
             puppet_container = $('#puppet-container');
             card_opened = false;
-            frame_aspect_ratio = 656 / 787; // decoration images can include a 72 pixel a side frame
+            frame_aspect_ratio = 656 / 778; // decoration images can include a 72 pixel a side frame
             // load the decoration image here to see if its framed or not
 
             img_for_dimensions = new Image();

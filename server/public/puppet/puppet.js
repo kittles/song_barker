@@ -422,7 +422,7 @@ async function card_init () {
     var card_opened = false;
 
     var card_has_frame;
-    var frame_aspect_ratio = 656 / 787;
+    var frame_aspect_ratio = 656 / 778;
 
     // decoration images can include a 72 pixel a side frame
     // load the decoration image here to see if its framed or not
