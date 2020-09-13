@@ -355,6 +355,8 @@ async function init () {
     }
 
     $(window).on('resize', _.debounce(handle_resize, 250));
+    setTimeout(handle_resize, 1000);
+    setTimeout(handle_resize, 5000);
 
 
     if (enable_controls) {
