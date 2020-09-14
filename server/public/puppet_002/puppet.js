@@ -223,8 +223,10 @@ async function init () {
         window_width = window.innerWidth + 20;
         window_height = window.innerHeight + 20;
     } else {
-        window_width = document.body.clientWidth;// || window.innerWidth;
-        window_height = document.body.clientHeight;// || window.innerHeight;
+        window_width =  window.innerWidth;
+        window_height = window.innerHeight;
+        //window_width = document.body.clientWidth;// || window.innerWidth;
+        //window_height = document.body.clientHeight;// || window.innerHeight;
     }
     log_viewport_info();
 
@@ -344,10 +346,10 @@ async function init () {
             window_width = window.innerWidth + 20
             window_height = window.innerHeight + 20
         } else {
-            //window_width = window.innerWidth;
-            //window_height = window.innerHeight;
-            window_width = document.body.clientWidth;// || window.innerWidth;
-            window_height = document.body.clientHeight;// || window.innerHeight;
+            window_width = window.innerWidth;
+            window_height = window.innerHeight;
+            //window_width = document.body.clientWidth;// || window.innerWidth;
+            //window_height = document.body.clientHeight;// || window.innerHeight;
             //window_width = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
             //window_height = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
         }
