@@ -337,30 +337,30 @@ async function init () {
     container.appendChild(renderer.domElement);
     renderer.setSize(render_pixels, render_pixels);
     zoom_factor = Math.min(window_width, window_height) / render_pixels;
-    $(renderer.domElement).css('zoom', zoom_factor);
-    log(`renderer zoom factor: ${zoom_factor}`);
+    //$(renderer.domElement).css('zoom', zoom_factor);
+    //log(`renderer zoom factor: ${zoom_factor}`);
 
-    function handle_resize () {
-        if (iOS) {
-            // dimensions need an extra 20 px for some reason
-            window_width = window.innerWidth + 20
-            window_height = window.innerHeight + 20
-        } else {
-            window_width = window.innerWidth;
-            window_height = window.innerHeight;
-            //window_width = document.body.clientWidth;// || window.innerWidth;
-            //window_height = document.body.clientHeight;// || window.innerHeight;
-            //window_width = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
-            //window_height = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
-        }
-        zoom_factor = Math.min(window_width, window_height) / render_pixels;
-        $(renderer.domElement).css('zoom', zoom_factor);
-        log_viewport_info();
-    }
+    //function handle_resize () {
+    //    if (iOS) {
+    //        // dimensions need an extra 20 px for some reason
+    //        window_width = window.innerWidth + 20
+    //        window_height = window.innerHeight + 20
+    //    } else {
+    //        window_width = window.innerWidth;
+    //        window_height = window.innerHeight;
+    //        //window_width = document.body.clientWidth;// || window.innerWidth;
+    //        //window_height = document.body.clientHeight;// || window.innerHeight;
+    //        //window_width = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    //        //window_height = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+    //    }
+    //    zoom_factor = Math.min(window_width, window_height) / render_pixels;
+    //    $(renderer.domElement).css('zoom', zoom_factor);
+    //    log_viewport_info();
+    //}
 
-    $(window).on('resize', _.debounce(handle_resize, 250));
-    setTimeout(handle_resize, 1000);
-    setTimeout(handle_resize, 5000);
+    //$(window).on('resize', _.debounce(handle_resize, 250));
+    //setTimeout(handle_resize, 1000);
+    //setTimeout(handle_resize, 5000);
 
 
     if (enable_controls) {
