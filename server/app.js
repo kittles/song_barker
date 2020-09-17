@@ -660,6 +660,10 @@ app.post('/signed-upload-url', async (req, res) => {
         res.status(400).send('no filepath included in body');
         return;
     }
+    if (!req.body.content_type) {
+        res.status(400).send('no content_type included in body. use "audio/mpeg" for audio, and "image/jpeg" or "application/octet-stream" for images');
+        return;
+    }
     var url = await signed_url.to_signed_upload_url(req.body.filepath);
     return res.json({
         url: url,

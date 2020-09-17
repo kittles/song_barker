@@ -8,7 +8,7 @@ const storage = new Storage({
 });
 
 
-async function to_signed_upload_url (filename) {
+async function to_signed_upload_url (filename, content_type) {
     const options = {
         version: 'v4',
         action: 'write',
