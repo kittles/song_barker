@@ -331,7 +331,17 @@ function _card_init() {
                 transform: "translate(-50% -50%)"
               }); // trigger css transform on envelope flap
 
-              $('.envelope-flap-piece').toggleClass('opened'); // remove clip path on content when its coming out of envelope
+              $('.envelope-flap-piece').toggleClass('opened');
+              setTimeout(function () {
+                // so the text doesnt show through on the underside
+                $('#envelope-flap').css({
+                  color: 'transparent'
+                }, 125); //125ms is half the css transition
+
+                $('#envelope-flap').css({
+                  zIndex: 1
+                }, 250); //make it go behind the card when the envelope slides down
+              }); // remove clip path on content when its coming out of envelope
               // do in a couple steps (i didnt have luck trying to transition this)
               // this is so the card doesn't extend outside the envelope at any point
 
@@ -343,17 +353,8 @@ function _card_init() {
               }, 650); // slide the envelope away, resize the card
 
               setTimeout(function () {
-                //// after flap has flipped up, change z and transition for sliding behind card
-                //flap_underside.css({
-                //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
-                //    zIndex: 1,
-                //});
-                //flap.css({
-                //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
-                //    zIndex: 1,
-                //});
                 // overwrite css transforms on envelope pieces
-                flap_underside.css({
+                flap.css({
                   transition: 'top 1s'
                 });
                 back_pieces.css({
@@ -364,14 +365,13 @@ function _card_init() {
                   back_pieces.css({
                     top: y_dist
                   });
-                  flap_underside.css({
+                  flap.css({
                     top: y_dist
                   });
                   setTimeout(on_complete, 1000);
 
                   function on_complete() {
                     back_pieces.fadeOut(100);
-                    flap_underside.fadeOut(100);
                     flap.fadeOut(100);
 
                     if (!wide_mode()) {

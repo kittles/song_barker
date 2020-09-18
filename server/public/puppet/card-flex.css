@@ -63,10 +63,24 @@ its the target for the wiggle animation
 
 
 /* the envelope pieces */
+#envelope-flap {
+    position: absolute;
+    line-height: 500%;
+    height: 83px;
+    width: 262px;
+    z-index: 5;
+    transform: translateY(-75px) translateX(19px);
+    background: url(envelope_parts/flap-front.svg);
+    background-size: 100% 100%;
+    cursor: pointer;
+    -webkit-transform-origin: top center;
+    transform-origin: top center;
+}
 #envelope-back {
     width: 300px;
     height: 150px;
-    background: #b49976;
+    background: url('/puppet/envelope_parts/pouch-inside.svg');
+    background-size: 100% 100%;
     position: absolute;
     z-index: 0;
     transform: translateY(-50%);
@@ -76,23 +90,12 @@ its the target for the wiggle animation
     height: 150px;
     position: absolute;
     z-index: 3;
+    background: url('envelope_parts/pouch-front.svg');
+    background-size: 100% 100%;
     transform: translateY(-50%);
-    background: repeating-linear-gradient(-45deg, #cebda6, #cebda6 10px, #e74c3c 10px, #e74c3c 20px, #cebda6 20px, #cebda6 30px, #1e90ff 30px, #1e90ff 40px) 0 100%/100% 5px no-repeat, repeating-linear-gradient(-45deg, #cebda6, #cebda6 10px, #e74c3c 10px, #e74c3c 20px, #cebda6 20px, #cebda6 30px, #1e90ff 30px, #1e90ff 40px) 0 100%/5px 100% no-repeat, repeating-linear-gradient(-45deg, #cebda6, #cebda6 10px, #e74c3c 10px, #e74c3c 20px, #cebda6 20px, #cebda6 30px, #1e90ff 30px, #1e90ff 40px) 100% 100%/5px 100% no-repeat, #cebda6;
-    -webkit-clip-path: polygon(80% 40%, 100% 0, 100% 100%, 0 100%, 0 0, 20% 40%);
-    clip-path: polygon(80% 40%, 100% 0, 100% 100%, 0 100%, 0 0, 20% 40%);
     cursor: pointer;
 }
-#envelope-pouch:after {
-    width: 300px;
-    height: 150px;
-    background: repeating-linear-gradient(-45deg, #c7b49a, #c7b49a 10px, #e74c3c 10px, #e74c3c 20px, #c7b49a 20px, #c7b49a 30px, #1e90ff 30px, #1e90ff 40px) 0 100%/100% 5px no-repeat, #c7b49a;
-    content: '';
-    position: absolute;
-    left: 0px;
-    z-index: 4;
-    -webkit-clip-path: polygon(70% 10%, 100% 100%, 0 100%, 30% 10%);
-    clip-path: polygon(70% 10%, 100% 100%, 0 100%, 30% 10%);
-}
+/* hides the card, which is longer than envelope */
 #envelope-below {
     width: 300px;
     height: 300px;
@@ -100,43 +103,6 @@ its the target for the wiggle animation
     background: #111;
     position: absolute;
     z-index: 2;
-}
-#envelope-flap {
-    position: absolute;
-    line-height: 500%;
-    height: 112.5px;
-    width: 300px;
-    z-index: 5;
-    transform: translateY(-75px);
-    -webkit-clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
-    clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
-    background: repeating-linear-gradient(-45deg, #c1ab8e, #c1ab8e 10px, #e74c3c 10px, #e74c3c 20px, #c1ab8e 20px, #c1ab8e 30px, #1e90ff 30px, #1e90ff 40px) 0 0/100% 5px no-repeat, #c1ab8e;
-    -webkit-transition: -webkit-transform 0.25s 0.5s;
-    transition: -webkit-transform 0.25s 0.5s;
-    transition: transform 0.25s 0.5s;
-    -webkit-transform-origin: top center;
-    transform-origin: top center;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    cursor: pointer;
-}
-#envelope-flap-underside {
-    position: absolute;
-    height: 112.5px;
-    width: 300px;
-    z-index: 5;
-    transform: translateY(-75px);
-    background: #c1ab8e;
-    -webkit-backface-visibility: visible;
-    backface-visibility: visible;
-    -webkit-clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
-    clip-path: polygon(5% 40%, 50% 100%, 95% 40%, 100% 0, 0 0);
-    -webkit-transition:  -webkit-transform 0.25s 0.5s;
-    transition: -webkit-transform 0.25s 0.5s;
-    transition: transform 0.25s 0.5s;
-    transition: transform 0.25s 0.5s, -webkit-transform 0.25s 0.5s;
-    -webkit-transform-origin: top center;
-    transform-origin: top center;
 }
 .envelope-back-piece,
 .envelope-flap-piece {
@@ -155,18 +121,8 @@ the sliding away of the envelope after opening is done in js for now
     transition: -webkit-transform 0.25s 0s;
     transition: transform 0.25s 0s;
     transition: transform 0.25s 0s, -webkit-transform 0.25s 0s;
-    -webkit-transform: translateY(-75px) rotateX(-180deg);
-    transform: translateY(-75px) rotateX(-180deg);
-    z-index: 1;
-}
-#envelope-flap-underside.opened {
-    -webkit-transition: -webkit-transform 0.25s 0s;
-    transition: -webkit-transform 0.25s 0s;
-    transition: transform 0.25s 0s;
-    transition: transform 0.25s 0s, -webkit-transform 0.25s 0s;
-    -webkit-transform: translateY(-75px) rotateX(-180deg);
-    transform: translateY(-75px) rotateX(-180deg);
-    z-index: 1;
+    -webkit-transform: translateY(-73px) translateX(19px) rotateX(-180deg);
+    transform: translateY(-73px) translateX(19px) rotateX(-180deg);
 }
 
 

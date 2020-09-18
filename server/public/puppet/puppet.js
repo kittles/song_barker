@@ -688,6 +688,15 @@ async function card_init () {
 
         // trigger css transform on envelope flap
         $('.envelope-flap-piece').toggleClass('opened');
+        setTimeout(() => {
+             // so the text doesnt show through on the underside
+            $('#envelope-flap').css({
+                color: 'transparent',
+            }, 125); //125ms is half the css transition
+            $('#envelope-flap').css({
+                zIndex: 1,
+            }, 250); //make it go behind the card when the envelope slides down
+        });
 
         // remove clip path on content when its coming out of envelope
         // do in a couple steps (i didnt have luck trying to transition this)
@@ -701,19 +710,8 @@ async function card_init () {
 
         // slide the envelope away, resize the card
         setTimeout(() => {
-
-            //// after flap has flipped up, change z and transition for sliding behind card
-            //flap_underside.css({
-            //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
-            //    zIndex: 1,
-            //});
-            //flap.css({
-            //    transition: 'transform 0.8s cubic-bezier(0.63, -0.14, 1, 0.29)',
-            //    zIndex: 1,
-            //});
-
             // overwrite css transforms on envelope pieces
-            flap_underside.css({
+            flap.css({
                 transition: 'top 1s',
             });
             back_pieces.css({
@@ -723,13 +721,12 @@ async function card_init () {
             setTimeout(() => {
                 var y_dist = 600;
                 back_pieces.css({top: y_dist});
-                flap_underside.css({top: y_dist});
+                flap.css({top: y_dist});
 
                 setTimeout(on_complete, 1000);
 
                 function on_complete () {
                     back_pieces.fadeOut(100);
-                    flap_underside.fadeOut(100);
                     flap.fadeOut(100);
                     if (!wide_mode()) {
                         $('body').css({
