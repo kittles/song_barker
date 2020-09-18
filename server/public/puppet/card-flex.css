@@ -64,13 +64,27 @@ its the target for the wiggle animation
 
 /* the envelope pieces */
 #envelope-flap {
+    /*
     position: absolute;
     line-height: 500%;
     height: 83px;
     width: 262px;
     z-index: 5;
     transform: translateY(-75px) translateX(19px);
-    background: url(envelope_parts/flap-front.svg);
+    background: url(envelope_parts/flap-front.png);
+    background-size: 100% 100%;
+    cursor: pointer;
+    -webkit-transform-origin: top center;
+    transform-origin: top center;
+    */
+
+    position: absolute;
+    line-height: 500%;
+    height: 83px;
+    width: 230px;
+    z-index: 5;
+    transform: translateY(-75px) translateX(35px);
+    background: url(envelope_parts/flap-front.png);
     background-size: 100% 100%;
     cursor: pointer;
     -webkit-transform-origin: top center;
@@ -121,8 +135,8 @@ the sliding away of the envelope after opening is done in js for now
     transition: -webkit-transform 0.25s 0s;
     transition: transform 0.25s 0s;
     transition: transform 0.25s 0s, -webkit-transform 0.25s 0s;
-    -webkit-transform: translateY(-73px) translateX(19px) rotateX(-180deg);
-    transform: translateY(-73px) translateX(19px) rotateX(-180deg);
+    -webkit-transform: translateY(-73px) translateX(35px) rotateX(-180deg);
+    transform: translateY(-73px) translateX(35px) rotateX(-180deg);
 }
 
 
