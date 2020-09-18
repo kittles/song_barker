@@ -4,7 +4,8 @@
 from an authenticated session, POST to `/signed-upload-url` with a body that looks like
 ```json
 {
-    "filename": "raws/myrawfile.aac"
+    "filename": "raws/myrawfile.aac",
+    "content_type": "audio/mpeg"
 }
 ```
 filename should be path relative to the root, which is `gs://song_barker_sequences/`
