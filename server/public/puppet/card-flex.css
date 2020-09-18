@@ -144,6 +144,7 @@ the sliding away of the envelope after opening is done in js for now
 
 /* this is for moving and scaling the whole card sub assembly */
 #card-container {
+    display: none;
     position: absolute;
     margin: auto;
     text-align: center;

@@ -318,6 +318,9 @@ function _card_init() {
         switch (_context.prev = _context.next) {
           case 0:
             open_envelope = function _open_envelope() {
+              $('#card-container').css({
+                display: 'initial'
+              });
               card_opened = true;
               setTimeout(layout_elements, 1800); // prepare for playback
               // remove the envelope

@@ -670,6 +670,9 @@ async function card_init () {
     }
 
     function open_envelope () {
+        $('#card-container').css({
+            display: 'initial',
+        })
         card_opened = true;
         setTimeout(layout_elements, 1800);
 
