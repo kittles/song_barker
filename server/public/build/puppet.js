@@ -546,7 +546,7 @@ function _card_init() {
                 $('#content').css({
                   top: '0px'
                 }); // more performant to have this css transitioned
-              }, 200);
+              }, 1000);
             };
 
             get_url_param = function _get_url_param(name) {

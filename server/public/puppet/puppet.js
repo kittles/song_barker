@@ -562,7 +562,7 @@ async function card_init () {
             // card drops in from above, waiting to be opened
             $('#content').fadeIn({queue: false, duration: 300});
             $('#content').css({top: '0px'}); // more performant to have this css transitioned
-        }, 200);
+        }, 1000);
 
     };
 
