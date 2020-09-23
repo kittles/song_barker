@@ -1,5 +1,6 @@
 {
   "name": "Boston Terrier",
   "uuid": "8bcc0db6-d529-4f77-bb6e-f74d267e94de",
+  "crop_type": "bark",
   "duration_seconds": 0.5108390022675737
 }
