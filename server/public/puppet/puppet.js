@@ -890,7 +890,7 @@ async function init () {
     renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
     container.appendChild(renderer.domElement);
     renderer.setSize(render_pixels, render_pixels);
-    $(renderer.domElement).css('zoom', zoom_factor);
+    //$(renderer.domElement).css('zoom', zoom_factor);
     log(`renderer zoom factor: ${zoom_factor}`);
 
     if (enable_controls) {

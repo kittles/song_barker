@@ -978,8 +978,8 @@ function _init() {
 
             renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
             container.appendChild(renderer.domElement);
-            renderer.setSize(render_pixels, render_pixels);
-            $(renderer.domElement).css('zoom', zoom_factor);
+            renderer.setSize(render_pixels, render_pixels); //$(renderer.domElement).css('zoom', zoom_factor);
+
             log("renderer zoom factor: ".concat(zoom_factor));
 
             if (enable_controls) {
@@ -1008,7 +1008,7 @@ function _init() {
             //    $('#container > canvas').css('box-shadow', '0 4px 9px 0 rgba(0,0,0,.25)');
             //}
 
-          case 47:
+          case 46:
           case "end":
             return _context2.stop();
         }
