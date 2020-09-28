@@ -295,7 +295,7 @@ async function prepare_card () {
         }, flap_open_ms / 2);
         // move the envelope away after the flap opens
         setTimeout(envelope_below, flap_open_ms);
-        setTimeout(zoom_message, flap_open_ms + envelope_move_ms); 
+        setTimeout(zoom_message, flap_open_ms + envelope_move_ms);
 
         // do the puppet loading stuff once the envelope is gone
         // and the message has been zoomed in (otherwise the animations will hiccup)
@@ -312,6 +312,9 @@ async function prepare_card () {
                     // TODO this should be in a layout fn
                     $('#mobile-bottom-controls').fadeIn(500);
                     $('#k9-logo').fadeIn(500);
+                    $('body').css({
+                        'overflow-y': 'scroll',
+                    });
                 }, 500);
             }, 250);
         }, flap_open_ms + envelope_move_ms + message_zoom_ms);

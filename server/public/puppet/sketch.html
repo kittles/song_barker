@@ -59,7 +59,7 @@
             font-display: swap;
         }
         body {
-            /* overflow: hidden; */
+            overflow-y: hidden; /* gets changed in js when the ui is added */
             overflow-x: hidden;
             font-family: 'museo';
             background-image: url('/puppet/k9_create_background.svg');
@@ -125,13 +125,13 @@
             transition: top 1s ease-in !important; /* after envelope is open, gradually slide away */
         }
         .above {
-            top: -40% !important;
+            top: -vmax !important;
         }
         .middle {
             top: 50% !important;
         }
         .below {
-            top: 140% !important;
+            top: 100vh !important;
         }
         .rotate-right {
             transform: translateY(-50%) translateX(-50%) rotateZ(10deg) !important;

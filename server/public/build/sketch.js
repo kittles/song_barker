@@ -834,6 +834,9 @@ function _prepare_card() {
                             // TODO this should be in a layout fn
                             $('#mobile-bottom-controls').fadeIn(500);
                             $('#k9-logo').fadeIn(500);
+                            $('body').css({
+                              'overflow-y': 'scroll'
+                            });
                           }, 500);
                         }, 250);
 
