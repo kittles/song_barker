@@ -1,0 +1,373 @@
+<head>
+    <script src="/puppet/jquery.min.js"></script>
+    <script src="/puppet/easing.js"></script>
+    <script src="/puppet/lodash.js"></script>
+    <script src="/puppet/lodash.fp.js"></script>
+    <script src="/puppet/three.110.js"></script>
+    <script src="/puppet/gltf_loader.js"></script>
+    <script src="/puppet/orbit_controls.js"></script>
+    <script src="/puppet/stats.min.js"></script>
+    <script src="/puppet/raf.js"></script>
+    <script src="/puppet/performance.js"></script>
+    <script src="/puppet/math.min.js"></script>
+    <!-- for transpiling async await -->
+    <script src="/puppet/runtime.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/puppet/loading_spinner.css">
+
+    <meta property="og:title" content="K9 Karaoke Card">
+    <meta property="og:description" content="Someone's pet has a message for you">
+    <meta property="og:image" content="https://storage.googleapis.com/song_barker_sequences/{{image_bucket_fp}}">
+    <meta property="og:url" content="https://thedogbarksthesong.ml/card/{{uuid}}">
+
+    <meta name="twitter:title" content="K9 Karaoke Card">
+    <meta name="twitter:description" content="Someone's pet has a message for you">
+    <meta name="twitter:image" content="https://storage.googleapis.com/song_barker_sequences/{{image_bucket_fp}}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <script>
+        try {
+            window.greeting_card = {};
+            window.greeting_card.uuid='{{uuid}}';
+            window.greeting_card.card_audio_bucket_fp='{{card_audio_bucket_fp}}';
+            window.greeting_card.image_bucket_fp='{{image_bucket_fp}}';
+            window.greeting_card.decoration_image_bucket_fp='{{decoration_image_bucket_fp}}';
+            window.greeting_card.animation_json=JSON.parse('{{{animation_json}}}');
+            window.greeting_card.image_coordinates_json=JSON.parse('{{{image_coordinates_json}}}');
+            window.greeting_card.name='{{name}}';
+            window.greeting_card.recipient_name='{{recipient_name}}';
+            window.greeting_card.mouth_color='{{mouth_color}}';
+
+            // TODO remember why this is here...
+            if (!window.greeting_card.image_bucket_fp) {
+                window.greeting_card.image_bucket_fp = `images/${window.greeting_card.image_id}.jpg`;
+            }
+        } catch (error) {
+            $(document).ready(() => {
+                $('#error-message').text(`problem with greeting_card values: ${error}`);
+                $('#error').fadeIn(100);
+            });
+        }
+    </script>
+    <style>
+        @font-face {
+            font-family: 'museo';
+            src: url('/puppet/MuseoSansRounded-700.woff2') format('woff2'),
+                 url('puppet/MuseoSansRounded-700.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        body {
+            /* overflow: hidden; */
+            overflow-x: hidden;
+            font-family: 'museo';
+            background-image: url('/puppet/k9_create_background.svg');
+            background-size: cover;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            font-size: 17px;
+            color: #004692;
+        }
+
+        /*
+        envelope
+        */
+        #flap {
+            background: url('/puppet/envelope_parts/flap-front.png');
+            background-repeat: no-repeat;
+            position: absolute;
+            left: 50%;
+            top: 0px;
+            width: 623px;
+            height: 406px;
+            transform: translateY(-50%) translateX(-50%);
+            z-index: 10; /* the message and stuff needs to fit below this initially */
+
+            /* "To: Name" stuff */
+            font-size: 2em;
+            text-align: center;
+            line-height: 110px;
+        }
+        #flap.opened {
+            transform-origin: top center;
+            /* translateY(-49%) so it hinges on the line instead of above it */
+            transform: translateY(-49%) translateX(-50%) rotateX(-180deg) !important;
+            transition: top 1s ease-out, transform 0.75s linear; /* slow down the flap opening */
+        }
+        #pouch {
+            background: url('/puppet/envelope_parts/pouch-front.png');
+            background-size: 100% 100%;
+            position: absolute;
+            left: 50%;
+            top: 0px;
+            width: 623px;
+            height: 406px;
+            transform: translateY(-50%) translateX(-50%);
+            z-index: 9; /* the message and stuff needs to fit below this initially */
+        }
+        #pouch-inside {
+            background: url('/puppet/envelope_parts/pouch-inside.png');
+            background-size: 100% 100%;
+            position: absolute;
+            left: 50%;
+            top: 0px;
+            width: 623px;
+            height: 406px;
+            transform: translateY(-50%) translateX(-50%);
+            z-index:1
+        }
+        .envelope-piece {
+            transition: top 1s ease-out, transform 0.075s linear; /* quick for jiggling */
+        }
+        .top-ease-in {
+            transition: top 1s ease-in !important; /* after envelope is open, gradually slide away */
+        }
+        .above {
+            top: -40% !important;
+        }
+        .middle {
+            top: 50% !important;
+        }
+        .below {
+            top: 140% !important;
+        }
+        .rotate-right {
+            transform: translateY(-50%) translateX(-50%) rotateZ(10deg) !important;
+        }
+        .rotate-left {
+            transform: translateY(-50%) translateX(-50%) rotateZ(-10deg) !important;
+        }
+
+        /*
+        message inside envelope
+        */
+        #message {
+            position: absolute;
+            width: 500px;
+            height: 300px;
+            background: red;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+        .loading-spinner {
+            position: absolute !important;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        #message-cover {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 9;
+        }
+        .overlay-button {
+            position: absolute;
+            background: #004692;
+            border-radius: 136px;
+            width: 125px;
+            height: 125px;
+            z-index: 2;
+            box-shadow: 0px 0px 15px 5px #00000099;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            top: 328px; /* frame + half of 512 */
+            z-index: 4;
+        }
+        .overlay-center {
+            left: 50%;
+        }
+        .overlay-left {
+            left: 35%;
+        }
+        .overlay-right {
+            left: 65%;
+        }
+        #big-play-button {
+            position: relative;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95px;
+        }
+        #big-alt-button {
+            position: relative;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95px;
+        }
+        #overlay-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 3;
+        }
+
+        /* mobile stuff below the puppet */
+        /* opened message always has height 778 and width 656 */
+        #mobile-bottom-controls {
+            display: none; /* fades in */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            /* position it below the opened message */
+            margin-top: calc(40px + (778px / 2));
+            width: calc(656px / 1.5);
+            text-align: center;
+        }
+        #mobile-share-button {
+            width: 239px;
+            font-size: 29px;
+            margin: auto;
+            border: 3px solid #004692;
+            border-radius: 20px;
+            line-height: 49px;
+            letter-spacing: 1.4;
+            text-align: center;
+            cursor: pointer;
+            /*
+            width: 200px;
+            font-size: 2em;
+            margin: auto;
+            border: 2px solid #004692;
+            border-radius: 14px;
+            line-height: 40px;
+            letter-spacing: 1.4;
+            text-align: center;
+            cursor: pointer;
+            */
+        }
+        #mobile-hr {
+            width: 80px;
+            border: 1px solid #004692;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        #mobile-app-tag-line {
+            font-size: 50px;
+            letter-spacing: 1.4;
+        }
+        #mobile-app-subhead {
+            margin-top: 2.5%;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        #mobile-app-logos {
+            margin-top: 5%;
+            display: flex;
+            text-align: center;
+        }
+        #mobile-app-logos > div {
+            flex: 1 1 0;
+        }
+        #mobile-app-logos img {
+            height: 83px;
+        }
+        #mobile-app-badges {
+            margin-top: 50px;
+            display: flex;
+            text-align: center;
+        }
+        .app-badge {
+            flex: 1 1 0;
+        }
+        .app-badge > img {
+            width: 90%;
+        }
+
+        /* app logo at the top of the page */
+        #k9-logo {
+            display: none; /* fades in */
+            position: absolute;
+            /* position it above the opened message */
+            top: calc(50% - (778px / 2) - 40px);
+            left: 50%;
+            transform: translate(-50%, -100%);
+        }
+        #k9-logo > img {
+            width: calc(656px / 2);
+        }
+        /*
+            186.84 : logo
+            656 + (2 x 40) : message
+            44 : share
+            42 : hr
+
+            = 1008.84
+            zoom to fit all that vertically
+        */
+        #container {
+            height: 100%;
+            /* this needs to happen in js transform: scale(calc(vmax / 1008.84px)); */
+        }
+    </style>
+    <!-- set the content scaling here -->
+    <script>
+        $(document).ready(() => {
+            function set_container_scale () {
+                var content_height = 1308.84
+                var viewport_height = window.innerHeight;
+                $('#container').css({
+                    transform: `scale(${viewport_height / content_height})`,
+                });
+            }
+            set_container_scale();
+            $(window).on('resize', _.debounce(set_container_scale, 125));
+        });
+    </script>
+</head>
+<body>
+    <div id="container">
+        <div id="flap"         class="envelope-piece above">fuck you</div>
+        <div id="pouch"        class="envelope-piece above"></div>
+        <div id="pouch-inside" class="envelope-piece above"></div>
+        <div id="message" style="display: none">
+            <div id="message-cover"></div>
+            <div class="lds-default loading-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+
+        <!-- app logo -->
+        <div id="k9-logo">
+            <img src="/puppet/k9_logotype_small.png"></img>
+        </div>
+
+        <!-- mobile stuff all goes below the puppet -->
+        <div id="mobile-bottom-controls">
+            <!-- share -->
+            <div id="mobile-share-button">
+                <div>SHARE</div>
+            </div>
+            <!-- hr -->
+            <hr id="mobile-hr"></hr>
+            <!-- app links and such -->
+            <div id="mobile-app-tag-line">MAKE YOUR PETS SING!</div>
+            <div id="mobile-app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
+            <div id="mobile-app-logos">
+                <div>
+                    <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
+                </div>
+                <div>
+                    <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
+                </div>
+            </div>
+            <div id="mobile-app-badges">
+                <div class="app-badge">
+                    <img src="/puppet/app-store-badge.png"></img>
+                </div>
+                <div class="app-badge">
+                    <img src="/puppet/google-play-badge.png"></img>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/build/sketch.js"></script>
+</body>

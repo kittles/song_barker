@@ -107,7 +107,7 @@ app.get('/card/:uuid', async (req, res) => {
         res.status(400).send('unable to find card audio');
         return;
     }
-    fs.readFile('public/puppet/card-flex.html', 'utf-8', function (error, source) {
+    fs.readFile('public/puppet/sketch.html', 'utf-8', function (error, source) { //TODO just using sketch to test...
         var template = handlebars.compile(source);
         var html = template({
             uuid: req.params.uuid,
