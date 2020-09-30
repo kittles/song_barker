@@ -621,8 +621,6 @@ function _prepare_card() {
                 $('img', playback_btn).attr('src', pause_img);
                 $('#desktop-play > img').attr('src', control_pause_img);
                 play_audio();
-                big_btn_container.fadeOut(250);
-                mobile_replay.fadeOut(250);
                 overlay_background.fadeOut(250);
               }
 
@@ -633,7 +631,6 @@ function _prepare_card() {
                 $('#desktop-play > img').attr('src', control_play_img);
                 pause_audio();
                 overlay_two_buttons();
-                big_btn_container.fadeIn(250);
                 overlay_background.fadeIn(250);
               }
 
@@ -658,7 +655,6 @@ function _prepare_card() {
                 $('img', playback_btn).attr('src', control_pause_img);
                 $('img', desktop_play).attr('src', control_pause_img);
                 play_audio();
-                big_btn_container.fadeOut(250);
                 overlay_background.fadeOut(250);
               }
 
@@ -688,7 +684,6 @@ function _prepare_card() {
                 clearInterval(buffer_interval);
                 big_btn.attr('src', replay_img);
                 overlay_one_button();
-                big_btn_container.fadeIn(500);
                 overlay_background.fadeIn(500);
                 audio_el.currentTime = 0;
                 playing = false;

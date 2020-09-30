@@ -310,11 +310,10 @@ async function prepare_card () {
         }, flap_open_ms / 2);
         // move the envelope away after the flap opens
         setTimeout(envelope_below, flap_open_ms);
-        setTimeout(zoom_message, flap_open_ms + envelope_move_ms);
 
-        // do the puppet loading stuff once the envelope is gone
-        // and the message has been zoomed in (otherwise the animations will hiccup)
-        setTimeout(async () => {
+        // the loading sequence after the envelope has been opened
+        setTimeout(async function () {
+            await zoom_message(); // wait till the message is full size before adding decoration image
             create_decoration_image();
             await prepare_puppet();
             await create_overlay_buttons();
@@ -335,19 +334,22 @@ async function prepare_card () {
                     display_ui();
                 }, 500);
             }, 250);
-        }, flap_open_ms + envelope_move_ms + message_zoom_ms);
+        }, flap_open_ms + envelope_move_ms);
     }
 
 
     var message_width = 656;
     var message_height = 778;
     async function zoom_message () {
-        var has_frame = await check_decoration_image();
-        log(has_frame);
-        $('#message').css({
-            transition: 'height 1s ease-in-out, width 1s ease-in-out',
-            width: message_width,
-            height: has_frame ? message_height : message_width,
+        return new Promise((r) => {
+            var has_frame = await check_decoration_image();
+            log(has_frame);
+            $('#message').css({
+                transition: 'height 1s ease-in-out, width 1s ease-in-out',
+                width: message_width,
+                height: has_frame ? message_height : message_width,
+            });
+            setTimeout(r, 1000);
         });
     };
 
@@ -583,8 +585,6 @@ async function prepare_card () {
             $('img', playback_btn).attr('src', pause_img);
             $('#desktop-play > img').attr('src', control_pause_img);
             play_audio();
-            big_btn_container.fadeOut(250);
-            mobile_replay.fadeOut(250);
             overlay_background.fadeOut(250);
         }
         window.card_play = card_play;
@@ -595,7 +595,6 @@ async function prepare_card () {
             $('#desktop-play > img').attr('src', control_play_img);
             pause_audio();
             overlay_two_buttons();
-            big_btn_container.fadeIn(250);
             overlay_background.fadeIn(250);
         }
 
@@ -622,7 +621,6 @@ async function prepare_card () {
             $('img', playback_btn).attr('src', control_pause_img);
             $('img', desktop_play).attr('src', control_pause_img);
             play_audio();
-            big_btn_container.fadeOut(250);
             overlay_background.fadeOut(250);
         }
 
@@ -655,7 +653,6 @@ async function prepare_card () {
             clearInterval(buffer_interval);
             big_btn.attr('src', replay_img);
             overlay_one_button();
-            big_btn_container.fadeIn(500);
             overlay_background.fadeIn(500);
             audio_el.currentTime = 0;
             playing = false;
