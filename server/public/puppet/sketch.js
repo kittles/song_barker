@@ -452,6 +452,12 @@ async function prepare_card () {
         $('#big-play-button-overlay').removeClass('overlay-left');
         $('#big-play-button-overlay').addClass('overlay-center');
     }
+    // when you just want the replay
+    function overlay_right_button () {
+        $('#big-play-button-overlay').hide();
+        $('#big-alt-button-overlay').removeClass('overlay-left');
+        $('#big-alt-button-overlay').addClass('overlay-center');
+    }
 
 
     var ui_to_show = [];
@@ -583,8 +589,6 @@ async function prepare_card () {
 
 
         function card_play () {
-            //$('img', playback_btn).attr('src', pause_img);
-            //big_btn.attr('src', play_img);
             $('#desktop-play > img').attr('src', control_pause_img);
             play_audio();
             overlay_background.fadeOut(250);
@@ -593,8 +597,6 @@ async function prepare_card () {
 
 
         function card_pause () {
-            //$('img', playback_btn).attr('src', play_img);
-            big_btn.attr('src', play_img);
             $('#desktop-play > img').attr('src', control_play_img);
             pause_audio();
             overlay_two_buttons();
@@ -603,7 +605,6 @@ async function prepare_card () {
 
 
         function handle_click () {
-            big_btn.attr('src', play_img);
             if (playing) {
                 card_pause();
             } else {
@@ -621,8 +622,6 @@ async function prepare_card () {
         function handle_replay () {
             clearInterval(buffer_interval);
             audio_el.currentTime = 0;
-            //$('img', playback_btn).attr('src', control_pause_img);
-            big_btn.attr('src', play_img);
             $('img', desktop_play).attr('src', control_pause_img);
             play_audio();
             overlay_background.fadeOut(250);
@@ -655,8 +654,7 @@ async function prepare_card () {
 
         function handle_audio_end () {
             clearInterval(buffer_interval);
-            big_btn.attr('src', replay_img);
-            overlay_one_button();
+            overlay_right_button();
             overlay_background.fadeIn(500);
             audio_el.currentTime = 0;
             playing = false;
