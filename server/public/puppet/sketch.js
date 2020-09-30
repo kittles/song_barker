@@ -191,6 +191,15 @@ function log (msg) {
 }
 
 
+function get_url_param (name) {
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results==null) {
+       return null;
+    }
+    return decodeURI(results[1]) || 0;
+}
+
+
 $('document').ready(() => {
     if (card) {
         console.log('preparing card');
@@ -203,7 +212,10 @@ $('document').ready(() => {
 
 
 async function prepare_card () {
-    // scale content
+    // add the recipient name to the card flap
+    var recipient_name = get_url_param('recipient_name') || 'You';
+    $('#flap').text(`To: ${recipient_name}`);
+
     present_envelope();
 
     function switch_class (el, old_class, new_class) {
@@ -253,7 +265,7 @@ async function prepare_card () {
         setTimeout(envelope_no_tilt, 225);
         setTimeout(() => {
             is_jiggling = false;
-        }, 300);
+        }, 350);
     }
 
 
@@ -272,6 +284,7 @@ async function prepare_card () {
         }
     }
 
+
     function wide_mode () {
         return document.body.offsetWidth > document.body.offsetHeight;
     }
@@ -280,7 +293,9 @@ async function prepare_card () {
     // these come from the css transitions
     var flap_open_ms = 750;
     var envelope_move_ms = 1000;
-    var message_zoom_ms = 1000;
+    var message_zoom_ms = 1500;
+
+    var ready_to_display = false; // so resize events dont prematurely display ui
 
     function open_flap () {
         // trigger the flap opening animation
@@ -300,9 +315,10 @@ async function prepare_card () {
         // do the puppet loading stuff once the envelope is gone
         // and the message has been zoomed in (otherwise the animations will hiccup)
         setTimeout(async () => {
-            await create_decoration_image();
+            create_decoration_image();
             await prepare_puppet();
             await create_overlay_buttons();
+            handle_mode();
             prepare_audio();
             // fade out loading spinner
             $('.loading-spinner').fadeOut(250);
@@ -310,24 +326,28 @@ async function prepare_card () {
                 $('#message-cover').fadeOut(250);
                 setTimeout(() => {
                     // TODO this should be in a layout fn
-                    $('#mobile-bottom-controls').fadeIn(500);
-                    $('#k9-logo').fadeIn(500);
+                    //$('#mobile-bottom-controls').fadeIn(500);
+                    //$('#k9-logo').fadeIn(500);
                     $('body').css({
                         'overflow-y': 'scroll',
                     });
+                    ready_to_display = true;
+                    display_ui();
                 }, 500);
             }, 250);
         }, flap_open_ms + envelope_move_ms + message_zoom_ms);
-
     }
+
 
     var message_width = 656;
     var message_height = 778;
-    function zoom_message () {
+    async function zoom_message () {
+        var has_frame = await check_decoration_image();
+        log(has_frame);
         $('#message').css({
             transition: 'height 1s ease-in-out, width 1s ease-in-out',
             width: message_width,
-            height: message_height,
+            height: has_frame ? message_height : message_width,
         });
     };
 
@@ -345,35 +365,49 @@ async function prepare_card () {
     }
 
 
-    var card_has_frame;
-    async function create_decoration_image () {
+    // wider in scope because other things need to know if the card has a frame
+    var img_for_dimensions = new Image();
+
+
+    function card_has_frame () {
+        if (img_for_dimensions.width == 0) {
+            return undefined;
+        }
+        return img_for_dimensions.width === 656;
+    }
+
+
+    var decoration_image_url;
+    async function check_decoration_image () {
         return new Promise((r) => {
-            var decoration_image_url = `https://storage.googleapis.com/song_barker_sequences/${card.decoration_image_bucket_fp}`;
 
             // load the decoration image to get its natural dimensions
-            var img_for_dimensions = new Image();
-            img_for_dimensions.onload = add_decoration_image;
+            img_for_dimensions.onload = () => {
+                r(card_has_frame());
+            }
+            img_for_dimensions.onerror = _.noop;
+
+            if (card.decoration_image_bucket_fp) {
+                decoration_image_url = `https://storage.googleapis.com/song_barker_sequences/${card.decoration_image_bucket_fp}`;
+            } else {
+                // transparent 1x1 png
+                decoration_image_url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+            }
+
             // this will trigger the loading
             img_for_dimensions.src = decoration_image_url;
+        });
+    }
 
 
-            function add_decoration_image () {
-                console.log(img_for_dimensions.width, img_for_dimensions.height);
-                if (img_for_dimensions.width === 656) {
-                    card_has_frame = true;
-                } else {
-                    card_has_frame = false;
-                }
-                $('#message').append(`<img id="decoration-image" src=${decoration_image_url}></img>`);
-                $('#decoration-image').css({
-                    width: message_width,
-                    top: 0,
-                    left: 0,
-                    position: 'absolute',
-                    zIndex: 2,
-                });
-                r();
-            }
+    function create_decoration_image () {
+        $('#message').append(`<img id="decoration-image" src=${decoration_image_url}></img>`);
+        $('#decoration-image').css({
+            width: message_width,
+            top: 0,
+            left: 0,
+            position: 'absolute',
+            zIndex: 2,
         });
     }
 
@@ -381,26 +415,74 @@ async function prepare_card () {
     // the play button that sits over the puppet when paused
     async function create_overlay_buttons () {
         var html_frag = `
-            <div id="overlay-background">
+            <div id="overlay-background" style="display: none;">
                 <div id="big-play-button-overlay" class="overlay-button overlay-left">
                     <img id="big-play-button" src="/puppet/k9-icons/play-no-border-white.png">
                 </div>
                 <div id="big-alt-button-overlay" class="overlay-button overlay-right">
-                    <img id="big-alt-button" src="/puppet/k9-icons/play-no-border-white.png">
+                    <img id="big-alt-button" src="/puppet/k9-icons/replay-no-border-white.png">
                 </div>
             </div>
         `;
         $('#message').append(html_frag);
+        if (card_has_frame() == false) {
+            $('#overlay-background').css({
+                height: 656, // same as message width
+            })
+        } else {
+            $('#overlay-background').css({
+                height: 778,
+            })
+        }
+        $('#overlay-background').show();
+        overlay_one_button();
     }
 
-    function handle_display_mode () {
+    // when at the beginning or end
+    function overlay_two_buttons () {
+        $('#big-alt-button-overlay').show();
+        $('#big-play-button-overlay').removeClass('overlay-center');
+        $('#big-play-button-overlay').addClass('overlay-left');
+    }
+    // when paused in the middle
+    function overlay_one_button () {
+        $('#big-alt-button-overlay').hide();
+        $('#big-play-button-overlay').removeClass('overlay-left');
+        $('#big-play-button-overlay').addClass('overlay-center');
+    }
+
+
+    var ui_to_show = [];
+    var ui_to_hide = [];
+
+    function handle_mode () {
         if (wide_mode()) {
-            // playback overlay buttons
-            $('#big-alt-button-overlay').hide();
-            $('#big-play-button-overlay').removeClass('overlay-left');
-            $('#big-play-button-overlay').addClass('overlay-center');
+            log('wide mode');
+
+            // show stuff on either side of card
+            ui_to_show = [$('#desktop-app-links'), $('#desktop-controls'), $('#k9-logo')];
+            ui_to_hide = [$('#mobile-bottom-controls')];
+        } else {
+            log('mobile mode');
+
+            // hide stuff on either side of card
+            ui_to_show = [$('#mobile-bottom-controls'), $('#k9-logo')];
+            ui_to_hide = [$('#desktop-app-links'), $('#desktop-controls')];
         }
     }
+
+
+    function display_ui () {
+        _.each(ui_to_show, (ui_el) => { ui_el.fadeIn(500); });
+        _.each(ui_to_hide, (ui_el) => { ui_el.fadeOut(250); });
+    }
+
+    $(window).on('resize', _.debounce(() => {
+        handle_mode();
+        if (ready_to_display) {
+            display_ui();
+        }
+    }, 125));
 
 
     // greeting card prep
@@ -512,11 +594,9 @@ async function prepare_card () {
             $('img', playback_btn).attr('src', play_img);
             $('#desktop-play > img').attr('src', control_play_img);
             pause_audio();
+            overlay_two_buttons();
             big_btn_container.fadeIn(250);
             overlay_background.fadeIn(250);
-            if (!wide_mode()) {
-                mobile_replay.fadeIn(250);
-            }
         }
 
 
@@ -533,6 +613,8 @@ async function prepare_card () {
         replay_btn.click(handle_replay);
         desktop_replay.click(handle_replay);
         mobile_replay.click(handle_replay);
+        $('#big-alt-button').click(handle_replay);
+
 
         function handle_replay () {
             clearInterval(buffer_interval);
@@ -542,9 +624,6 @@ async function prepare_card () {
             play_audio();
             big_btn_container.fadeOut(250);
             overlay_background.fadeOut(250);
-            if (!wide_mode()) {
-                mobile_replay.fadeOut(250);
-            }
         }
 
 
@@ -575,16 +654,14 @@ async function prepare_card () {
         function handle_audio_end () {
             clearInterval(buffer_interval);
             big_btn.attr('src', replay_img);
+            overlay_one_button();
             big_btn_container.fadeIn(500);
             overlay_background.fadeIn(500);
-            // dont want two replay buttons
-            //if (!wide_mode()) {
-            //    mobile_replay.fadeIn(500);
-            //}
             audio_el.currentTime = 0;
             playing = false;
         }
     }
+
 
     async function prepare_puppet () {
         return new Promise(async (r) => {
@@ -658,8 +735,7 @@ async function prepare_card () {
             // if the card has a frame, it needs to be 72 * 2 smaller
             // in width and height
             var frame_margin = 72;
-            console.log(card_has_frame);
-            if (card_has_frame) { // card_has_frame is determined in the create_decoration_image fn
+            if (card_has_frame()) { // card_has_frame is determined in the create_decoration_image fn
                 console.log('has frame');
                 $(renderer.domElement).css({
                     width: message_width - (frame_margin * 2),
@@ -744,501 +820,6 @@ async function prepare_card () {
             }
             r();
         });
-    }
-}
-
-
-
-function wide_mode () {
-    return (document.body.offsetWidth / document.body.offsetHeight) > 1.56;
-}
-
-async function card_init () {
-    var image_url =            `https://storage.googleapis.com/song_barker_sequences/${card.image_bucket_fp}`;
-    var decoration_image_url = `https://storage.googleapis.com/song_barker_sequences/${card.decoration_image_bucket_fp}`;
-    var fts = card.image_coordinates_json;
-    features = {
-        leftEyePosition: fts.leftEye,
-        rightEyePosition: fts.rightEye,
-        mouthPosition: fts.mouth,
-        mouthLeft: fts.mouthLeft,
-        mouthRight: fts.mouthRight,
-        headTop: fts.headTop,
-        headBottom: fts.headBottom,
-        headLeft: fts.headLeft,
-        headRight: fts.headRight,
-    };
-    _.each(features, (v, k) => {
-        features[k] = new THREE.Vector2(v[0], v[1]);
-    });
-    await load_shader_files();
-    animation_noise_texture = await load_texture('noise_2D.png');
-    scene = new THREE.Scene();
-    renderer = new THREE.WebGLRenderer();
-    //renderer.autoClear = false;
-    scene.background = new THREE.Color(0x2E2E46);
-    camera = new THREE.OrthographicCamera(
-        -0.5 * viewport_aspect,
-        0.5 * viewport_aspect,
-        0.5,
-        -0.5,
-        0.001,
-        1000
-    );
-    camera.position.z = 1;
-    pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
-    background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
-    background_mesh.scale.x = 1; // this will get set when we know what the pet image is
-    background_mesh.renderOrder = 0;
-    face_mesh_material = new THREE.ShaderMaterial({
-        uniforms:       face_animation_shader.uniforms,
-        vertexShader:   face_animation_shader.vertexShader,
-        fragmentShader: face_animation_shader.fragmentShader,
-        depthFunc:      debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
-        side:           THREE.DoubleSide,
-        wireframe:      debug_face_mesh,
-    });
-    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
-    face_mesh.renderOrder = 1;
-    mouth_gltf = await load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
-    mouth_mesh = mouth_gltf.scene.children[0].children[0];
-    mouth_mesh.material = new THREE.ShaderMaterial({
-        uniforms:       mouth_shader.uniforms,
-        vertexShader:   mouth_shader.vertexShader,
-        fragmentShader: mouth_shader.fragmentShader,
-        depthFunc:      THREE.AlwaysDepth,
-        side:           THREE.DoubleSide,
-        blending:       THREE.CustomBlending,
-        blendEquation:  THREE.AddEquation,
-        blendSrc:       THREE.SrcAlphaFactor,
-        blendDst:       THREE.OneMinusSrcAlphaFactor,
-        vertexColors:   true
-    });
-    mouth_mesh.renderOrder = 2;
-    scene.add(background_mesh);
-    scene.add(face_mesh);
-    scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
-    renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-    container.appendChild(renderer.domElement);
-    renderer.setSize(render_pixels, render_pixels);
-    //$(renderer.domElement).css('zoom', zoom_factor);
-
-    // set the pet image on the mesh and on the shader
-    pet_image_texture = await load_texture(image_url);
-    pet_material.map = pet_image_texture;
-    face_animation_shader.uniforms.petImage.value = pet_image_texture;
-
-    // TODO which of these is actually necessary
-    background_mesh.needsUpdate = true;
-    pet_material.needsUpdate = true;
-    face_mesh.needsUpdate = true;
-    face_mesh_material.needsUpdate = true;
-    if (card.mouth_color) {
-        mouth_color(...card.mouth_color);
-    } else {
-        mouth_color(0.5686274509, 0.39607843137, 0.43137254902);
-    }
-
-    // use features to determine locations of stuff
-    sync_objects_to_features();
-    update_shaders();
-    direct_render();
-    animate();
-    head_sway(head_sway_amplitude, head_sway_speed);
-    random_gesture();
-    function random_gesture () {
-        var blinks = [
-            [
-                left_blink_quick,
-                right_blink_quick,
-            ],
-            [
-                left_blink_slow,
-                right_blink_slow,
-            ],
-        ]
-        function random_blink () {
-            var fns = Math.random() > 0.5 ? blinks[0] : blinks[1];
-            if (!document.hidden) {
-                _.each(fns, (f) => { f(); })
-            }
-            setTimeout(random_blink, Math.random() * 6000);
-        }
-        random_blink();
-
-        var brows = [
-            [
-                left_brow_furrow,
-                right_brow_furrow,
-            ],
-            [
-                left_brow_raise,
-                right_brow_raise,
-            ],
-        ]
-        function random_brow () {
-            var fns = Math.random() > 0.5 ? brows[0] : brows[1];
-            var amplitude = 0.25 + (Math.random() / 4);
-            var speed = Math.max(Math.floor(Math.random() * 25), 10);
-            var duration = 250 + (Math.random() * 500);
-            if (!document.hidden) {
-                _.each(fns, (f) => { f(amplitude, speed, duration); })
-            }
-            setTimeout(random_brow, duration + (Math.random() * 6000));
-        }
-        random_brow();
-    }
-    console.log('card init');
-
-
-
-    // jquery handles on dom elements
-    var content = $('#content');
-    var global_scale_el = $('#content-holder');
-    //var global_scale_el = $('body');
-    var card_container = $('#card-container');
-    var back_pieces = $('.envelope-back-piece');
-    var flap = $('#envelope-flap');
-    var flap_underside = $('#envelope-flap-underside');
-    var desktop_logo = $('#k9-logo-desktop');
-    var desktop_controls = $('#desktop-controls');
-    var desktop_app_links = $('#desktop-app-links');
-    var mobile_logo = $('#k9-logo');
-    var decoration_image = $('#decoration-image')
-    var mobile_bottom_controls = $('#mobile-bottom-controls');
-    var big_button_container = $('#big-button-container');
-    var puppet_container = $('#puppet-container');
-
-    var card_opened = false;
-
-    var card_has_frame;
-    var frame_aspect_ratio = 656 / 778;
-
-    // decoration images can include a 72 pixel a side frame
-    // load the decoration image here to see if its framed or not
-    var img_for_dimensions = new Image();
-    img_for_dimensions.onload = prep_card_for_display;
-    // this will trigger the rest of the init sequence
-    img_for_dimensions.src = decoration_image_url;
-
-
-    function card_width () {
-        return card_has_frame ? 512 - 72 : 512;
-    }
-    function card_height () {
-        return 512 * (1 / frame_aspect_ratio);
-    }
-    // just an alias for width, to avoid saying height: width
-    function card_square_side () {
-        return card_has_frame ? 512 - 72 : 512;
-    }
-    function set_card_dimensions () {
-        card_container.css({
-            width: card_width(),
-            height: card_height(),
-            top: 0,
-            left: 0,
-        });
-        big_button_container.css({
-            width: card_square_side(),
-            height: card_square_side(),
-            top: 0,
-            left: 0,
-        });
-        puppet_container.css({
-            width: card_square_side(),
-            height: card_square_side(),
-            top: 0,
-            left: 0,
-        });
-        $('#puppet-container > canvas ').css({
-            width: card_square_side(),
-            height: card_square_side(),
-        });
-        if (card_has_frame) {
-            decoration_image.css({
-                width: card_square_side(),
-                height: (1 / frame_aspect_ratio) * card_square_side(),
-                top: 0,
-                left: 0,
-            });
-            $('#puppet-container > canvas').css({
-                width: 344,
-                height: 344,
-                top: 48,
-                position: 'relative',
-            });
-        } else {
-            decoration_image.css({
-                width: 512,
-                height: 512,
-                top: 0,
-                left: 0,
-            });
-        }
-    }
-
-    // set the logo size and position by card zoom etc
-    function top_of_card () {
-        if (card_has_frame) {
-            var height_for_top = (1 / frame_aspect_ratio) * card_square_side()
-            return $('#content-holder').position().top - ((height_for_top * page_scale() * card_maximize_scale) / 2);
-        } else {
-            var height_for_top = card_width();
-            return $('#content-holder').position().top - ((height_for_top * page_scale() * card_maximize_scale) / 2);
-        }
-    }
-
-    function get_url_param (name) {
-        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-        if (results==null) {
-           return null;
-        }
-        return decodeURI(results[1]) || 0;
-    }
-
-
-    function prep_card_for_display () {
-        // set the recipient name from url param
-        var recipient_name = get_url_param('recipient_name') || 'You';
-        $('#envelope-flap').text(`To: ${recipient_name}`);
-
-
-        // this scales the whole assembly up or down depending on
-        // viewport
-        global_scale_el.css({
-            transform: `scale(${page_scale()}`,
-        });
-
-        // determine if card has a frame here, since the image has
-        // now been loaded and dimensions can be inspected
-        if (img_for_dimensions.width === 656) {
-            // 512 x 512 image with 72px frame
-            console.log('decoration image with frame');
-            //decoration_image.css({
-            //    top: -72,
-            //    left: 20 - 72,
-            //});
-            // need to shrink the puppet so the overall
-            // card size is the same
-            card_has_frame = true;
-        } else {
-            card_has_frame = false;
-        }
-        decoration_image.attr('src', decoration_image_url);
-
-        // set the dimensions of the actual card assembly
-        set_card_dimensions();
-
-        // layout the entire page
-        layout_elements();
-        $(window).resize(_.debounce(layout_elements, 125, { trailing: true }));
-
-        // handle opening the envelope
-        back_pieces.click(open_envelope);
-        flap.click(open_envelope);
-
-        // hide mobile replay button on wide mode
-        if (wide_mode()) {
-            $('#big-play-button-overlay').show();
-        } else {
-            $('#big-play-button-overlay').show();
-            // dont show replay until card has played and is paused
-            //$('#mobile-replay-button').show();
-        }
-
-        // queue up the card coming in to view
-        setTimeout(() => {
-            // card drops in from above, waiting to be opened
-            $('#content').fadeIn({queue: false, duration: 300});
-            $('#content').css({top: '0px'}); // more performant to have this css transitioned
-        }, 1000);
-
-    };
-
-
-
-    // layout in the js for maxiumum job security
-    function layout_elements () {
-        // desktop controls
-        // w/frame: left -284 top -202
-        // w/o: left -306 top -202
-
-        // desktop app links
-        // w/frame: left 200 top -135
-        // w/o: left 228 top -202
-        mobile_logo.css({
-            height: top_of_card() - (card_has_frame ? 20 : 40),
-            top: card_has_frame ? 5 : 10,
-        });
-
-
-        // this is called whenever the window is resized
-
-        // set the page scale (except for logo)
-        global_scale_el.css({
-            transform: `scale(${page_scale()}`,
-        });
-
-        // move the controls and copy horzontally to account for a frame
-        if (card_has_frame) {
-            desktop_controls.css({
-                left: -284,
-                top: -202,
-            });
-            desktop_app_links.css({
-                left: 200,
-                top: -135,
-            });
-            $('#big-play-button-overlay').css({
-                left: 172,
-            });
-            $('#mobile-replay-button').css({
-                left: 172,
-            });
-        } else { // no frame
-            desktop_controls.css({
-                left: -306,
-                top: -210,
-            });
-            desktop_app_links.css({
-                left: 228,
-                top: -135,
-            });
-            $('#big-play-button-overlay').css({
-                left: 215,
-            });
-            $('#mobile-replay-button').css({
-                left: 215,
-            });
-        }
-
-        // if the mode has changed between wide and regular,
-        // elements fade out or in
-        var fade_duration = 500;
-
-        if (card_opened) {
-            if (wide_mode()) {
-                //fade_flex(desktop_controls, fade_duration);
-                desktop_controls.fadeIn(fade_duration);
-                desktop_app_links.fadeIn(fade_duration);
-                mobile_bottom_controls.hide();
-            } else {
-                desktop_controls.hide();
-                desktop_app_links.hide();
-                mobile_bottom_controls.fadeIn(fade_duration);
-            }
-            if (!wide_mode()) {
-                $('body').css({
-                    overflow: 'scroll',
-                });
-            } else {
-                $('body').css({
-                    overflow: 'hide',
-                });
-            }
-        }
-        //if (wide_mode()) {
-        //    desktop_logo.fadeIn(fade_duration);
-        //    mobile_logo.hide();
-        //} else {
-        //    mobile_logo.fadeIn(fade_duration);
-        //    desktop_logo.hide();
-        //}
-        mobile_logo.fadeIn(fade_duration);
-    }
-
-    var card_maximize_scale = 0.8;
-
-
-    function page_scale () {
-        var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
-        var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
-        var zoom = Math.min(zoom_width, zoom_height);
-        zoom *= 0.9;
-        return wide_mode() ? zoom * 1 : zoom;
-    }
-
-    function open_envelope () {
-        $('#card-container').css({
-            display: 'initial',
-        })
-        card_opened = true;
-        setTimeout(layout_elements, 1800);
-
-        // prepare for playback
-        // remove the envelope
-        // show the full card
-        // scale up the card
-
-        init_audio();
-
-        // stop the animation, but retain the translation that was included in it
-        $('#content').css({
-            animation: 'none',
-            transform: `translate(-50% -50%)`,
-        });
-
-        // trigger css transform on envelope flap
-        $('.envelope-flap-piece').toggleClass('opened');
-        setTimeout(() => {
-             // so the text doesnt show through on the underside
-            $('#envelope-flap').css({
-                color: 'transparent',
-            }, 125); //125ms is half the css transition
-            $('#envelope-flap').css({
-                zIndex: 1,
-            }, 250); //make it go behind the card when the envelope slides down
-        });
-
-        // remove clip path on content when its coming out of envelope
-        // do in a couple steps (i didnt have luck trying to transition this)
-        // this is so the card doesn't extend outside the envelope at any point
-        setTimeout(() => {
-            $('#card-container').css('clip-path', 'polygon(0 0, 100% 0, 100% 60%, 0 60%)');
-        }, 500);
-        setTimeout(() => {
-            $('#card-container').css('clip-path', 'none');
-        }, 650);
-
-        // slide the envelope away, resize the card
-        setTimeout(() => {
-            // overwrite css transforms on envelope pieces
-            flap.css({
-                transition: 'top 1s',
-            });
-            back_pieces.css({
-                transition: 'top 1s',
-            });
-
-            setTimeout(() => {
-                var y_dist = 600;
-                back_pieces.css({top: y_dist});
-                flap.css({top: y_dist});
-
-                setTimeout(on_complete, 1000);
-
-                function on_complete () {
-                    back_pieces.fadeOut(100);
-                    flap.fadeOut(100);
-                    if (!wide_mode()) {
-                        $('body').css({
-                            overflow: 'scroll',
-                        });
-                    } else {
-                        $('body').css({
-                            overflow: 'hide',
-                        });
-                    }
-                }
-            }, 100);
-            setTimeout(() => {
-                $('#card-container').css({
-                    transform: `translateX(-50%) translateY(-45%) scale(${card_maximize_scale})`,
-                    //transform: `translateX(-50%) translateY(-45%)`,
-                });
-            }, 750);
-        }, 250);
     }
 }
 
@@ -1504,6 +1085,7 @@ async function init_audio () {
     playback_btn.click(handle_click);
     big_btn_container.click(handle_click);
     decoration_img.click(handle_click);
+    $('#message > canvas').click(handle_click);
     desktop_play.click(handle_click);
 
 

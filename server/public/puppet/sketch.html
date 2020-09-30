@@ -109,7 +109,7 @@
         #flap.opened {
             transform-origin: top center;
             /* translateY(-49%) so it hinges on the line instead of above it */
-            transform: translateY(-49%) translateX(-50%) rotateX(-180deg) !important;
+            transform: translateY(-49%) translateX(-50%) rotateX(180deg) !important;
             transition: top 1s ease-out, transform 0.75s linear; /* slow down the flap opening */
             z-index: 10;
         }
@@ -164,7 +164,6 @@
             position: absolute;
             width: 500px;
             height: 300px;
-            background: red;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
@@ -224,6 +223,7 @@
             position: absolute;
             width: 100%;
             height: 100%;
+            top: 0px;
             background: rgba(0, 0, 0, 0.8);
             z-index: 3;
         }
@@ -231,7 +231,6 @@
         /* mobile stuff below the puppet */
         /* opened message always has height 778 and width 656 */
         #mobile-bottom-controls {
-            display: none; /* fades in */
             position: absolute;
             top: 50%;
             left: 50%;
@@ -304,7 +303,6 @@
 
         /* app logo at the top of the page */
         #k9-logo {
-            display: none; /* fades in */
             position: absolute;
             /* position it above the opened message */
             top: calc(50% - (778px / 2) - 40px);
@@ -327,6 +325,150 @@
             height: 100%;
             /* this needs to happen in js transform: scale(calc(vmax / 1008.84px)); */
         }
+
+        /*
+        desktop controls on the left
+        */
+
+        #desktop-controls {
+            position: absolute;
+            height: 400px;
+            width: 150px;
+            top: calc(50% - 141px);
+            left: calc(50% - 450px);
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        /* the subsections of the left controls */
+        #share-button {
+            height: 50%;
+            position: relative;
+            top: 50%;
+            margin: auto;
+            transform: translateY(-50%);
+            width: 98%;
+            border: 2px solid #004692;
+            border-radius: 14px;
+            cursor: pointer;
+        }
+        #share-text {
+            position: relative;
+            top: 50%;
+            margin: auto;
+            font-size: 19px;
+            transform: translateY(-50%);
+        }
+        #desktop-hr {
+            width: 80%;
+            border: 1px solid #004692;
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        #desktop-share-icons {
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            width: 100%;
+            margin: auto;
+            justify-content: space-evenly;
+        }
+        .desktop-share-icon {
+            flex: 1 1 0;
+        }
+
+        /* the blue vertical bar with play and pause and such */
+        .blue-background {
+            border-radius: 14px;
+            background: #004692;
+        }
+        .border {
+            border: 1px solid red;
+        }
+        .flex-icon {
+            width: 49%;
+            cursor: pointer;
+        }
+        /* scoot the volume icon closer to the slider on desktop */
+        #desktop-volume-icon {
+            position: relative;
+            top: 15px
+        }
+        .v-center {
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .desktop-playback-control > img {
+            height: 60%;
+            cursor: pointer;
+        }
+        #desktop-volume-slider {
+            height: 100%;
+            transform: rotate(-90deg);
+            top: -5px;
+            left: -13px;
+            width: 173px;
+        }
+        .desktop-playback-control-tall input {
+            position: relative;
+            height: 80%;
+        }
+        input[type=range][orient=vertical] {
+            writing-mode: bt-lr; /* IE */
+            -webkit-appearance: slider-vertical; /* WebKit */
+            width: 8px;
+            padding: 0 5px;
+        }
+
+
+        /*
+        the links and text on the right of the card
+        */
+
+        #desktop-app-links {
+            position: absolute;
+            text-align: left;
+            width: 200px;
+            height: 240px;
+            top: calc(50% - 100px);
+            left: calc(50% + 462px);
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        #app-tag-line {
+            font-size: 2.5em;
+            letter-spacing: 1.4;
+        }
+        #app-subhead {
+            margin-top: 2.5%;
+            font-size: 0.8em;
+            line-height: 1.6;
+        }
+        #app-logos {
+            margin-top: 5%;
+            display: flex;
+            text-align: center;
+        }
+        #app-logos > div {
+            flex: 1 1 0;
+        }
+        #app-logos img {
+            height: 50px;
+        }
+        #app-badges {
+            margin-top: 50px;
+            display: flex;
+            text-align: center;
+        }
+        .app-badge-side {
+            flex: 1 1 0;
+        }
+        .app-badge-side > img {
+            width: 90px;
+        }
     </style>
     <!-- set the content scaling here -->
     <script>
@@ -346,7 +488,7 @@
 </head>
 <body>
     <div id="container">
-        <div id="flap"         class="envelope-piece above">fuck you</div>
+        <div id="flap"         class="envelope-piece above"></div>
         <div id="pouch"        class="envelope-piece above"></div>
         <div id="pouch-inside" class="envelope-piece above"></div>
         <div id="message" style="display: none">
@@ -355,12 +497,71 @@
         </div>
 
         <!-- app logo -->
-        <div id="k9-logo">
+        <div id="k9-logo" style="display: none">
             <img src="/puppet/k9_logotype_small.png"></img>
         </div>
 
+        <!-- all the controls on the left side -->
+        <div id="desktop-controls" style="display: none">
+            <!-- share button -->
+            <div style="height: 20%">
+                <div id="share-button">
+                    <div id="share-text">SHARE</div>
+                </div>
+            </div>
+            <!-- hr -->
+            <div style="height: 8%">
+                <hr id="desktop-hr"></hr>
+            </div>
+            <!-- share icons -->
+            <div style="height: 15%">
+                <div id="desktop-share-icons">
+                    <div class="desktop-share-icon"><img src="/puppet/icons/social facebook.svg"></img></div>
+                    <div class="desktop-share-icon"><img src="/puppet/icons/social instagram.svg"></img></div>
+                    <div class="desktop-share-icon"><img src="/puppet/icons/social twitter.svg"></img></div>
+                </div>
+            </div>
+            <!-- playback controls -->
+            <div class="blue-background" style="height: auto; width: 100%; margin-top: 15%">
+                <div id="desktop-play" style="height: 15%; padding-top: 13%">
+                    <img class="flex-icon v-center" src="/puppet/k9-icons/play-no-border-white.png"></img>
+                </div>
+                <div id="desktop-replay" style="height: 15%">
+                    <img class="flex-icon v-center" src="/puppet/k9-icons/replay-no-border-white.png"></img>
+                </div>
+                <div id="desktop-volume-icon" style="height: 15%">
+                    <img class="flex-icon v-center" src="/puppet/k9-icons/volume-on-no-border-white.png"></img>
+                </div>
+                <div style="height: 65%">
+                    <input class="v-center range-vertical" type="range" id="desktop-volume-slider"></input>
+                </div>
+            </div>
+        </div>
+
+        <!-- controls on the right side -->
+        <div id="desktop-app-links" style="display: none">
+            <div id="app-tag-line">MAKE YOUR PETS SING!</div>
+            <div id="app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
+            <div id="app-logos">
+                <div>
+                    <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
+                </div>
+                <div>
+                    <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
+                </div>
+            </div>
+            <div id="app-badges">
+                <div class="app-badge-side">
+                    <img src="/puppet/app-store-badge.png"></img>
+                </div>
+                <div class="app-badge-side">
+                    <img src="/puppet/google-play-badge.png"></img>
+                </div>
+            </div>
+        </div>
+
         <!-- mobile stuff all goes below the puppet -->
-        <div id="mobile-bottom-controls">
+        <div id="mobile-bottom-controls" style="display: none">
             <!-- share -->
             <div id="mobile-share-button">
                 <div>SHARE</div>

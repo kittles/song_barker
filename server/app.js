@@ -98,8 +98,11 @@ app.get('/card/:uuid', async (req, res) => {
     // get decoration image bucket fp
     var decoration_image = await db.get('select * from decoration_images where uuid = ?', card.decoration_image_id);
     if (_.isUndefined(decoration_image)) {
-        res.status(400).send('unable to find decoration image for card');
-        return;
+        //res.status(400).send('unable to find decoration image for card');
+        //return;
+        decoration_image = {
+            bucket_fp: null,
+        };
     }
     // card audio bucket fp
     var card_audio = await db.get('select * from card_audios where uuid = ?', card.card_audio_id);
