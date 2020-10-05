@@ -2436,15 +2436,15 @@ var feature_map = {
     headRight: new THREE.Vector2(0.3, 0.0)
   },
   'problem-dog.jpg': {
-    leftEyePosition: new THREE.Vector2(-0.070556640625, 0.2986653645833333),
-    rightEyePosition: new THREE.Vector2(0.125244140625, 0.2871229383680556),
-    mouthPosition: new THREE.Vector2(0.021484375, -0.054131401909722224),
-    mouthLeft: new THREE.Vector2(-0.08642578125, -0.11234537760416667),
-    mouthRight: new THREE.Vector2(0.105712890625, -0.07771809895833333),
-    headTop: new THREE.Vector2(0.02490234375, 0.4090711805555556),
-    headBottom: new THREE.Vector2(0.056396484375, -0.1188693576388889),
-    headLeft: new THREE.Vector2(-0.37744140625, 0.1501193576388889),
-    headRight: new THREE.Vector2(0.2822265625, 0.1646728515625)
+    leftEyePosition: new THREE.Vector2(-0.1064453125, 0.2108425564236111),
+    rightEyePosition: new THREE.Vector2(0.109130859375, 0.22840711805555555),
+    mouthPosition: new THREE.Vector2(0.043701171875, 0.0025770399305555555),
+    mouthLeft: new THREE.Vector2(-0.0498046875, -0.06065538194444445),
+    mouthRight: new THREE.Vector2(0.11572265625, -0.026529947916666668),
+    headTop: new THREE.Vector2(-0.013671875, 0.3528645833333333),
+    headBottom: new THREE.Vector2(0.024658203125, -0.12940809461805555),
+    headLeft: new THREE.Vector2(-0.200927734375, 0.07383897569444445),
+    headRight: new THREE.Vector2(0.212646484375, 0.07735188802083333)
   }
 };
 var anims = [];
