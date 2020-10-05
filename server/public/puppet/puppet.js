@@ -1951,9 +1951,9 @@ var feature_map = {
     'problem-dog.jpg': {
         leftEyePosition: new THREE.Vector2(-0.070556640625, 0.2986653645833333),
         rightEyePosition: new THREE.Vector2(0.125244140625, 0.2871229383680556),
-        mouthPosition: new THREE.Vector2(0.05029296875, 0.1004367404513889),
-        mouthLeft: new THREE.Vector2(-0.26171875, 0.2590196397569444),
-        mouthRight: new THREE.Vector2(0.09619140625, 0.07835557725694445),
+        mouthPosition: new THREE.Vector2(0.021484375,-0.054131401909722224),
+        mouthLeft: new THREE.Vector2(-0.08642578125,-0.11234537760416667),
+        mouthRight: new THREE.Vector2(0.105712890625,-0.07771809895833333),
         headTop: new THREE.Vector2(0.02490234375, 0.4090711805555556),
         headBottom: new THREE.Vector2(0.056396484375, -0.1188693576388889),
         headLeft: new THREE.Vector2(-0.37744140625, 0.1501193576388889),
