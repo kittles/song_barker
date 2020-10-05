@@ -65,11 +65,6 @@ app.use(
 // TODO  one of these needs to go i think?
 
 
-app.get('/card-flex', async (req, res) => {
-    res.sendFile(path.join(__dirname + '/public/puppet/card-flex.html'));
-});
-
-
 app.get('/card/:uuid', async (req, res) => {
     // uuid gets a greeting_card object
     // greeting card is used to get necessary info to make a page
@@ -110,7 +105,7 @@ app.get('/card/:uuid', async (req, res) => {
         res.status(400).send('unable to find card audio');
         return;
     }
-    fs.readFile('public/puppet/sketch.html', 'utf-8', function (error, source) { //TODO just using sketch to test...
+    fs.readFile('public/puppet/puppet.html', 'utf-8', function (error, source) { //TODO just using sketch to test...
         var template = handlebars.compile(source);
         var html = template({
             uuid: req.params.uuid,

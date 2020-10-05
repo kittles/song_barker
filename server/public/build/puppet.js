@@ -289,20 +289,30 @@ function log(msg) {
   }
 }
 
+function get_url_param(name) {
+  var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+
+  if (results == null) {
+    return null;
+  }
+
+  return decodeURI(results[1]) || 0;
+}
+
 $('document').ready(function () {
   if (card) {
-    card_init();
+    prepare_card();
   } else {
-    init();
+    if (get_url_param('debug')) {
+      init_debug();
+    } else {
+      init();
+    }
   }
 });
 
-function wide_mode() {
-  return document.body.offsetWidth / document.body.offsetHeight > 1.56;
-}
-
-function card_init() {
-  return _card_init.apply(this, arguments);
+function prepare_card() {
+  return _prepare_card.apply(this, arguments);
 } // prepare a threejs scene for puppet creation
 // this includes establishing info about the environment
 // and creating the actual threejs scene and objects.
@@ -310,559 +320,755 @@ function card_init() {
 // what image the app wants to use
 
 
-function _card_init() {
-  _card_init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var vh, viewport_aspect, image_url, decoration_image_url, fts, random_gesture, content, global_scale_el, card_container, back_pieces, flap, flap_underside, desktop_logo, desktop_controls, desktop_app_links, mobile_logo, decoration_image, mobile_bottom_controls, big_button_container, puppet_container, card_opened, card_has_frame, frame_aspect_ratio, img_for_dimensions, card_width, card_height, card_square_side, set_card_dimensions, top_of_card, get_url_param, prep_card_for_display, layout_elements, card_maximize_scale, page_scale, open_envelope;
-    return regeneratorRuntime.wrap(function _callee$(_context) {
+function _prepare_card() {
+  _prepare_card = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
+    var recipient_name, switch_class, envelope_top, envelope_middle, envelope_below, envelope_tilt_right, envelope_tilt_left, envelope_no_tilt, is_jiggling, envelope_jiggle, jiggle_interval, cancel_jiggle, wide_mode, flap_open_ms, envelope_move_ms, message_zoom_ms, ready_to_display, open_flap, message_width, message_height, zoom_message, _zoom_message, present_envelope, img_for_dimensions, card_has_frame, decoration_image_url, check_decoration_image, _check_decoration_image, create_decoration_image, create_overlay_buttons, _create_overlay_buttons, overlay_two_buttons, overlay_one_button, overlay_right_button, ui_to_show, ui_to_hide, handle_mode, display_ui, prepare_audio, prepare_puppet, _prepare_puppet;
+
+    return regeneratorRuntime.wrap(function _callee8$(_context8) {
       while (1) {
-        switch (_context.prev = _context.next) {
+        switch (_context8.prev = _context8.next) {
           case 0:
-            open_envelope = function _open_envelope() {
-              $('#card-container').css({
-                display: 'initial'
-              });
-              card_opened = true;
-              setTimeout(layout_elements, 1800); // prepare for playback
-              // remove the envelope
-              // show the full card
-              // scale up the card
+            _prepare_puppet = function _prepare_puppet3() {
+              _prepare_puppet = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+                return regeneratorRuntime.wrap(function _callee7$(_context7) {
+                  while (1) {
+                    switch (_context7.prev = _context7.next) {
+                      case 0:
+                        return _context7.abrupt("return", new Promise( /*#__PURE__*/function () {
+                          var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(r) {
+                            var viewport_aspect, image_url, fts, frame_margin, random_gesture;
+                            return regeneratorRuntime.wrap(function _callee6$(_context6) {
+                              while (1) {
+                                switch (_context6.prev = _context6.next) {
+                                  case 0:
+                                    random_gesture = function _random_gesture() {
+                                      var blinks = [[left_blink_quick, right_blink_quick], [left_blink_slow, right_blink_slow]];
 
-              init_audio(); // stop the animation, but retain the translation that was included in it
+                                      function random_blink() {
+                                        var fns = Math.random() > 0.5 ? blinks[0] : blinks[1];
 
-              $('#content').css({
-                animation: 'none',
-                transform: "translate(-50% -50%)"
-              }); // trigger css transform on envelope flap
+                                        if (!document.hidden) {
+                                          _.each(fns, function (f) {
+                                            f();
+                                          });
+                                        }
 
-              $('.envelope-flap-piece').toggleClass('opened');
-              setTimeout(function () {
-                // so the text doesnt show through on the underside
-                $('#envelope-flap').css({
-                  color: 'transparent'
-                }, 125); //125ms is half the css transition
+                                        setTimeout(random_blink, Math.random() * 6000);
+                                      }
 
-                $('#envelope-flap').css({
-                  zIndex: 1
-                }, 250); //make it go behind the card when the envelope slides down
-              }); // remove clip path on content when its coming out of envelope
-              // do in a couple steps (i didnt have luck trying to transition this)
-              // this is so the card doesn't extend outside the envelope at any point
+                                      random_blink();
+                                      var brows = [[left_brow_furrow, right_brow_furrow], [left_brow_raise, right_brow_raise]];
 
-              setTimeout(function () {
-                $('#card-container').css('clip-path', 'polygon(0 0, 100% 0, 100% 60%, 0 60%)');
-              }, 500);
-              setTimeout(function () {
-                $('#card-container').css('clip-path', 'none');
-              }, 650); // slide the envelope away, resize the card
+                                      function random_brow() {
+                                        var fns = Math.random() > 0.5 ? brows[0] : brows[1];
+                                        var amplitude = 0.25 + Math.random() / 4;
+                                        var speed = Math.max(Math.floor(Math.random() * 25), 10);
+                                        var duration = 250 + Math.random() * 500;
 
-              setTimeout(function () {
-                // overwrite css transforms on envelope pieces
-                flap.css({
-                  transition: 'top 1s'
-                });
-                back_pieces.css({
-                  transition: 'top 1s'
-                });
-                setTimeout(function () {
-                  var y_dist = 600;
-                  back_pieces.css({
-                    top: y_dist
-                  });
-                  flap.css({
-                    top: y_dist
-                  });
-                  setTimeout(on_complete, 1000);
+                                        if (!document.hidden) {
+                                          _.each(fns, function (f) {
+                                            f(amplitude, speed, duration);
+                                          });
+                                        }
 
-                  function on_complete() {
-                    back_pieces.fadeOut(100);
-                    flap.fadeOut(100);
+                                        setTimeout(random_brow, duration + Math.random() * 6000);
+                                      }
 
-                    if (!wide_mode()) {
-                      $('body').css({
-                        overflow: 'scroll'
-                      });
-                    } else {
-                      $('body').css({
-                        overflow: 'hide'
-                      });
+                                      random_brow();
+                                    };
+
+                                    viewport_aspect = 1;
+                                    image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.image_bucket_fp);
+                                    fts = card.image_coordinates_json;
+                                    features = {
+                                      leftEyePosition: fts.leftEye,
+                                      rightEyePosition: fts.rightEye,
+                                      mouthPosition: fts.mouth,
+                                      mouthLeft: fts.mouthLeft,
+                                      mouthRight: fts.mouthRight,
+                                      headTop: fts.headTop,
+                                      headBottom: fts.headBottom,
+                                      headLeft: fts.headLeft,
+                                      headRight: fts.headRight
+                                    };
+
+                                    _.each(features, function (v, k) {
+                                      features[k] = new THREE.Vector2(v[0], v[1]);
+                                    });
+
+                                    _context6.next = 8;
+                                    return load_shader_files();
+
+                                  case 8:
+                                    _context6.next = 10;
+                                    return load_texture('noise_2D.png');
+
+                                  case 10:
+                                    animation_noise_texture = _context6.sent;
+                                    scene = new THREE.Scene();
+                                    renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
+
+                                    scene.background = new THREE.Color(0x2E2E46);
+                                    camera = new THREE.OrthographicCamera(-0.5 * viewport_aspect, 0.5 * viewport_aspect, 0.5, -0.5, 0.001, 1000);
+                                    camera.position.z = 1;
+                                    pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
+
+                                    background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
+                                    background_mesh.scale.x = 1; // this will get set when we know what the pet image is
+
+                                    background_mesh.renderOrder = 0;
+                                    face_mesh_material = new THREE.ShaderMaterial({
+                                      uniforms: face_animation_shader.uniforms,
+                                      vertexShader: face_animation_shader.vertexShader,
+                                      fragmentShader: face_animation_shader.fragmentShader,
+                                      depthFunc: debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
+                                      side: THREE.DoubleSide,
+                                      wireframe: debug_face_mesh
+                                    });
+                                    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
+                                    face_mesh.renderOrder = 1;
+                                    _context6.next = 25;
+                                    return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
+
+                                  case 25:
+                                    mouth_gltf = _context6.sent;
+                                    mouth_mesh = mouth_gltf.scene.children[0].children[0];
+                                    mouth_mesh.material = new THREE.ShaderMaterial({
+                                      uniforms: mouth_shader.uniforms,
+                                      vertexShader: mouth_shader.vertexShader,
+                                      fragmentShader: mouth_shader.fragmentShader,
+                                      depthFunc: THREE.AlwaysDepth,
+                                      side: THREE.DoubleSide,
+                                      blending: THREE.CustomBlending,
+                                      blendEquation: THREE.AddEquation,
+                                      blendSrc: THREE.SrcAlphaFactor,
+                                      blendDst: THREE.OneMinusSrcAlphaFactor,
+                                      vertexColors: true
+                                    });
+                                    mouth_mesh.renderOrder = 2;
+                                    scene.add(background_mesh);
+                                    scene.add(face_mesh);
+                                    scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
+
+                                    renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+                                    $('#message').append(renderer.domElement);
+                                    renderer.setSize(render_pixels, render_pixels); // if the card has a frame, it needs to be 72 * 2 smaller
+                                    // in width and height
+
+                                    frame_margin = 72;
+
+                                    if (card_has_frame()) {
+                                      // card_has_frame is determined in the create_decoration_image fn
+                                      console.log('has frame');
+                                      $(renderer.domElement).css({
+                                        width: message_width - frame_margin * 2,
+                                        height: message_width - frame_margin * 2,
+                                        left: 72,
+                                        top: 72,
+                                        position: 'absolute',
+                                        zIndex: 1
+                                      });
+                                    } else {
+                                      $(renderer.domElement).css({
+                                        width: message_width,
+                                        height: message_width,
+                                        // always a square
+                                        zIndex: 1
+                                      });
+                                    } // set the pet image on the mesh and on the shader
+
+
+                                    _context6.next = 39;
+                                    return load_texture(image_url);
+
+                                  case 39:
+                                    pet_image_texture = _context6.sent;
+                                    pet_material.map = pet_image_texture;
+                                    face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
+
+                                    background_mesh.needsUpdate = true;
+                                    pet_material.needsUpdate = true;
+                                    face_mesh.needsUpdate = true;
+                                    face_mesh_material.needsUpdate = true;
+
+                                    if (card.mouth_color) {
+                                      mouth_color.apply(void 0, _toConsumableArray(card.mouth_color));
+                                    } else {
+                                      mouth_color(0.5686274509, 0.39607843137, 0.43137254902);
+                                    } // use features to determine locations of stuff
+
+
+                                    sync_objects_to_features();
+                                    update_shaders();
+                                    direct_render();
+                                    animate();
+                                    head_sway(head_sway_amplitude, head_sway_speed);
+                                    random_gesture();
+                                    r();
+
+                                  case 54:
+                                  case "end":
+                                    return _context6.stop();
+                                }
+                              }
+                            }, _callee6);
+                          }));
+
+                          return function (_x16) {
+                            return _ref3.apply(this, arguments);
+                          };
+                        }()));
+
+                      case 1:
+                      case "end":
+                        return _context7.stop();
                     }
                   }
-                }, 100);
-                setTimeout(function () {
-                  $('#card-container').css({
-                    transform: "translateX(-50%) translateY(-45%) scale(".concat(card_maximize_scale, ")") //transform: `translateX(-50%) translateY(-45%)`,
-
-                  });
-                }, 750);
-              }, 250);
+                }, _callee7);
+              }));
+              return _prepare_puppet.apply(this, arguments);
             };
 
-            page_scale = function _page_scale() {
-              var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
-              var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
-              var zoom = Math.min(zoom_width, zoom_height);
-              zoom *= 0.9;
-              return wide_mode() ? zoom * 1 : zoom;
+            prepare_puppet = function _prepare_puppet2() {
+              return _prepare_puppet.apply(this, arguments);
             };
 
-            layout_elements = function _layout_elements() {
-              // desktop controls
-              // w/frame: left -284 top -202
-              // w/o: left -306 top -202
-              // desktop app links
-              // w/frame: left 200 top -135
-              // w/o: left 228 top -202
-              mobile_logo.css({
-                height: top_of_card() - (card_has_frame ? 20 : 40),
-                top: card_has_frame ? 5 : 10
-              }); // this is called whenever the window is resized
-              // set the page scale (except for logo)
+            prepare_audio = function _prepare_audio() {
+              var audio_url;
+              var audio_el;
+              var buffer_interval;
+              var playing = false;
+              var playback_btn = $('#play-control');
+              var big_btn_container = $('#big-play-button-overlay');
+              var big_btn = $('#big-play-button');
+              var mobile_replay = $('#mobile-replay-button');
+              var replay_btn = $('#replay-control');
+              var decoration_img = $('#decoration-image');
+              var desktop_volume_slider = $('#desktop-volume-slider');
+              var mobile_volume_slider = $('#mobile-volume-slider');
+              var desktop_replay = $('#desktop-replay');
+              var desktop_play = $('#desktop-play');
+              var overlay_background = $('#overlay-background'); // TODO: update these
+              //var play_img = '/puppet/k9-icons/play-no-border-white.png';
 
-              global_scale_el.css({
-                transform: "scale(".concat(page_scale())
-              }); // move the controls and copy horzontally to account for a frame
+              var play_img = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAC6XpUWHRSYXcgcHJvZmlsZSB0eXBlIGV4aWYAAHja7ZdbktwgDEX/WUWWgCSExHIwmKrsIMvPBT+me2byquQnVW3KQAtZiHsw3R32b19H+IKLSuaQ1DyXnCOuVFLhio7H4yqrpphWva52jdGzPdwDDJOgleOj1dO/wq5vD9xxtmd78HOE/Qx0DlwBZc7M6PTHJGHnw07pDFT2o5OL22OqG59LOR1XKucttkLfQebn8GhIBpW6wkuYdyGJq/YjAznuittRsxj8CG0VlRTQkFxLgiBPy7vaGB8FehL56oX36t+9d+JzPe3yTst8aoTOpwOkn4u/JH6YWO6M+HnA5Ar1UeQxuo+xH6urKUPRfO6oGC515jNw3CC5rMcyiuFW9G2VguKxxgY4Pba4oTQqxKAyAiXqVGnQvtpGDSkm3hlMmLmxLJuDUeEmk1OahQabFOkgyNJ4DyIw850LrXnLmq+RY+ZOcGVCsIn6hyX8bPBPShijTYko+q0V8uK5c5HGJDdreAEIjZObLoGvcuKPD/sHWxUEdcnsWGCN2xFiU3rbW7I4C/wU7fFWULB+BoBEmFuRDAkIxEyilCkasxFBRwegisxZEm8gQKrckSQnEZxHxs5zbjxjtHxZOfM042wCCJUsBjZFKmClpNg/lhx7qKpoUtWsph60aM2SU9acs+V5yFUTS6aWzcytWHXx5OrZzd2L18JFcAZqycWKl1Jq5VAxUUWsCv8Ky8abbGnTLW+2+Va22rB9WmracrPmrbTauUvHMdFzt+699LpT2HFS7GnXPe+2+172OrDXhow0dORhw0cZ9aZ2Uv1Q/oAandR4kZp+dlODNZhdIWgeJzqZgRgnAnGbBLCheTKLTinxJDeZxcJ4KZSRpE42odMkBoRpJ9ZBN7s3cr/FLaj/Fjf+Fbkw0f0LcgHoPnL7hFqf33NtETvewqlpFLx98KnsAXeMqP62fQV6BXoFegV6BXoFegX6/wPJwI8H/IkN3wFptp3A/1Bd9QAAAYVpQ0NQSUNDIHByb2ZpbGUAAHicfZE9SMNAHMVfU7VFKg528GvIUJ2siIo4ahWKUCHUCq06mFz6ITRpSFJcHAXXgoMfi1UHF2ddHVwFQfADxMnRSdFFSvxfWmgR48FxP97de9y9A4RqkWlW2xig6baZjMfEdGZFDLwiiAF0oA+jMrOMWUlKwHN83cPH17soz/I+9+foUrMWA3wi8QwzTJt4nXhq0zY47xOHWUFWic+JR0y6IPEj15U6v3HOuyzwzLCZSs4Rh4nFfAsrLcwKpkY8SRxRNZ3yhXSdVc5bnLVimTXuyV8YyurLS1ynOYg4FrAICSIUlLGBImxEadVJsZCk/ZiHv9/1S+RSyLUBRo55lKBBdv3gf/C7Wys3MV5PCsWA9hfH+RgCArtAreI438eOUzsB/M/Ald70l6rA9CfplaYWOQK6t4GL66am7AGXO0DvkyGbsiv5aQq5HPB+Rt+UAXpugc7Vem+NfZw+ACnqKnEDHBwCw3nKXvN4d7C1t3/PNPr7AYH7cq12dKcRAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5AgbEzYOhq3JMAAABNNJREFUeNrt3U2oZnUdwPHvTSXfEJFUCMSBwsTkLgyGNMVgNi5yUYuCkijIRYiavWCFCmGJkGGCuNCsiIRaKJSVSRIJJr5gbxaaE9kisTEEX2HGysfF/8TJO2eiGYXk3s9nd3nm2fzu/c7/nP95znnWVqtVwLI3GQEIBAQCAgGBgEBAICAQEAgIBBAICAQEAgIBgYBAQCAgEBAICAQQCAgEBAICAYGAQEAgIBAQCCAQEAgIBAQCAgGBgEBAICAQEAggEBAICAQEAgIBgYBAQCAgEEAgIBAQCAgEBAICAYGAQEAgIBBAICAQEAgIBAQCb1QHG8HrYq06sTq0+ku120isINQh1aXVE9Xj1SPVM9Ut1duMZxP8z7darUzhwBxW/aR67z5e31NdW32lesG4rCBbzVf/SxxVb64+X/2xOs+4rCBbyXHTYdX+nMPdW11Y/cr4rCCb3Znt/wbHGdWD1U3VsUYokM3sLa9h3p+oHqsuzi6iQMxt0dHV16vfVjuMUyAsO6W6q7qt2mYcAmHZ+xvXUK6sDjcOgbC3Q6vLqkerDxmHQFh2QvW96hfVunEIhGVnN66Z3FAdYxwCYW8HVZ+sdlYXTD8jEDY4prp+WlHONg6BsGx9Ojf5/nSugkBY8MHGbtcVjd0vBMIGh1dfalw/+YBxCIRl26pbG1fk32kcAmHZjuo31XWNz3ohEDY4uLqo8Wnh8/1+BcKyY6sbG/efnGEcAmHZadUvq+9WbzUOgbDsI41747/QuFcegbDBkdVV1e+rc41DICx7e/XD6o7qHcYhEJadUz1cXVMdZRwCYW+HVJ9pbAt/vPEIVQTCBsdX36zuq7Ybh0BYtn2K5FtTNAIxAjZYqz42HXZ9djoMEwhscFTj+cO/q94lEFh2cnV346q8QGDBEdN5yZpAYNl6dbpAYN9OEwj4exEIB+QPAoFljzceOSQQ2OCfjS/++ZdA4NV2Ve+rfu6kC2b/qL5WnVTduVWH4DvyWHJHdUnjNt0tTSD8pz9NYfzIKBxiMXu+urTxZEZxWEGYrKrvNJ528qRxCITZA42nMN5vFA6xmP2tcf/5u8VhBWH2UuPB1ldO5xwIhMmPG7tTO41CIMweqz7VuK6BcxAmz1Wfq04VhxWE2ar6dmPbdpdxCITZfY1t2weNwiEWsyerjza+KEccVhAmL1XXVl+uXjAOgTC7vfp048OFCITJo41t2zuNwjkIs2enFWNdHFYQZi83nmj4xeop4xAIs3sb27YPGYVDLGZPVOdV7xGHFYTZnsZDEq6qXjQOgTD7wXQS/mejEAizR6qLq58ZhXOQzWT1Gt//TON6xro4rCCb0dMH+L6Xq29Ul1V/N8Y3vrXVamUK++/4xm7TQfvxnnsa27a/Nj6HWJvdrurm//Hf/rX6cHWWOKwgW8kR1U+rM/fx+u7qmurqbNtaQbagF6sd1eWNR+n8257qluqU6TVxWEHMsdpWHda4lrHbSAQCDrFAIIBAQCAgEBAICAQEAgIBgYBAAIGAQEAgIBAQCAgEBAICAYGAQACBgEBAICAQEAgIBAQCAgGBAAIBgYBAQCAgEBAICAQEAgIBgQACAYGAQEAgIBAQCAgEBAICAQQCAgGBgEBAICAQEAgIBAQCAgEEAgIBgYBA4P/lFcEDsFhKiMzLAAAAAElFTkSuQmCCr';
+              var pause_img = '/puppet/k9-icons/pause-no-border-white.png';
+              var replay_img = '/puppet/k9-icons/replay-no-border-white.png';
+              var control_play_img = '/puppet/k9-icons/play-no-border-white.png';
+              var blue_play_img = '/puppet/k9-icons/play-blue.png';
+              var control_pause_img = '/puppet/k9-icons/pause-no-border-white.png';
+              var control_replay_img = '/puppet/k9-icons/replay-no-border-white.png';
+              var control_volume_on_img = '/puppet/k9-icons/volume-on-no-border-white.png';
+              var control_volume_off_img = '/puppet/k9-icons/volume-off-no-border-white.png';
+              var mobile_play_img = '/puppet/k9-icons/play-blue.png';
+              var mobile_pause_img = '/puppet/k9-icons/pause-blue.png';
+              var mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
+              var mobile_volume_on_img = '/puppet/k9-icons/volume-on-no-border-blue.png';
+              var mobile_volume_off_img = '/puppet/k9-icons/volume-off-no-border-blue.png';
+              audio_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
 
-              if (card_has_frame) {
-                desktop_controls.css({
-                  left: -284,
-                  top: -202
-                });
-                desktop_app_links.css({
-                  left: 200,
-                  top: -135
-                });
-                $('#big-play-button-overlay').css({
-                  left: 172
-                });
-                $('#mobile-replay-button').css({
-                  left: 172
-                });
-              } else {
-                // no frame
-                desktop_controls.css({
-                  left: -306,
-                  top: -210
-                });
-                desktop_app_links.css({
-                  left: 228,
-                  top: -135
-                });
-                $('#big-play-button-overlay').css({
-                  left: 215
-                });
-                $('#mobile-replay-button').css({
-                  left: 215
-                });
-              } // if the mode has changed between wide and regular,
-              // elements fade out or in
+              $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
+              audio_el = document.querySelector('audio');
+              audio_el.addEventListener('ended', handle_audio_end, {
+                once: true
+              }); // TODO consolidate volume slider logic
 
+              $('#mobile-volume-slider').on('input', function () {
+                audio_el.volume = $('#mobile-volume-slider').val() / 100;
 
-              var fade_duration = 500;
-
-              if (card_opened) {
-                if (wide_mode()) {
-                  //fade_flex(desktop_controls, fade_duration);
-                  desktop_controls.fadeIn(fade_duration);
-                  desktop_app_links.fadeIn(fade_duration);
-                  mobile_bottom_controls.hide();
+                if (audio_el.volume > 0) {
+                  $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
                 } else {
-                  desktop_controls.hide();
-                  desktop_app_links.hide();
-                  mobile_bottom_controls.fadeIn(fade_duration);
+                  $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
+                }
+              });
+              $('#desktop-volume-slider').on('input', function () {
+                audio_el.volume = $('#desktop-volume-slider').val() / 100;
+
+                if (audio_el.volume > 0) {
+                  $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
+                } else {
+                  $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
+                }
+              });
+              var last_slider_val = 75;
+              $('#desktop-volume-icon').on('click', function () {
+                if (desktop_volume_slider.val() > 0) {
+                  last_slider_val = desktop_volume_slider.val();
+                  desktop_volume_slider.val(0);
+                  $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
+                } else {
+                  desktop_volume_slider.val(last_slider_val);
+                  $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
                 }
 
-                if (!wide_mode()) {
-                  $('body').css({
-                    overflow: 'scroll'
-                  });
+                audio_el.volume = $('#desktop-volume-slider').val() / 100;
+              });
+              $('#mobile-volume-icon').on('click', function () {
+                if (mobile_volume_slider.val() > 0) {
+                  last_slider_val = mobile_volume_slider.val();
+                  mobile_volume_slider.val(0);
+                  $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
                 } else {
-                  $('body').css({
-                    overflow: 'hide'
-                  });
+                  mobile_volume_slider.val(last_slider_val);
+                  $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
                 }
-              } //if (wide_mode()) {
-              //    desktop_logo.fadeIn(fade_duration);
-              //    mobile_logo.hide();
-              //} else {
-              //    mobile_logo.fadeIn(fade_duration);
-              //    desktop_logo.hide();
-              //}
 
+                audio_el.volume = $('#mobile-volume-slider').val() / 100;
+              });
+              playback_btn.click(handle_click);
+              big_btn_container.click(handle_click);
+              decoration_img.click(handle_click);
+              desktop_play.click(handle_click);
 
-              mobile_logo.fadeIn(fade_duration);
-            };
-
-            prep_card_for_display = function _prep_card_for_displa() {
-              // set the recipient name from url param
-              var recipient_name = get_url_param('recipient_name') || 'You';
-              $('#envelope-flap').text("To: ".concat(recipient_name)); // this scales the whole assembly up or down depending on
-              // viewport
-
-              global_scale_el.css({
-                transform: "scale(".concat(page_scale())
-              }); // determine if card has a frame here, since the image has
-              // now been loaded and dimensions can be inspected
-
-              if (img_for_dimensions.width === 656) {
-                // 512 x 512 image with 72px frame
-                console.log('decoration image with frame'); //decoration_image.css({
-                //    top: -72,
-                //    left: 20 - 72,
-                //});
-                // need to shrink the puppet so the overall
-                // card size is the same
-
-                card_has_frame = true;
-              } else {
-                card_has_frame = false;
+              function card_play() {
+                $('#desktop-play > img').attr('src', control_pause_img);
+                play_audio();
+                overlay_background.fadeOut(250);
               }
 
-              decoration_image.attr('src', decoration_image_url); // set the dimensions of the actual card assembly
+              window.card_play = card_play;
 
-              set_card_dimensions(); // layout the entire page
+              function card_pause() {
+                $('#desktop-play > img').attr('src', control_play_img);
+                pause_audio();
+                overlay_two_buttons();
+                overlay_background.fadeIn(250);
+              }
 
-              layout_elements();
-              $(window).resize(_.debounce(layout_elements, 125, {
-                trailing: true
-              })); // handle opening the envelope
+              function handle_click() {
+                if (playing) {
+                  card_pause();
+                } else {
+                  card_play();
+                }
+              }
 
-              back_pieces.click(open_envelope);
-              flap.click(open_envelope); // hide mobile replay button on wide mode
+              replay_btn.click(handle_replay);
+              desktop_replay.click(handle_replay);
+              mobile_replay.click(handle_replay);
+              $('#big-alt-button').click(handle_replay);
 
+              function handle_replay() {
+                clearInterval(buffer_interval);
+                audio_el.currentTime = 0;
+                $('img', desktop_play).attr('src', control_pause_img);
+                play_audio();
+                overlay_background.fadeOut(250);
+              }
+
+              function play_audio() {
+                // play the audio and animate
+                clearInterval(buffer_interval);
+                audio_el.play();
+                buffer_interval = setInterval(function () {
+                  // add the upcoming 250 ms of mouth animations based on current playback
+                  var start_idx = Math.floor(audio_el.currentTime * 60);
+                  feature_tickers.mouth.cancel(); // add a little extra the interval gets delayed
+
+                  feature_tickers.mouth.add(card.animation_json.mouth_positions.slice(start_idx, start_idx + 60));
+                }, 250);
+                playing = true;
+              }
+
+              function pause_audio() {
+                clearInterval(buffer_interval);
+                audio_el.pause();
+                feature_tickers.mouth.cancel();
+                feature_tickers.mouth.add([0]);
+                playing = false;
+              }
+
+              function handle_audio_end() {
+                clearInterval(buffer_interval);
+                overlay_right_button();
+                overlay_background.fadeIn(500);
+                audio_el.currentTime = 0;
+                playing = false;
+              }
+            };
+
+            display_ui = function _display_ui() {
+              _.each(ui_to_show, function (ui_el) {
+                ui_el.fadeIn(500);
+              });
+
+              _.each(ui_to_hide, function (ui_el) {
+                ui_el.fadeOut(250);
+              });
+            };
+
+            handle_mode = function _handle_mode() {
               if (wide_mode()) {
-                $('#big-play-button-overlay').show();
-              } else {
-                $('#big-play-button-overlay').show(); // dont show replay until card has played and is paused
-                //$('#mobile-replay-button').show();
-              } // queue up the card coming in to view
+                log('wide mode'); // show stuff on either side of card
 
+                ui_to_show = [$('#desktop-app-links'), $('#desktop-controls'), $('#k9-logo')];
+                ui_to_hide = [$('#mobile-bottom-controls')];
+              } else {
+                log('mobile mode'); // hide stuff on either side of card
+
+                ui_to_show = [$('#mobile-bottom-controls'), $('#k9-logo')];
+                ui_to_hide = [$('#desktop-app-links'), $('#desktop-controls')];
+              }
+            };
+
+            overlay_right_button = function _overlay_right_button() {
+              $('#big-play-button-overlay').hide();
+              $('#big-alt-button-overlay').removeClass('overlay-left');
+              $('#big-alt-button-overlay').addClass('overlay-center');
+            };
+
+            overlay_one_button = function _overlay_one_button() {
+              $('#big-alt-button-overlay').hide();
+              $('#big-play-button-overlay').removeClass('overlay-left');
+              $('#big-play-button-overlay').addClass('overlay-center');
+            };
+
+            overlay_two_buttons = function _overlay_two_buttons() {
+              $('#big-alt-button-overlay').show();
+              $('#big-play-button-overlay').removeClass('overlay-center');
+              $('#big-play-button-overlay').addClass('overlay-left');
+            };
+
+            _create_overlay_buttons = function _create_overlay_butto2() {
+              _create_overlay_buttons = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+                var html_frag;
+                return regeneratorRuntime.wrap(function _callee5$(_context5) {
+                  while (1) {
+                    switch (_context5.prev = _context5.next) {
+                      case 0:
+                        html_frag = "\n            <div id=\"overlay-background\" style=\"display: none;\">\n                <div id=\"big-play-button-overlay\" class=\"overlay-button overlay-left\">\n                    <img id=\"big-play-button\" src=\"/puppet/k9-icons/play-no-border-white.png\">\n                </div>\n                <div id=\"big-alt-button-overlay\" class=\"overlay-button overlay-right\">\n                    <img id=\"big-alt-button\" src=\"/puppet/k9-icons/replay-no-border-white.png\">\n                </div>\n            </div>\n        ";
+                        $('#message').append(html_frag);
+
+                        if (card_has_frame() == false) {
+                          $('#overlay-background').css({
+                            height: 656 // same as message width
+
+                          });
+                        } else {
+                          $('#overlay-background').css({
+                            height: 778
+                          });
+                        }
+
+                        $('#overlay-background').show();
+                        overlay_one_button();
+
+                      case 5:
+                      case "end":
+                        return _context5.stop();
+                    }
+                  }
+                }, _callee5);
+              }));
+              return _create_overlay_buttons.apply(this, arguments);
+            };
+
+            create_overlay_buttons = function _create_overlay_butto() {
+              return _create_overlay_buttons.apply(this, arguments);
+            };
+
+            create_decoration_image = function _create_decoration_im() {
+              $('#message').append("<img id=\"decoration-image\" src=".concat(decoration_image_url, "></img>"));
+              $('#decoration-image').css({
+                width: message_width,
+                top: 0,
+                left: 0,
+                position: 'absolute',
+                zIndex: 2
+              });
+            };
+
+            _check_decoration_image = function _check_decoration_ima2() {
+              _check_decoration_image = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+                return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                  while (1) {
+                    switch (_context4.prev = _context4.next) {
+                      case 0:
+                        return _context4.abrupt("return", new Promise(function (r) {
+                          // load the decoration image to get its natural dimensions
+                          img_for_dimensions.onload = function () {
+                            r(card_has_frame());
+                          };
+
+                          img_for_dimensions.onerror = _.noop;
+
+                          if (card.decoration_image_bucket_fp) {
+                            decoration_image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.decoration_image_bucket_fp);
+                          } else {
+                            // transparent 1x1 png
+                            decoration_image_url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+                          } // this will trigger the loading
+
+
+                          img_for_dimensions.src = decoration_image_url;
+                        }));
+
+                      case 1:
+                      case "end":
+                        return _context4.stop();
+                    }
+                  }
+                }, _callee4);
+              }));
+              return _check_decoration_image.apply(this, arguments);
+            };
+
+            check_decoration_image = function _check_decoration_ima() {
+              return _check_decoration_image.apply(this, arguments);
+            };
+
+            card_has_frame = function _card_has_frame() {
+              if (img_for_dimensions.width == 0) {
+                return undefined;
+              }
+
+              return img_for_dimensions.width === 656;
+            };
+
+            present_envelope = function _present_envelope() {
+              // slide envelope into frame
+              envelope_middle(); // start the envelope jiggling
+
+              jiggle_interval = setInterval(envelope_jiggle, 2000);
+              $('.envelope-piece').click(function () {
+                cancel_jiggle(open_flap);
+              });
+            };
+
+            _zoom_message = function _zoom_message3() {
+              _zoom_message = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                  while (1) {
+                    switch (_context3.prev = _context3.next) {
+                      case 0:
+                        return _context3.abrupt("return", new Promise( /*#__PURE__*/function () {
+                          var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(r) {
+                            var has_frame;
+                            return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                              while (1) {
+                                switch (_context2.prev = _context2.next) {
+                                  case 0:
+                                    _context2.next = 2;
+                                    return check_decoration_image();
+
+                                  case 2:
+                                    has_frame = _context2.sent;
+                                    log(has_frame);
+                                    $('#message').css({
+                                      transition: 'height 1s ease-in-out, width 1s ease-in-out',
+                                      width: message_width,
+                                      height: has_frame ? message_height : message_width
+                                    });
+                                    setTimeout(r, 1000);
+
+                                  case 6:
+                                  case "end":
+                                    return _context2.stop();
+                                }
+                              }
+                            }, _callee2);
+                          }));
+
+                          return function (_x15) {
+                            return _ref2.apply(this, arguments);
+                          };
+                        }()));
+
+                      case 1:
+                      case "end":
+                        return _context3.stop();
+                    }
+                  }
+                }, _callee3);
+              }));
+              return _zoom_message.apply(this, arguments);
+            };
+
+            zoom_message = function _zoom_message2() {
+              return _zoom_message.apply(this, arguments);
+            };
+
+            open_flap = function _open_flap() {
+              // trigger the flap opening animation
+              $('#flap').addClass('opened');
+              $('#message').show();
+              setTimeout(function () {
+                // halfway through opening the flap,
+                // remove text show it doesnt show through underside
+                $('#flap').text(''); // prepare have flap go under message when sliding down
+
+                $('#flap').css({
+                  zIndex: 1
+                });
+              }, flap_open_ms / 2); // move the envelope away after the flap opens
+
+              setTimeout(envelope_below, flap_open_ms); // the loading sequence after the envelope has been opened
+
+              setTimeout( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                  while (1) {
+                    switch (_context.prev = _context.next) {
+                      case 0:
+                        _context.next = 2;
+                        return zoom_message();
+
+                      case 2:
+                        // wait till the message is full size before adding decoration image
+                        create_decoration_image();
+                        _context.next = 5;
+                        return prepare_puppet();
+
+                      case 5:
+                        _context.next = 7;
+                        return create_overlay_buttons();
+
+                      case 7:
+                        handle_mode();
+                        prepare_audio(); // fade out loading spinner
+
+                        $('.loading-spinner').fadeOut(250);
+                        setTimeout(function () {
+                          $('#message-cover').fadeOut(250);
+                          setTimeout(function () {
+                            // TODO this should be in a layout fn
+                            //$('#mobile-bottom-controls').fadeIn(500);
+                            //$('#k9-logo').fadeIn(500);
+                            $('body').css({
+                              'overflow-y': 'scroll'
+                            });
+                            ready_to_display = true;
+                            display_ui();
+                          }, 500);
+                        }, 250);
+
+                      case 11:
+                      case "end":
+                        return _context.stop();
+                    }
+                  }
+                }, _callee);
+              })), flap_open_ms + envelope_move_ms);
+            };
+
+            wide_mode = function _wide_mode() {
+              return document.body.offsetWidth > document.body.offsetHeight;
+            };
+
+            cancel_jiggle = function _cancel_jiggle(cb) {
+              if (is_jiggling) {
+                setTimeout(function () {
+                  console.log('waiting');
+                  cancel_jiggle(cb);
+                }, 10);
+              } else {
+                clearInterval(jiggle_interval);
+                cb();
+              }
+            };
+
+            envelope_jiggle = function _envelope_jiggle() {
+              is_jiggling = true;
+              envelope_tilt_left();
+              setTimeout(envelope_no_tilt, 75);
+              setTimeout(envelope_tilt_right, 150);
+              setTimeout(envelope_no_tilt, 225);
+              setTimeout(function () {
+                is_jiggling = false;
+              }, 350);
+            };
+
+            envelope_no_tilt = function _envelope_no_tilt() {
+              $('.envelope-piece').removeClass('rotate-right');
+              $('.envelope-piece').removeClass('rotate-left');
+            };
+
+            envelope_tilt_left = function _envelope_tilt_left() {
+              $('.envelope-piece').removeClass('rotate-right');
+              $('.envelope-piece').addClass('rotate-left');
+            };
+
+            envelope_tilt_right = function _envelope_tilt_right() {
+              $('.envelope-piece').removeClass('rotate-left');
+              $('.envelope-piece').addClass('rotate-right');
+            };
+
+            envelope_below = function _envelope_below() {
+              $('.envelope-piece').removeClass('middle');
+              $('.envelope-piece').removeClass('top');
+              $('.envelope-piece').addClass('top-ease-in');
+              $('.envelope-piece').addClass('below'); // remove the elements entirely after sliding them out of view
 
               setTimeout(function () {
-                // card drops in from above, waiting to be opened
-                $('#content').fadeIn({
-                  queue: false,
-                  duration: 300
-                });
-                $('#content').css({
-                  top: '0px'
-                }); // more performant to have this css transitioned
+                $('.envelope-piece').remove();
               }, 1000);
             };
 
-            get_url_param = function _get_url_param(name) {
-              var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-
-              if (results == null) {
-                return null;
-              }
-
-              return decodeURI(results[1]) || 0;
+            envelope_middle = function _envelope_middle() {
+              $('.envelope-piece').removeClass('top');
+              $('.envelope-piece').removeClass('below');
+              $('.envelope-piece').addClass('middle');
             };
 
-            top_of_card = function _top_of_card() {
-              if (card_has_frame) {
-                var height_for_top = 1 / frame_aspect_ratio * card_square_side();
-                return $('#content-holder').position().top - height_for_top * page_scale() * card_maximize_scale / 2;
-              } else {
-                var height_for_top = card_width();
-                return $('#content-holder').position().top - height_for_top * page_scale() * card_maximize_scale / 2;
-              }
+            envelope_top = function _envelope_top() {
+              $('.envelope-piece').removeClass('middle');
+              $('.envelope-piece').removeClass('below');
+              $('.envelope-piece').addClass('above');
             };
 
-            set_card_dimensions = function _set_card_dimensions() {
-              card_container.css({
-                width: card_width(),
-                height: card_height(),
-                top: 0,
-                left: 0
-              });
-              big_button_container.css({
-                width: card_square_side(),
-                height: card_square_side(),
-                top: 0,
-                left: 0
-              });
-              puppet_container.css({
-                width: card_square_side(),
-                height: card_square_side(),
-                top: 0,
-                left: 0
-              });
-              $('#puppet-container > canvas ').css({
-                width: card_square_side(),
-                height: card_square_side()
-              });
-
-              if (card_has_frame) {
-                decoration_image.css({
-                  width: card_square_side(),
-                  height: 1 / frame_aspect_ratio * card_square_side(),
-                  top: 0,
-                  left: 0
-                });
-                $('#puppet-container > canvas').css({
-                  width: 344,
-                  height: 344,
-                  top: 48,
-                  position: 'relative'
-                });
-              } else {
-                decoration_image.css({
-                  width: 512,
-                  height: 512,
-                  top: 0,
-                  left: 0
-                });
-              }
+            switch_class = function _switch_class(el, old_class, new_class) {
+              el.addClass(new_class);
+              el.removeClass(old_class);
             };
 
-            card_square_side = function _card_square_side() {
-              return card_has_frame ? 512 - 72 : 512;
-            };
+            // add the recipient name to the card flap
+            recipient_name = get_url_param('recipient_name') || 'You';
+            $('#flap').text("To: ".concat(recipient_name));
+            present_envelope();
+            is_jiggling = false;
+            // these come from the css transitions
+            flap_open_ms = 750;
+            envelope_move_ms = 1000;
+            message_zoom_ms = 1500;
+            ready_to_display = false; // so resize events dont prematurely display ui
 
-            card_height = function _card_height() {
-              return 512 * (1 / frame_aspect_ratio);
-            };
-
-            card_width = function _card_width() {
-              return card_has_frame ? 512 - 72 : 512;
-            };
-
-            random_gesture = function _random_gesture() {
-              var blinks = [[left_blink_quick, right_blink_quick], [left_blink_slow, right_blink_slow]];
-
-              function random_blink() {
-                var fns = Math.random() > 0.5 ? blinks[0] : blinks[1];
-
-                if (!document.hidden) {
-                  _.each(fns, function (f) {
-                    f();
-                  });
-                }
-
-                setTimeout(random_blink, Math.random() * 6000);
-              }
-
-              random_blink();
-              var brows = [[left_brow_furrow, right_brow_furrow], [left_brow_raise, right_brow_raise]];
-
-              function random_brow() {
-                var fns = Math.random() > 0.5 ? brows[0] : brows[1];
-                var amplitude = 0.25 + Math.random() / 4;
-                var speed = Math.max(Math.floor(Math.random() * 25), 10);
-                var duration = 250 + Math.random() * 500;
-
-                if (!document.hidden) {
-                  _.each(fns, function (f) {
-                    f(amplitude, speed, duration);
-                  });
-                }
-
-                setTimeout(random_brow, duration + Math.random() * 6000);
-              }
-
-              random_brow();
-            };
-
-            vh = function _vh() {
-              return window.innerHeight / 100;
-            };
-
-            // iOS webview sizing shim
-            // TODO figure out why webviews dimensions come out undersized on ios
-            iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            log("navigator.userAgent: ".concat(navigator.userAgent));
-            log("iOS = ".concat(iOS));
-
-            if (iOS) {
-              window_width = document.body.offsetWidth + 20;
-              window_height = document.body.offsetHeight + 20;
-            } else {
-              window_width = document.body.offsetWidth;
-              window_height = document.body.offsetHeight;
-            }
-
-            log("WIDTH INFO:\n    window.innerWidth: ".concat(window.innerWidth, "\n    document.body.offsetWidth: ").concat(document.body.offsetWidth, "\n    document.body.clientWidth: ").concat(document.body.clientWidth, "\n    USING:\n    window_width: ").concat(window_width, "\n    window_height: ").concat(window_height, "\n    ")); // this just holds the three.js render element
-
-            container = document.getElementById('puppet-container'); // client is using cropped images that are always square
-            // so expect a square viewport as well
-
-            viewport_aspect = 1;
-            zoom_factor = Math.min(window_width, window_height) / render_pixels;
-            image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.image_bucket_fp);
-            decoration_image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.decoration_image_bucket_fp);
-            fts = card.image_coordinates_json;
-            features = {
-              leftEyePosition: fts.leftEye,
-              rightEyePosition: fts.rightEye,
-              mouthPosition: fts.mouth,
-              mouthLeft: fts.mouthLeft,
-              mouthRight: fts.mouthRight,
-              headTop: fts.headTop,
-              headBottom: fts.headBottom,
-              headLeft: fts.headLeft,
-              headRight: fts.headRight
-            };
-
-            _.each(features, function (v, k) {
-              features[k] = new THREE.Vector2(v[0], v[1]);
-            }); // so theres room for some playback ui
-
-
-            zoom_factor = zoom_factor * 0.8; // this gets called at the end of the init
-            //post_init = async () => {
-            //    await create_puppet(image_url);
-            //    $('#container').css('transform', 'translateY(0px)');
-            //    $('.playback-image').css('top', $('#container > canvas').width() * zoom_factor * 0.5);
-            //    init_audio();
-            //    $('#volume-slider').css('width', $('#container > canvas').width() * zoom_factor * 0.5);
-            //    //$('#volume').css('left', ($('#container > canvas').width() * zoom_factor * 0.25) - 50);
-            //    setTimeout(() => {
-            //        $('#volume').css('opacity', 1);
-            //        $('#volume').css('transform', 'translateY(0px)');
-            //        $('#controls').css('opacity', 1);
-            //        $('#controls').css('transform', 'translateY(0px)');
-            //    }, 1000);
-            //};
-            //}
-
-            _context.next = 28;
-            return load_shader_files();
-
-          case 28:
-            _context.next = 30;
-            return load_texture('noise_2D.png');
-
-          case 30:
-            animation_noise_texture = _context.sent;
-            scene = new THREE.Scene();
-            renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
-
-            scene.background = new THREE.Color(0x2E2E46);
-            camera = new THREE.OrthographicCamera(-0.5 * viewport_aspect, 0.5 * viewport_aspect, 0.5, -0.5, 0.001, 1000);
-            camera.position.z = 1;
-            pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
-
-            background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
-            background_mesh.scale.x = 1; // this will get set when we know what the pet image is
-
-            background_mesh.renderOrder = 0;
-            face_mesh_material = new THREE.ShaderMaterial({
-              uniforms: face_animation_shader.uniforms,
-              vertexShader: face_animation_shader.vertexShader,
-              fragmentShader: face_animation_shader.fragmentShader,
-              depthFunc: debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
-              side: THREE.DoubleSide,
-              wireframe: debug_face_mesh
-            });
-            face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
-            face_mesh.renderOrder = 1;
-            _context.next = 45;
-            return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
-
-          case 45:
-            mouth_gltf = _context.sent;
-            mouth_mesh = mouth_gltf.scene.children[0].children[0];
-            mouth_mesh.material = new THREE.ShaderMaterial({
-              uniforms: mouth_shader.uniforms,
-              vertexShader: mouth_shader.vertexShader,
-              fragmentShader: mouth_shader.fragmentShader,
-              depthFunc: THREE.AlwaysDepth,
-              side: THREE.DoubleSide,
-              blending: THREE.CustomBlending,
-              blendEquation: THREE.AddEquation,
-              blendSrc: THREE.SrcAlphaFactor,
-              blendDst: THREE.OneMinusSrcAlphaFactor,
-              vertexColors: true
-            });
-            mouth_mesh.renderOrder = 2;
-            scene.add(background_mesh);
-            scene.add(face_mesh);
-            scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
-
-            renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-            container.appendChild(renderer.domElement);
-            renderer.setSize(render_pixels, render_pixels); //$(renderer.domElement).css('zoom', zoom_factor);
-            // set the pet image on the mesh and on the shader
-
-            _context.next = 57;
-            return load_texture(image_url);
-
-          case 57:
-            pet_image_texture = _context.sent;
-            pet_material.map = pet_image_texture;
-            face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
-
-            background_mesh.needsUpdate = true;
-            pet_material.needsUpdate = true;
-            face_mesh.needsUpdate = true;
-            face_mesh_material.needsUpdate = true; // TODO weird place for default mouth color
-
-            console.log(card.mouth_color);
-
-            if (card.mouth_color) {
-              mouth_color.apply(void 0, _toConsumableArray(card.mouth_color));
-            } else {
-              mouth_color(0.5686274509, 0.39607843137, 0.43137254902);
-            } // use features to determine locations of stuff
-
-
-            sync_objects_to_features();
-            update_shaders();
-            direct_render();
-            animate();
-            head_sway(head_sway_amplitude, head_sway_speed);
-            random_gesture();
-            console.log('card init'); // jquery handles on dom elements
-
-            content = $('#content');
-            global_scale_el = $('#content-holder'); //var global_scale_el = $('body');
-
-            card_container = $('#card-container');
-            back_pieces = $('.envelope-back-piece');
-            flap = $('#envelope-flap');
-            flap_underside = $('#envelope-flap-underside');
-            desktop_logo = $('#k9-logo-desktop');
-            desktop_controls = $('#desktop-controls');
-            desktop_app_links = $('#desktop-app-links');
-            mobile_logo = $('#k9-logo');
-            decoration_image = $('#decoration-image');
-            mobile_bottom_controls = $('#mobile-bottom-controls');
-            big_button_container = $('#big-button-container');
-            puppet_container = $('#puppet-container');
-            card_opened = false;
-            frame_aspect_ratio = 656 / 778; // decoration images can include a 72 pixel a side frame
-            // load the decoration image here to see if its framed or not
-
+            message_width = 656;
+            message_height = 778;
+            ;
+            // wider in scope because other things need to know if the card has a frame
             img_for_dimensions = new Image();
-            img_for_dimensions.onload = prep_card_for_display; // this will trigger the rest of the init sequence
+            ui_to_show = [];
+            ui_to_hide = [];
+            $(window).on('resize', _.debounce(function () {
+              handle_mode();
 
-            img_for_dimensions.src = decoration_image_url;
-            ; // layout in the js for maxiumum job security
+              if (ready_to_display) {
+                display_ui();
+              }
+            }, 125)); // greeting card prep
 
-            card_maximize_scale = 0.8;
-
-          case 94:
+          case 43:
           case "end":
-            return _context.stop();
+            return _context8.stop();
         }
       }
-    }, _callee);
+    }, _callee8);
   }));
-  return _card_init.apply(this, arguments);
+  return _prepare_card.apply(this, arguments);
 }
 
 function init() {
   return _init.apply(this, arguments);
-} // greeting card prep
+} // prepare scene for debugging
+// this should be used in puppet-debug.html
 
 
 function _init() {
-  _init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+  _init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
     var viewport_aspect;
-    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+    return regeneratorRuntime.wrap(function _callee9$(_context9) {
       while (1) {
-        switch (_context2.prev = _context2.next) {
+        switch (_context9.prev = _context9.next) {
           case 0:
             start_time = performance.now();
             log('puppet.js initializing');
@@ -905,15 +1111,15 @@ function _init() {
             // shader code
 
 
-            _context2.next = 17;
+            _context9.next = 17;
             return load_shader_files();
 
           case 17:
-            _context2.next = 19;
+            _context9.next = 19;
             return load_texture('noise_2D.png');
 
           case 19:
-            animation_noise_texture = _context2.sent;
+            animation_noise_texture = _context9.sent;
             //
             // create the threejs geometry and materials for the scene
             //
@@ -951,11 +1157,11 @@ function _init() {
             face_mesh.renderOrder = 1; // mouth sprite - this is a group in threejs lingo,
             // the actual mouth mesh lives in mouth_mesh, a child of the group
 
-            _context2.next = 31;
+            _context9.next = 31;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
           case 31:
-            mouth_gltf = _context2.sent;
+            mouth_gltf = _context9.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
               uniforms: mouth_shader.uniforms,
@@ -1010,197 +1216,160 @@ function _init() {
 
           case 46:
           case "end":
-            return _context2.stop();
+            return _context9.stop();
         }
       }
-    }, _callee2);
+    }, _callee9);
   }));
   return _init.apply(this, arguments);
 }
 
-function init_audio() {
-  return _init_audio.apply(this, arguments);
+function init_debug() {
+  return _init_debug.apply(this, arguments);
 } // create a puppet from an image url
 // the app will pass a base64 string encoding to this
 // TODO make the transition smooth looking
 
 
-function _init_audio() {
-  _init_audio = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-    var audio_url, audio_el, buffer_interval, playing, playback_btn, big_btn_container, big_btn, mobile_replay, replay_btn, decoration_img, desktop_volume_slider, mobile_volume_slider, desktop_replay, desktop_play, play_img, pause_img, replay_img, control_play_img, blue_play_img, control_pause_img, control_replay_img, control_volume_on_img, control_volume_off_img, mobile_play_img, mobile_pause_img, mobile_replay_img, mobile_volume_on_img, mobile_volume_off_img, last_slider_val, card_play, card_pause, handle_click, handle_replay, play_audio, pause_audio, handle_audio_end;
-    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+function _init_debug() {
+  _init_debug = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
+    var viewport_aspect;
+    return regeneratorRuntime.wrap(function _callee10$(_context10) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context10.prev = _context10.next) {
           case 0:
-            handle_audio_end = function _handle_audio_end() {
-              clearInterval(buffer_interval);
-              big_btn.attr('src', replay_img);
-              big_btn_container.fadeIn(500); // dont want two replay buttons
-              //if (!wide_mode()) {
-              //    mobile_replay.fadeIn(500);
-              //}
+            start_time = performance.now();
+            log('puppet.js DEBUG initializing');
+            stats = new Stats();
+            window.fade_spinner = _.noop; // just to simplify
+            // for turning images into b64
+            // this is just to help test in a browser
 
-              audio_el.currentTime = 0;
-              playing = false;
-            };
+            image_canvas = document.getElementById('image-canvas');
+            image_ctx = image_canvas.getContext('2d'); // this just holds the three.js render element
 
-            pause_audio = function _pause_audio() {
-              clearInterval(buffer_interval);
-              audio_el.pause();
-              feature_tickers.mouth.cancel();
-              feature_tickers.mouth.add([0]);
-              playing = false;
-            };
+            container = document.getElementById('container'); // client is using cropped images that are always square
+            // so expect a square viewport as well
 
-            play_audio = function _play_audio() {
-              // play the audio and animate
-              clearInterval(buffer_interval);
-              audio_el.play();
-              buffer_interval = setInterval(function () {
-                // add the upcoming 250 ms of mouth animations based on current playback
-                var start_idx = Math.floor(audio_el.currentTime * 60);
-                feature_tickers.mouth.cancel(); // add a little extra the interval gets delayed
+            viewport_aspect = 1; // see fps and memory for debugging
 
-                feature_tickers.mouth.add(card.animation_json.mouth_positions.slice(start_idx, start_idx + 60));
-              }, 250);
-              playing = true;
-            };
+            if (show_fps) {
+              stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 
-            handle_replay = function _handle_replay() {
-              clearInterval(buffer_interval);
-              audio_el.currentTime = 0;
-              $('img', playback_btn).attr('src', control_pause_img);
-              $('img', desktop_play).attr('src', control_pause_img);
-              play_audio();
-              big_btn_container.fadeOut(250);
+              document.body.appendChild(stats.dom);
+              stats.dom.style.left = '120px';
+            } // shader code lives in its on .hlsl files so they can be more easily
+            // syntax highlighted
+            // this loads the hlsl files, then populates the shader configs with the
+            // shader code
 
-              if (!wide_mode()) {
-                mobile_replay.fadeOut(250);
-              }
-            };
 
-            handle_click = function _handle_click() {
-              big_btn.attr('src', play_img);
+            _context10.next = 11;
+            return load_shader_files();
 
-              if (playing) {
-                card_pause();
-              } else {
-                card_play();
-              }
-            };
+          case 11:
+            _context10.next = 13;
+            return load_texture('noise_2D.png');
 
-            card_pause = function _card_pause() {
-              $('img', playback_btn).attr('src', play_img);
-              $('#desktop-play > img').attr('src', control_play_img);
-              pause_audio();
-              big_btn_container.fadeIn(250);
+          case 13:
+            animation_noise_texture = _context10.sent;
+            //
+            // create the threejs geometry and materials for the scene
+            //
+            scene = new THREE.Scene();
+            renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
 
-              if (!wide_mode()) {
-                mobile_replay.fadeIn(250);
-              }
-            };
+            scene.background = new THREE.Color(0x2E2E46); // Camera left and right frustrum to make sure the camera size is the same as viewport size
 
-            card_play = function _card_play() {
-              $('img', playback_btn).attr('src', pause_img);
-              $('#desktop-play > img').attr('src', control_pause_img);
-              play_audio();
-              big_btn_container.fadeOut(250);
-              mobile_replay.fadeOut(250);
-            };
+            camera = new THREE.OrthographicCamera(-0.5 * viewport_aspect, 0.5 * viewport_aspect, 0.5, -0.5, 0.001, 1000);
+            camera.position.z = 1; // Create the background plane
+            // This is just the static pet image on the plane
+            // Draw this if we aren't debugging the face mesh
 
-            playing = false;
-            playback_btn = $('#play-control');
-            big_btn_container = $('#big-play-button-overlay');
-            big_btn = $('#big-play-button');
-            mobile_replay = $('#mobile-replay-button');
-            replay_btn = $('#replay-control');
-            decoration_img = $('#decoration-image');
-            desktop_volume_slider = $('#desktop-volume-slider');
-            mobile_volume_slider = $('#mobile-volume-slider');
-            desktop_replay = $('#desktop-replay');
-            desktop_play = $('#desktop-play'); // TODO: update these
+            if (!debug_face_mesh) {
+              pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
 
-            play_img = '/puppet/k9-icons/play-no-border-white.png';
-            pause_img = '/puppet/k9-icons/pause-no-border-white.png';
-            replay_img = '/puppet/k9-icons/replay-no-border-white.png';
-            control_play_img = '/puppet/k9-icons/play-no-border-white.png';
-            blue_play_img = '/puppet/k9-icons/play-blue.png';
-            control_pause_img = '/puppet/k9-icons/pause-no-border-white.png';
-            control_replay_img = '/puppet/k9-icons/replay-no-border-white.png';
-            control_volume_on_img = '/puppet/k9-icons/volume-on-no-border-white.png';
-            control_volume_off_img = '/puppet/k9-icons/volume-off-no-border-white.png';
-            mobile_play_img = '/puppet/k9-icons/play-blue.png';
-            mobile_pause_img = '/puppet/k9-icons/pause-blue.png';
-            mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
-            mobile_volume_on_img = '/puppet/k9-icons/volume-on-no-border-blue.png';
-            mobile_volume_off_img = '/puppet/k9-icons/volume-off-no-border-blue.png';
-            audio_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
+              background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
+              background_mesh.scale.x = 1; // this will get set when we know what the pet image is
 
-            $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
-            audio_el = document.querySelector('audio');
-            audio_el.addEventListener('ended', handle_audio_end, {
-              once: true
-            }); // TODO consolidate volume slider logic
+              background_mesh.renderOrder = 0;
+            } // create the face mesh
 
-            $('#mobile-volume-slider').on('input', function () {
-              audio_el.volume = $('#mobile-volume-slider').val() / 100;
 
-              if (audio_el.volume > 0) {
-                $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
-              } else {
-                $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
-              }
+            face_mesh_material = new THREE.ShaderMaterial({
+              uniforms: face_animation_shader.uniforms,
+              vertexShader: face_animation_shader.vertexShader,
+              fragmentShader: face_animation_shader.fragmentShader,
+              depthFunc: debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
+              side: THREE.DoubleSide,
+              wireframe: debug_face_mesh
+            }); // Adds the material to the geometry
+
+            face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material); // This object renders on top of the background
+
+            face_mesh.renderOrder = 1; // mouth sprite - this is a group in threejs lingo,
+            // the actual mouth mesh lives in mouth_mesh, a child of the group
+
+            _context10.next = 25;
+            return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
+
+          case 25:
+            mouth_gltf = _context10.sent;
+            mouth_mesh = mouth_gltf.scene.children[0].children[0];
+            mouth_mesh.material = new THREE.ShaderMaterial({
+              uniforms: mouth_shader.uniforms,
+              vertexShader: mouth_shader.vertexShader,
+              fragmentShader: mouth_shader.fragmentShader,
+              depthFunc: THREE.AlwaysDepth,
+              side: THREE.DoubleSide,
+              blending: THREE.CustomBlending,
+              blendEquation: THREE.AddEquation,
+              blendSrc: THREE.SrcAlphaFactor,
+              blendDst: THREE.OneMinusSrcAlphaFactor,
+              vertexColors: true
             });
-            $('#desktop-volume-slider').on('input', function () {
-              audio_el.volume = $('#desktop-volume-slider').val() / 100;
+            mouth_mesh.renderOrder = 2; // add the meshes and stuff to the scene
 
-              if (audio_el.volume > 0) {
-                $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
-              } else {
-                $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
-              }
-            });
-            last_slider_val = 75;
-            $('#desktop-volume-icon').on('click', function () {
-              if (desktop_volume_slider.val() > 0) {
-                last_slider_val = desktop_volume_slider.val();
-                desktop_volume_slider.val(0);
-                $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
-              } else {
-                desktop_volume_slider.val(last_slider_val);
-                $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
-              }
+            scene.add(background_mesh);
+            scene.add(face_mesh);
+            scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
+            // prepare for rendering
 
-              audio_el.volume = $('#desktop-volume-slider').val() / 100;
-            });
-            $('#mobile-volume-icon').on('click', function () {
-              if (mobile_volume_slider.val() > 0) {
-                last_slider_val = mobile_volume_slider.val();
-                mobile_volume_slider.val(0);
-                $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
-              } else {
-                mobile_volume_slider.val(last_slider_val);
-                $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
-              }
+            renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+            container.appendChild(renderer.domElement);
+            renderer.setSize(2 * render_pixels, 2 * render_pixels);
 
-              audio_el.volume = $('#mobile-volume-slider').val() / 100;
-            });
-            playback_btn.click(handle_click);
-            big_btn_container.click(handle_click);
-            decoration_img.click(handle_click);
-            desktop_play.click(handle_click);
-            replay_btn.click(handle_replay);
-            desktop_replay.click(handle_replay);
-            mobile_replay.click(handle_replay);
+            if (enable_controls) {
+              controls = new THREE.OrbitControls(camera, renderer.domElement);
+            }
 
-          case 48:
+            if (log_mouse_position) {
+              window.addEventListener('click', function (e) {
+                var normalized_x = e.clientX / window.innerWidth;
+                var normalized_y = e.clientY / window.innerHeight;
+                var worldPos = screen_to_world_position(new THREE.Vector2(normalized_x, normalized_y));
+                console.log("worldPos: ".concat(worldPos.x, ", ").concat(worldPos.y));
+              });
+            } // dont render anything yet, that should happen when the app
+            // actually specifies an image
+            // tell client the webview is ready to create a puppet
+
+
+            log('finished DEBUG init');
+
+            if (get_url_param('dog')) {
+              log('found test dog in url, loading...');
+              test(get_url_param('dog'));
+            }
+
+          case 39:
           case "end":
-            return _context3.stop();
+            return _context10.stop();
         }
       }
-    }, _callee3);
+    }, _callee10);
   }));
-  return _init_audio.apply(this, arguments);
+  return _init_debug.apply(this, arguments);
 }
 
 function create_puppet(_x) {
@@ -1211,41 +1380,41 @@ function create_puppet(_x) {
 
 
 function _create_puppet() {
-  _create_puppet = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(img_url) {
-    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+  _create_puppet = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(img_url) {
+    return regeneratorRuntime.wrap(function _callee11$(_context11) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context11.prev = _context11.next) {
           case 0:
             start_time = performance.now();
-            _context4.next = 3;
+            _context11.next = 3;
             return fade_spinner(200, 0);
 
           case 3:
             stop_all_animations();
-            _context4.next = 6;
+            _context11.next = 6;
             return fade_container(500, 0);
 
           case 6:
             cancelAnimationFrame(animation_frame);
 
             if (!(img_url === undefined)) {
-              _context4.next = 13;
+              _context11.next = 13;
               break;
             }
 
-            _context4.next = 10;
+            _context11.next = 10;
             return to_b64('dog3.jpg');
 
           case 10:
-            _context4.t0 = _context4.sent;
-            _context4.next = 14;
+            _context11.t0 = _context11.sent;
+            _context11.next = 14;
             break;
 
           case 13:
-            _context4.t0 = img_url;
+            _context11.t0 = img_url;
 
           case 14:
-            img_url = _context4.t0;
+            img_url = _context11.t0;
 
             // need to do this so old three objects can be garbage collected
             if (pet_image_texture) {
@@ -1253,11 +1422,11 @@ function _create_puppet() {
             } // set the pet image on the mesh and on the shader
 
 
-            _context4.next = 18;
+            _context11.next = 18;
             return load_texture(img_url);
 
           case 18:
-            pet_image_texture = _context4.sent;
+            pet_image_texture = _context11.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
 
@@ -1274,7 +1443,7 @@ function _create_puppet() {
             animate();
             head_sway(head_sway_amplitude, head_sway_speed);
             fade_spinner(500, 0);
-            _context4.next = 34;
+            _context11.next = 34;
             return $(container).fadeTo(500, 1);
 
           case 34:
@@ -1282,10 +1451,10 @@ function _create_puppet() {
 
           case 35:
           case "end":
-            return _context4.stop();
+            return _context11.stop();
         }
       }
-    }, _callee4);
+    }, _callee11);
   }));
   return _create_puppet.apply(this, arguments);
 }
@@ -1876,32 +2045,32 @@ function load_mouth_mesh(_x2, _x3) {
 }
 
 function _load_mouth_mesh() {
-  _load_mouth_mesh = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(scene, model_path) {
-    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+  _load_mouth_mesh = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(scene, model_path) {
+    return regeneratorRuntime.wrap(function _callee12$(_context12) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context12.prev = _context12.next) {
           case 0:
             if (!mouth_gltf) {
-              _context5.next = 4;
+              _context12.next = 4;
               break;
             }
 
-            return _context5.abrupt("return", mouth_gltf);
+            return _context12.abrupt("return", mouth_gltf);
 
           case 4:
-            _context5.next = 6;
+            _context12.next = 6;
             return load_gltf(to_static(model_path));
 
           case 6:
-            mouth_gltf = _context5.sent;
-            return _context5.abrupt("return", mouth_gltf);
+            mouth_gltf = _context12.sent;
+            return _context12.abrupt("return", mouth_gltf);
 
           case 8:
           case "end":
-            return _context5.stop();
+            return _context12.stop();
         }
       }
-    }, _callee5);
+    }, _callee12);
   }));
   return _load_mouth_mesh.apply(this, arguments);
 }
@@ -1911,21 +2080,21 @@ function load_texture(_x4) {
 }
 
 function _load_texture() {
-  _load_texture = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(img_src) {
-    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+  _load_texture = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(img_src) {
+    return regeneratorRuntime.wrap(function _callee13$(_context13) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context13.prev = _context13.next) {
           case 0:
-            return _context6.abrupt("return", new Promise(function (resolve) {
+            return _context13.abrupt("return", new Promise(function (resolve) {
               new THREE.TextureLoader().load(img_src, resolve);
             }));
 
           case 1:
           case "end":
-            return _context6.stop();
+            return _context13.stop();
         }
       }
-    }, _callee6);
+    }, _callee13);
   }));
   return _load_texture.apply(this, arguments);
 }
@@ -1935,12 +2104,12 @@ function load_image(_x5) {
 }
 
 function _load_image() {
-  _load_image = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(img_src) {
-    return regeneratorRuntime.wrap(function _callee7$(_context7) {
+  _load_image = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(img_src) {
+    return regeneratorRuntime.wrap(function _callee14$(_context14) {
       while (1) {
-        switch (_context7.prev = _context7.next) {
+        switch (_context14.prev = _context14.next) {
           case 0:
-            return _context7.abrupt("return", new Promise(function (resolve) {
+            return _context14.abrupt("return", new Promise(function (resolve) {
               var i = new Image();
 
               i.onload = function () {
@@ -1952,10 +2121,10 @@ function _load_image() {
 
           case 1:
           case "end":
-            return _context7.stop();
+            return _context14.stop();
         }
       }
-    }, _callee7);
+    }, _callee14);
   }));
   return _load_image.apply(this, arguments);
 }
@@ -1967,12 +2136,12 @@ function load_gltf(_x6) {
 }
 
 function _load_gltf() {
-  _load_gltf = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(model_path) {
-    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+  _load_gltf = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(model_path) {
+    return regeneratorRuntime.wrap(function _callee15$(_context15) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context15.prev = _context15.next) {
           case 0:
-            return _context8.abrupt("return", new Promise(function (resolve) {
+            return _context15.abrupt("return", new Promise(function (resolve) {
               if (_.get(gltf_memo, model_path, false)) {
                 log("using cached gltf file: ".concat(to_static(model_path)));
                 resolve(gltf_memo[model_path]);
@@ -1994,10 +2163,10 @@ function _load_gltf() {
 
           case 1:
           case "end":
-            return _context8.stop();
+            return _context15.stop();
         }
       }
-    }, _callee8);
+    }, _callee15);
   }));
   return _load_gltf.apply(this, arguments);
 }
@@ -2007,30 +2176,30 @@ function load_hlsl_text(_x7) {
 }
 
 function _load_hlsl_text() {
-  _load_hlsl_text = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(url) {
+  _load_hlsl_text = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(url) {
     var response, text;
-    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+    return regeneratorRuntime.wrap(function _callee16$(_context16) {
       while (1) {
-        switch (_context9.prev = _context9.next) {
+        switch (_context16.prev = _context16.next) {
           case 0:
-            _context9.next = 2;
+            _context16.next = 2;
             return fetch(to_static(url));
 
           case 2:
-            response = _context9.sent;
-            _context9.next = 5;
+            response = _context16.sent;
+            _context16.next = 5;
             return response.text();
 
           case 5:
-            text = _context9.sent;
-            return _context9.abrupt("return", text);
+            text = _context16.sent;
+            return _context16.abrupt("return", text);
 
           case 7:
           case "end":
-            return _context9.stop();
+            return _context16.stop();
         }
       }
-    }, _callee9);
+    }, _callee16);
   }));
   return _load_hlsl_text.apply(this, arguments);
 }
@@ -2040,67 +2209,67 @@ function load_shader_files() {
 }
 
 function _load_shader_files() {
-  _load_shader_files = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
-    return regeneratorRuntime.wrap(function _callee10$(_context10) {
+  _load_shader_files = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17() {
+    return regeneratorRuntime.wrap(function _callee17$(_context17) {
       while (1) {
-        switch (_context10.prev = _context10.next) {
+        switch (_context17.prev = _context17.next) {
           case 0:
             if (!(face_animation_shader.fragmentShader == null)) {
-              _context10.next = 4;
+              _context17.next = 4;
               break;
             }
 
-            _context10.next = 3;
+            _context17.next = 3;
             return load_hlsl_text('face_fragment_shader.hlsl');
 
           case 3:
-            face_animation_shader.fragmentShader = _context10.sent;
+            face_animation_shader.fragmentShader = _context17.sent;
 
           case 4:
             if (!(face_animation_shader.vertexShader == null)) {
-              _context10.next = 8;
+              _context17.next = 8;
               break;
             }
 
-            _context10.next = 7;
+            _context17.next = 7;
             return load_hlsl_text('face_vertex_shader.hlsl');
 
           case 7:
-            face_animation_shader.vertexShader = _context10.sent;
+            face_animation_shader.vertexShader = _context17.sent;
 
           case 8:
             if (!(mouth_shader.fragmentShader == null)) {
-              _context10.next = 12;
+              _context17.next = 12;
               break;
             }
 
-            _context10.next = 11;
+            _context17.next = 11;
             return load_hlsl_text('mouth_fragment_shader.hlsl');
 
           case 11:
-            mouth_shader.fragmentShader = _context10.sent;
+            mouth_shader.fragmentShader = _context17.sent;
 
           case 12:
             if (!(mouth_shader.vertexShader == null)) {
-              _context10.next = 16;
+              _context17.next = 16;
               break;
             }
 
-            _context10.next = 15;
+            _context17.next = 15;
             return load_hlsl_text('mouth_vertex_shader.hlsl');
 
           case 15:
-            mouth_shader.vertexShader = _context10.sent;
+            mouth_shader.vertexShader = _context17.sent;
 
           case 16:
             log('finished loaded shader files');
 
           case 17:
           case "end":
-            return _context10.stop();
+            return _context17.stop();
         }
       }
-    }, _callee10);
+    }, _callee17);
   }));
   return _load_shader_files.apply(this, arguments);
 }
@@ -2113,28 +2282,28 @@ function to_b64(_x8) {
 
 
 function _to_b() {
-  _to_b = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(img_src) {
+  _to_b = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee18(img_src) {
     var img;
-    return regeneratorRuntime.wrap(function _callee11$(_context11) {
+    return regeneratorRuntime.wrap(function _callee18$(_context18) {
       while (1) {
-        switch (_context11.prev = _context11.next) {
+        switch (_context18.prev = _context18.next) {
           case 0:
-            _context11.next = 2;
+            _context18.next = 2;
             return load_image(img_src);
 
           case 2:
-            img = _context11.sent;
+            img = _context18.sent;
             image_canvas.width = img.width;
             image_canvas.height = img.height;
             image_ctx.drawImage(img, 0, 0);
-            return _context11.abrupt("return", image_canvas.toDataURL());
+            return _context18.abrupt("return", image_canvas.toDataURL());
 
           case 7:
           case "end":
-            return _context11.stop();
+            return _context18.stop();
         }
       }
-    }, _callee11);
+    }, _callee18);
   }));
   return _to_b.apply(this, arguments);
 }
@@ -2144,21 +2313,21 @@ function fade_spinner(_x9, _x10) {
 }
 
 function _fade_spinner() {
-  _fade_spinner = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(duration, opacity) {
-    return regeneratorRuntime.wrap(function _callee12$(_context12) {
+  _fade_spinner = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee19(duration, opacity) {
+    return regeneratorRuntime.wrap(function _callee19$(_context19) {
       while (1) {
-        switch (_context12.prev = _context12.next) {
+        switch (_context19.prev = _context19.next) {
           case 0:
-            return _context12.abrupt("return", new Promise(function (resolve) {
+            return _context19.abrupt("return", new Promise(function (resolve) {
               $(loading_spinner).fadeTo(duration, opacity, resolve);
             }));
 
           case 1:
           case "end":
-            return _context12.stop();
+            return _context19.stop();
         }
       }
-    }, _callee12);
+    }, _callee19);
   }));
   return _fade_spinner.apply(this, arguments);
 }
@@ -2171,21 +2340,21 @@ function fade_container(_x11, _x12) {
 
 
 function _fade_container() {
-  _fade_container = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(duration, opacity) {
-    return regeneratorRuntime.wrap(function _callee13$(_context13) {
+  _fade_container = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee20(duration, opacity) {
+    return regeneratorRuntime.wrap(function _callee20$(_context20) {
       while (1) {
-        switch (_context13.prev = _context13.next) {
+        switch (_context20.prev = _context20.next) {
           case 0:
-            return _context13.abrupt("return", new Promise(function (resolve) {
+            return _context20.abrupt("return", new Promise(function (resolve) {
               $(container).fadeTo(duration, opacity, resolve);
             }));
 
           case 1:
           case "end":
-            return _context13.stop();
+            return _context20.stop();
         }
       }
-    }, _callee13);
+    }, _callee20);
   }));
   return _fade_container.apply(this, arguments);
 }
@@ -2265,6 +2434,17 @@ var feature_map = {
     headBottom: new THREE.Vector2(-0.03788508097330726, -0.20125976562499998),
     headLeft: new THREE.Vector2(-0.2235636901855469, 0.16604894002278645),
     headRight: new THREE.Vector2(0.3, 0.0)
+  },
+  'problem-dog.jpg': {
+    leftEyePosition: new THREE.Vector2(-0.070556640625, 0.2986653645833333),
+    rightEyePosition: new THREE.Vector2(0.125244140625, 0.2871229383680556),
+    mouthPosition: new THREE.Vector2(0.05029296875, 0.1004367404513889),
+    mouthLeft: new THREE.Vector2(-0.26171875, 0.2590196397569444),
+    mouthRight: new THREE.Vector2(0.09619140625, 0.07835557725694445),
+    headTop: new THREE.Vector2(0.02490234375, 0.4090711805555556),
+    headBottom: new THREE.Vector2(0.056396484375, -0.1188693576388889),
+    headLeft: new THREE.Vector2(-0.37744140625, 0.1501193576388889),
+    headRight: new THREE.Vector2(0.2822265625, 0.1646728515625)
   }
 };
 var anims = [];
@@ -2283,16 +2463,16 @@ function test(_x13) {
 
 
 function _test() {
-  _test = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(img_url) {
-    return regeneratorRuntime.wrap(function _callee14$(_context14) {
+  _test = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee21(img_url) {
+    return regeneratorRuntime.wrap(function _callee21$(_context21) {
       while (1) {
-        switch (_context14.prev = _context14.next) {
+        switch (_context21.prev = _context21.next) {
           case 0:
             // eslint-disable-line no-unused-vars
             _.map(anims, clearInterval);
 
             img_url = img_url === undefined ? 'dog3.jpg' : img_url;
-            _context14.next = 4;
+            _context21.next = 4;
             return create_puppet(img_url);
 
           case 4:
@@ -2313,10 +2493,10 @@ function _test() {
 
           case 15:
           case "end":
-            return _context14.stop();
+            return _context21.stop();
         }
       }
-    }, _callee14);
+    }, _callee21);
   }));
   return _test.apply(this, arguments);
 }
@@ -2326,16 +2506,16 @@ function find_features(_x14) {
 }
 
 function _find_features() {
-  _find_features = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(img_url) {
-    return regeneratorRuntime.wrap(function _callee15$(_context15) {
+  _find_features = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee22(img_url) {
+    return regeneratorRuntime.wrap(function _callee22$(_context22) {
       while (1) {
-        switch (_context15.prev = _context15.next) {
+        switch (_context22.prev = _context22.next) {
           case 0:
             // eslint-disable-line no-unused-vars
             _.map(anims, clearInterval);
 
             img_url = img_url === undefined ? 'dog3.jpg' : img_url;
-            _context15.next = 4;
+            _context22.next = 4;
             return create_puppet(img_url);
 
           case 4:
@@ -2343,10 +2523,10 @@ function _find_features() {
 
           case 5:
           case "end":
-            return _context15.stop();
+            return _context22.stop();
         }
       }
-    }, _callee15);
+    }, _callee22);
   }));
   return _find_features.apply(this, arguments);
 }

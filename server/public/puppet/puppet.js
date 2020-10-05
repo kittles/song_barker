@@ -191,564 +191,636 @@ function log (msg) {
 }
 
 
+function get_url_param (name) {
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results==null) {
+       return null;
+    }
+    return decodeURI(results[1]) || 0;
+}
+
+
 $('document').ready(() => {
     if (card) {
-        card_init();
+        prepare_card();
     } else {
-        init();
+        if (get_url_param('debug')) {
+            init_debug();
+        } else {
+            init();
+        }
     }
 });
 
-function wide_mode () {
-    return (document.body.offsetWidth / document.body.offsetHeight) > 1.56;
-}
 
-async function card_init () {
+async function prepare_card () {
+    // add the recipient name to the card flap
+    var recipient_name = get_url_param('recipient_name') || 'You';
+    $('#flap').text(`To: ${recipient_name}`);
 
+    present_envelope();
 
-    function vh () {
-        return window.innerHeight / 100;
+    function switch_class (el, old_class, new_class) {
+        el.addClass(new_class);
+        el.removeClass(old_class);
+    }
+    function envelope_top () {
+        $('.envelope-piece').removeClass('middle');
+        $('.envelope-piece').removeClass('below');
+        $('.envelope-piece').addClass('above');
+    }
+    function envelope_middle () {
+        $('.envelope-piece').removeClass('top');
+        $('.envelope-piece').removeClass('below');
+        $('.envelope-piece').addClass('middle');
+    }
+    function envelope_below () {
+        $('.envelope-piece').removeClass('middle');
+        $('.envelope-piece').removeClass('top');
+        $('.envelope-piece').addClass('top-ease-in');
+        $('.envelope-piece').addClass('below');
+        // remove the elements entirely after sliding them out of view
+        setTimeout(() => {
+            $('.envelope-piece').remove();
+        }, 1000)
+    }
+    function envelope_tilt_right () {
+        $('.envelope-piece').removeClass('rotate-left');
+        $('.envelope-piece').addClass('rotate-right');
+    }
+    function envelope_tilt_left () {
+        $('.envelope-piece').removeClass('rotate-right');
+        $('.envelope-piece').addClass('rotate-left');
+    }
+    function envelope_no_tilt () {
+        $('.envelope-piece').removeClass('rotate-right');
+        $('.envelope-piece').removeClass('rotate-left');
     }
 
 
-    // iOS webview sizing shim
-    // TODO figure out why webviews dimensions come out undersized on ios
-    iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    log(`navigator.userAgent: ${navigator.userAgent}`);
-    log(`iOS = ${iOS}`);
-    if (iOS) {
-        window_width = document.body.offsetWidth + 20;
-        window_height = document.body.offsetHeight + 20;
-    } else {
-        window_width = document.body.offsetWidth;
-        window_height = document.body.offsetHeight;
+    var is_jiggling = false
+    function envelope_jiggle () {
+        is_jiggling = true;
+        envelope_tilt_left();
+        setTimeout(envelope_no_tilt, 75);
+        setTimeout(envelope_tilt_right, 150);
+        setTimeout(envelope_no_tilt, 225);
+        setTimeout(() => {
+            is_jiggling = false;
+        }, 350);
     }
-    log(`WIDTH INFO:
-    window.innerWidth: ${window.innerWidth}
-    document.body.offsetWidth: ${document.body.offsetWidth}
-    document.body.clientWidth: ${document.body.clientWidth}
-    USING:
-    window_width: ${window_width}
-    window_height: ${window_height}
-    `);
 
-    // this just holds the three.js render element
-    container = document.getElementById('puppet-container');
 
-    // client is using cropped images that are always square
-    // so expect a square viewport as well
-    var viewport_aspect = 1;
-    zoom_factor = Math.min(window_width, window_height) / render_pixels;
+    var jiggle_interval;
+    // if someone clicks on the envelope mid jiggle
+    // wait until it completes a jiggle before opening
+    function cancel_jiggle (cb) {
+        if (is_jiggling) {
+            setTimeout(() => {
+                console.log('waiting');
+                cancel_jiggle(cb);
+            }, 10);
+        } else {
+            clearInterval(jiggle_interval);
+            cb();
+        }
+    }
 
-    var image_url =            `https://storage.googleapis.com/song_barker_sequences/${card.image_bucket_fp}`;
-    var decoration_image_url = `https://storage.googleapis.com/song_barker_sequences/${card.decoration_image_bucket_fp}`;
-    var fts = card.image_coordinates_json;
-    features = {
-        leftEyePosition: fts.leftEye,
-        rightEyePosition: fts.rightEye,
-        mouthPosition: fts.mouth,
-        mouthLeft: fts.mouthLeft,
-        mouthRight: fts.mouthRight,
-        headTop: fts.headTop,
-        headBottom: fts.headBottom,
-        headLeft: fts.headLeft,
-        headRight: fts.headRight,
+
+    function wide_mode () {
+        return document.body.offsetWidth > document.body.offsetHeight;
+    }
+
+
+    // these come from the css transitions
+    var flap_open_ms = 750;
+    var envelope_move_ms = 1000;
+    var message_zoom_ms = 1500;
+
+    var ready_to_display = false; // so resize events dont prematurely display ui
+
+    function open_flap () {
+        // trigger the flap opening animation
+        $('#flap').addClass('opened');
+        $('#message').show();
+        setTimeout(() => {
+            // halfway through opening the flap,
+            // remove text show it doesnt show through underside
+            $('#flap').text('');
+            // prepare have flap go under message when sliding down
+            $('#flap').css({ zIndex: 1 });
+        }, flap_open_ms / 2);
+        // move the envelope away after the flap opens
+        setTimeout(envelope_below, flap_open_ms);
+
+        // the loading sequence after the envelope has been opened
+        setTimeout(async function () {
+            await zoom_message(); // wait till the message is full size before adding decoration image
+            create_decoration_image();
+            await prepare_puppet();
+            await create_overlay_buttons();
+            handle_mode();
+            prepare_audio();
+            // fade out loading spinner
+            $('.loading-spinner').fadeOut(250);
+            setTimeout(() => {
+                $('#message-cover').fadeOut(250);
+                setTimeout(() => {
+                    // TODO this should be in a layout fn
+                    //$('#mobile-bottom-controls').fadeIn(500);
+                    //$('#k9-logo').fadeIn(500);
+                    $('body').css({
+                        'overflow-y': 'scroll',
+                    });
+                    ready_to_display = true;
+                    display_ui();
+                }, 500);
+            }, 250);
+        }, flap_open_ms + envelope_move_ms);
+    }
+
+
+    var message_width = 656;
+    var message_height = 778;
+    async function zoom_message () {
+        return new Promise(async (r) => {
+            var has_frame = await check_decoration_image();
+            log(has_frame);
+            $('#message').css({
+                transition: 'height 1s ease-in-out, width 1s ease-in-out',
+                width: message_width,
+                height: has_frame ? message_height : message_width,
+            });
+            setTimeout(r, 1000);
+        });
     };
-    _.each(features, (v, k) => {
-        features[k] = new THREE.Vector2(v[0], v[1]);
-    });
 
-    // so theres room for some playback ui
-    zoom_factor = zoom_factor * 0.8;
 
-    // this gets called at the end of the init
-    //post_init = async () => {
-    //    await create_puppet(image_url);
-    //    $('#container').css('transform', 'translateY(0px)');
-    //    $('.playback-image').css('top', $('#container > canvas').width() * zoom_factor * 0.5);
-    //    init_audio();
-    //    $('#volume-slider').css('width', $('#container > canvas').width() * zoom_factor * 0.5);
-    //    //$('#volume').css('left', ($('#container > canvas').width() * zoom_factor * 0.25) - 50);
-    //    setTimeout(() => {
-    //        $('#volume').css('opacity', 1);
-    //        $('#volume').css('transform', 'translateY(0px)');
-    //        $('#controls').css('opacity', 1);
-    //        $('#controls').css('transform', 'translateY(0px)');
-    //    }, 1000);
-    //};
-    //}
+    function present_envelope () {
+        // slide envelope into frame
+        envelope_middle();
 
-    await load_shader_files();
-    animation_noise_texture = await load_texture('noise_2D.png');
-    scene = new THREE.Scene();
-    renderer = new THREE.WebGLRenderer();
-    //renderer.autoClear = false;
-    scene.background = new THREE.Color(0x2E2E46);
-    camera = new THREE.OrthographicCamera(
-        -0.5 * viewport_aspect,
-        0.5 * viewport_aspect,
-        0.5,
-        -0.5,
-        0.001,
-        1000
-    );
-    camera.position.z = 1;
-    pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
-    background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
-    background_mesh.scale.x = 1; // this will get set when we know what the pet image is
-    background_mesh.renderOrder = 0;
-    face_mesh_material = new THREE.ShaderMaterial({
-        uniforms:       face_animation_shader.uniforms,
-        vertexShader:   face_animation_shader.vertexShader,
-        fragmentShader: face_animation_shader.fragmentShader,
-        depthFunc:      debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
-        side:           THREE.DoubleSide,
-        wireframe:      debug_face_mesh,
-    });
-    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
-    face_mesh.renderOrder = 1;
-    mouth_gltf = await load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
-    mouth_mesh = mouth_gltf.scene.children[0].children[0];
-    mouth_mesh.material = new THREE.ShaderMaterial({
-        uniforms:       mouth_shader.uniforms,
-        vertexShader:   mouth_shader.vertexShader,
-        fragmentShader: mouth_shader.fragmentShader,
-        depthFunc:      THREE.AlwaysDepth,
-        side:           THREE.DoubleSide,
-        blending:       THREE.CustomBlending,
-        blendEquation:  THREE.AddEquation,
-        blendSrc:       THREE.SrcAlphaFactor,
-        blendDst:       THREE.OneMinusSrcAlphaFactor,
-        vertexColors:   true
-    });
-    mouth_mesh.renderOrder = 2;
-    scene.add(background_mesh);
-    scene.add(face_mesh);
-    scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
-    renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-    container.appendChild(renderer.domElement);
-    renderer.setSize(render_pixels, render_pixels);
-    //$(renderer.domElement).css('zoom', zoom_factor);
+        // start the envelope jiggling
+        jiggle_interval = setInterval(envelope_jiggle, 2000);
 
-    // set the pet image on the mesh and on the shader
-    pet_image_texture = await load_texture(image_url);
-    pet_material.map = pet_image_texture;
-    face_animation_shader.uniforms.petImage.value = pet_image_texture;
-
-    // TODO which of these is actually necessary
-    background_mesh.needsUpdate = true;
-    pet_material.needsUpdate = true;
-    face_mesh.needsUpdate = true;
-    face_mesh_material.needsUpdate = true;
-
-    // TODO weird place for default mouth color
-
-    console.log(card.mouth_color);
-    if (card.mouth_color) {
-        mouth_color(...card.mouth_color);
-    } else {
-        mouth_color(0.5686274509, 0.39607843137, 0.43137254902);
+        $('.envelope-piece').click(() => {
+            cancel_jiggle(open_flap);
+        });
     }
 
-    // use features to determine locations of stuff
-    sync_objects_to_features();
-    update_shaders();
-    direct_render();
-    animate();
-    head_sway(head_sway_amplitude, head_sway_speed);
-    random_gesture();
 
-    function random_gesture () {
-        var blinks = [
-            [
-                left_blink_quick,
-                right_blink_quick,
-            ],
-            [
-                left_blink_slow,
-                right_blink_slow,
-            ],
-        ]
-        function random_blink () {
-            var fns = Math.random() > 0.5 ? blinks[0] : blinks[1];
-            if (!document.hidden) {
-                _.each(fns, (f) => { f(); })
-            }
-            setTimeout(random_blink, Math.random() * 6000);
-        }
-        random_blink();
-
-        var brows = [
-            [
-                left_brow_furrow,
-                right_brow_furrow,
-            ],
-            [
-                left_brow_raise,
-                right_brow_raise,
-            ],
-        ]
-        function random_brow () {
-            var fns = Math.random() > 0.5 ? brows[0] : brows[1];
-            var amplitude = 0.25 + (Math.random() / 4);
-            var speed = Math.max(Math.floor(Math.random() * 25), 10);
-            var duration = 250 + (Math.random() * 500);
-            if (!document.hidden) {
-                _.each(fns, (f) => { f(amplitude, speed, duration); })
-            }
-            setTimeout(random_brow, duration + (Math.random() * 6000));
-        }
-        random_brow();
-    }
-    console.log('card init');
-
-    // jquery handles on dom elements
-    var content = $('#content');
-    var global_scale_el = $('#content-holder');
-    //var global_scale_el = $('body');
-    var card_container = $('#card-container');
-    var back_pieces = $('.envelope-back-piece');
-    var flap = $('#envelope-flap');
-    var flap_underside = $('#envelope-flap-underside');
-    var desktop_logo = $('#k9-logo-desktop');
-    var desktop_controls = $('#desktop-controls');
-    var desktop_app_links = $('#desktop-app-links');
-    var mobile_logo = $('#k9-logo');
-    var decoration_image = $('#decoration-image')
-    var mobile_bottom_controls = $('#mobile-bottom-controls');
-    var big_button_container = $('#big-button-container');
-    var puppet_container = $('#puppet-container');
-
-    var card_opened = false;
-
-    var card_has_frame;
-    var frame_aspect_ratio = 656 / 778;
-
-    // decoration images can include a 72 pixel a side frame
-    // load the decoration image here to see if its framed or not
+    // wider in scope because other things need to know if the card has a frame
     var img_for_dimensions = new Image();
-    img_for_dimensions.onload = prep_card_for_display;
-    // this will trigger the rest of the init sequence
-    img_for_dimensions.src = decoration_image_url;
 
 
-    function card_width () {
-        return card_has_frame ? 512 - 72 : 512;
+    function card_has_frame () {
+        if (img_for_dimensions.width == 0) {
+            return undefined;
+        }
+        return img_for_dimensions.width === 656;
     }
-    function card_height () {
-        return 512 * (1 / frame_aspect_ratio);
+
+
+    var decoration_image_url;
+    async function check_decoration_image () {
+        return new Promise((r) => {
+
+            // load the decoration image to get its natural dimensions
+            img_for_dimensions.onload = () => {
+                r(card_has_frame());
+            }
+            img_for_dimensions.onerror = _.noop;
+
+            if (card.decoration_image_bucket_fp) {
+                decoration_image_url = `https://storage.googleapis.com/song_barker_sequences/${card.decoration_image_bucket_fp}`;
+            } else {
+                // transparent 1x1 png
+                decoration_image_url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+            }
+
+            // this will trigger the loading
+            img_for_dimensions.src = decoration_image_url;
+        });
     }
-    // just an alias for width, to avoid saying height: width
-    function card_square_side () {
-        return card_has_frame ? 512 - 72 : 512;
-    }
-    function set_card_dimensions () {
-        card_container.css({
-            width: card_width(),
-            height: card_height(),
+
+
+    function create_decoration_image () {
+        $('#message').append(`<img id="decoration-image" src=${decoration_image_url}></img>`);
+        $('#decoration-image').css({
+            width: message_width,
             top: 0,
             left: 0,
+            position: 'absolute',
+            zIndex: 2,
         });
-        big_button_container.css({
-            width: card_square_side(),
-            height: card_square_side(),
-            top: 0,
-            left: 0,
-        });
-        puppet_container.css({
-            width: card_square_side(),
-            height: card_square_side(),
-            top: 0,
-            left: 0,
-        });
-        $('#puppet-container > canvas ').css({
-            width: card_square_side(),
-            height: card_square_side(),
-        });
-        if (card_has_frame) {
-            decoration_image.css({
-                width: card_square_side(),
-                height: (1 / frame_aspect_ratio) * card_square_side(),
-                top: 0,
-                left: 0,
-            });
-            $('#puppet-container > canvas').css({
-                width: 344,
-                height: 344,
-                top: 48,
-                position: 'relative',
-            });
-        } else {
-            decoration_image.css({
-                width: 512,
-                height: 512,
-                top: 0,
-                left: 0,
-            });
-        }
-    }
-
-    // set the logo size and position by card zoom etc
-    function top_of_card () {
-        if (card_has_frame) {
-            var height_for_top = (1 / frame_aspect_ratio) * card_square_side()
-            return $('#content-holder').position().top - ((height_for_top * page_scale() * card_maximize_scale) / 2);
-        } else {
-            var height_for_top = card_width();
-            return $('#content-holder').position().top - ((height_for_top * page_scale() * card_maximize_scale) / 2);
-        }
-    }
-
-    function get_url_param (name) {
-        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-        if (results==null) {
-           return null;
-        }
-        return decodeURI(results[1]) || 0;
     }
 
 
-    function prep_card_for_display () {
-        // set the recipient name from url param
-        var recipient_name = get_url_param('recipient_name') || 'You';
-        $('#envelope-flap').text(`To: ${recipient_name}`);
-
-
-        // this scales the whole assembly up or down depending on
-        // viewport
-        global_scale_el.css({
-            transform: `scale(${page_scale()}`,
-        });
-
-        // determine if card has a frame here, since the image has
-        // now been loaded and dimensions can be inspected
-        if (img_for_dimensions.width === 656) {
-            // 512 x 512 image with 72px frame
-            console.log('decoration image with frame');
-            //decoration_image.css({
-            //    top: -72,
-            //    left: 20 - 72,
-            //});
-            // need to shrink the puppet so the overall
-            // card size is the same
-            card_has_frame = true;
+    // the play button that sits over the puppet when paused
+    async function create_overlay_buttons () {
+        var html_frag = `
+            <div id="overlay-background" style="display: none;">
+                <div id="big-play-button-overlay" class="overlay-button overlay-left">
+                    <img id="big-play-button" src="/puppet/k9-icons/play-no-border-white.png">
+                </div>
+                <div id="big-alt-button-overlay" class="overlay-button overlay-right">
+                    <img id="big-alt-button" src="/puppet/k9-icons/replay-no-border-white.png">
+                </div>
+            </div>
+        `;
+        $('#message').append(html_frag);
+        if (card_has_frame() == false) {
+            $('#overlay-background').css({
+                height: 656, // same as message width
+            })
         } else {
-            card_has_frame = false;
+            $('#overlay-background').css({
+                height: 778,
+            })
         }
-        decoration_image.attr('src', decoration_image_url);
+        $('#overlay-background').show();
+        overlay_one_button();
+    }
 
-        // set the dimensions of the actual card assembly
-        set_card_dimensions();
+    // when at the beginning or end
+    function overlay_two_buttons () {
+        $('#big-alt-button-overlay').show();
+        $('#big-play-button-overlay').removeClass('overlay-center');
+        $('#big-play-button-overlay').addClass('overlay-left');
+    }
+    // when paused in the middle
+    function overlay_one_button () {
+        $('#big-alt-button-overlay').hide();
+        $('#big-play-button-overlay').removeClass('overlay-left');
+        $('#big-play-button-overlay').addClass('overlay-center');
+    }
+    // when you just want the replay
+    function overlay_right_button () {
+        $('#big-play-button-overlay').hide();
+        $('#big-alt-button-overlay').removeClass('overlay-left');
+        $('#big-alt-button-overlay').addClass('overlay-center');
+    }
 
-        // layout the entire page
-        layout_elements();
-        $(window).resize(_.debounce(layout_elements, 125, { trailing: true }));
 
-        // handle opening the envelope
-        back_pieces.click(open_envelope);
-        flap.click(open_envelope);
+    var ui_to_show = [];
+    var ui_to_hide = [];
 
-        // hide mobile replay button on wide mode
+    function handle_mode () {
         if (wide_mode()) {
-            $('#big-play-button-overlay').show();
+            log('wide mode');
+
+            // show stuff on either side of card
+            ui_to_show = [$('#desktop-app-links'), $('#desktop-controls'), $('#k9-logo')];
+            ui_to_hide = [$('#mobile-bottom-controls')];
         } else {
-            $('#big-play-button-overlay').show();
-            // dont show replay until card has played and is paused
-            //$('#mobile-replay-button').show();
+            log('mobile mode');
+
+            // hide stuff on either side of card
+            ui_to_show = [$('#mobile-bottom-controls'), $('#k9-logo')];
+            ui_to_hide = [$('#desktop-app-links'), $('#desktop-controls')];
         }
-
-        // queue up the card coming in to view
-        setTimeout(() => {
-            // card drops in from above, waiting to be opened
-            $('#content').fadeIn({queue: false, duration: 300});
-            $('#content').css({top: '0px'}); // more performant to have this css transitioned
-        }, 1000);
-
-    };
-
-
-
-    // layout in the js for maxiumum job security
-    function layout_elements () {
-        // desktop controls
-        // w/frame: left -284 top -202
-        // w/o: left -306 top -202
-
-        // desktop app links
-        // w/frame: left 200 top -135
-        // w/o: left 228 top -202
-        mobile_logo.css({
-            height: top_of_card() - (card_has_frame ? 20 : 40),
-            top: card_has_frame ? 5 : 10,
-        });
-
-
-        // this is called whenever the window is resized
-
-        // set the page scale (except for logo)
-        global_scale_el.css({
-            transform: `scale(${page_scale()}`,
-        });
-
-        // move the controls and copy horzontally to account for a frame
-        if (card_has_frame) {
-            desktop_controls.css({
-                left: -284,
-                top: -202,
-            });
-            desktop_app_links.css({
-                left: 200,
-                top: -135,
-            });
-            $('#big-play-button-overlay').css({
-                left: 172,
-            });
-            $('#mobile-replay-button').css({
-                left: 172,
-            });
-        } else { // no frame
-            desktop_controls.css({
-                left: -306,
-                top: -210,
-            });
-            desktop_app_links.css({
-                left: 228,
-                top: -135,
-            });
-            $('#big-play-button-overlay').css({
-                left: 215,
-            });
-            $('#mobile-replay-button').css({
-                left: 215,
-            });
-        }
-
-        // if the mode has changed between wide and regular,
-        // elements fade out or in
-        var fade_duration = 500;
-
-        if (card_opened) {
-            if (wide_mode()) {
-                //fade_flex(desktop_controls, fade_duration);
-                desktop_controls.fadeIn(fade_duration);
-                desktop_app_links.fadeIn(fade_duration);
-                mobile_bottom_controls.hide();
-            } else {
-                desktop_controls.hide();
-                desktop_app_links.hide();
-                mobile_bottom_controls.fadeIn(fade_duration);
-            }
-            if (!wide_mode()) {
-                $('body').css({
-                    overflow: 'scroll',
-                });
-            } else {
-                $('body').css({
-                    overflow: 'hide',
-                });
-            }
-        }
-        //if (wide_mode()) {
-        //    desktop_logo.fadeIn(fade_duration);
-        //    mobile_logo.hide();
-        //} else {
-        //    mobile_logo.fadeIn(fade_duration);
-        //    desktop_logo.hide();
-        //}
-        mobile_logo.fadeIn(fade_duration);
     }
 
-    var card_maximize_scale = 0.8;
 
-
-    function page_scale () {
-        var zoom_width = window.innerWidth / (card_maximize_scale * card_width());
-        var zoom_height = window.innerHeight / (card_maximize_scale * card_height());
-        var zoom = Math.min(zoom_width, zoom_height);
-        zoom *= 0.9;
-        return wide_mode() ? zoom * 1 : zoom;
+    function display_ui () {
+        _.each(ui_to_show, (ui_el) => { ui_el.fadeIn(500); });
+        _.each(ui_to_hide, (ui_el) => { ui_el.fadeOut(250); });
     }
 
-    function open_envelope () {
-        $('#card-container').css({
-            display: 'initial',
-        })
-        card_opened = true;
-        setTimeout(layout_elements, 1800);
+    $(window).on('resize', _.debounce(() => {
+        handle_mode();
+        if (ready_to_display) {
+            display_ui();
+        }
+    }, 125));
 
-        // prepare for playback
-        // remove the envelope
-        // show the full card
-        // scale up the card
 
-        init_audio();
+    // greeting card prep
+    function prepare_audio () {
+        var audio_url;
+        var audio_el;
+        var buffer_interval;
+        var playing = false;
+        var playback_btn = $('#play-control');
+        var big_btn_container = $('#big-play-button-overlay');
+        var big_btn = $('#big-play-button');
+        var mobile_replay = $('#mobile-replay-button');
+        var replay_btn = $('#replay-control');
+        var decoration_img = $('#decoration-image');
+        var desktop_volume_slider = $('#desktop-volume-slider');
+        var mobile_volume_slider = $('#mobile-volume-slider');
+        var desktop_replay = $('#desktop-replay');
+        var desktop_play = $('#desktop-play');
+        var overlay_background = $('#overlay-background');
 
-        // stop the animation, but retain the translation that was included in it
-        $('#content').css({
-            animation: 'none',
-            transform: `translate(-50% -50%)`,
+        // TODO: update these
+        //var play_img = '/puppet/k9-icons/play-no-border-white.png';
+        var play_img = 'data:image/png;base64,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';
+        var pause_img = '/puppet/k9-icons/pause-no-border-white.png';
+        var replay_img = '/puppet/k9-icons/replay-no-border-white.png';
+
+        var control_play_img = '/puppet/k9-icons/play-no-border-white.png';
+        var blue_play_img = '/puppet/k9-icons/play-blue.png';
+        var control_pause_img = '/puppet/k9-icons/pause-no-border-white.png';
+        var control_replay_img = '/puppet/k9-icons/replay-no-border-white.png';
+        var control_volume_on_img = '/puppet/k9-icons/volume-on-no-border-white.png';
+        var control_volume_off_img = '/puppet/k9-icons/volume-off-no-border-white.png';
+
+        var mobile_play_img = '/puppet/k9-icons/play-blue.png';
+        var mobile_pause_img = '/puppet/k9-icons/pause-blue.png';
+        var mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
+        var mobile_volume_on_img = '/puppet/k9-icons/volume-on-no-border-blue.png';
+        var mobile_volume_off_img = '/puppet/k9-icons/volume-off-no-border-blue.png';
+
+        audio_url = `https://storage.googleapis.com/song_barker_sequences/${card.card_audio_bucket_fp}`;
+        // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
+        $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
+        audio_el = document.querySelector('audio');
+        audio_el.addEventListener('ended', handle_audio_end, { once: true });
+
+        // TODO consolidate volume slider logic
+
+        $('#mobile-volume-slider').on('input', () => {
+            audio_el.volume = $('#mobile-volume-slider').val() / 100;
+            if (audio_el.volume > 0) {
+                $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
+            } else {
+                $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
+            }
         });
 
-        // trigger css transform on envelope flap
-        $('.envelope-flap-piece').toggleClass('opened');
-        setTimeout(() => {
-             // so the text doesnt show through on the underside
-            $('#envelope-flap').css({
-                color: 'transparent',
-            }, 125); //125ms is half the css transition
-            $('#envelope-flap').css({
-                zIndex: 1,
-            }, 250); //make it go behind the card when the envelope slides down
+        $('#desktop-volume-slider').on('input', () => {
+            audio_el.volume = $('#desktop-volume-slider').val() / 100;
+            if (audio_el.volume > 0) {
+                $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
+            } else {
+                $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
+            }
         });
 
-        // remove clip path on content when its coming out of envelope
-        // do in a couple steps (i didnt have luck trying to transition this)
-        // this is so the card doesn't extend outside the envelope at any point
-        setTimeout(() => {
-            $('#card-container').css('clip-path', 'polygon(0 0, 100% 0, 100% 60%, 0 60%)');
-        }, 500);
-        setTimeout(() => {
-            $('#card-container').css('clip-path', 'none');
-        }, 650);
+        var last_slider_val = 75;
 
-        // slide the envelope away, resize the card
-        setTimeout(() => {
-            // overwrite css transforms on envelope pieces
-            flap.css({
-                transition: 'top 1s',
+        $('#desktop-volume-icon').on('click', () => {
+            if (desktop_volume_slider.val() > 0) {
+                last_slider_val = desktop_volume_slider.val();
+                desktop_volume_slider.val(0);
+                $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
+            } else {
+                desktop_volume_slider.val(last_slider_val);
+                $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
+            }
+            audio_el.volume = $('#desktop-volume-slider').val() / 100;
+        });
+
+        $('#mobile-volume-icon').on('click', () => {
+            if (mobile_volume_slider.val() > 0) {
+                last_slider_val = mobile_volume_slider.val();
+                mobile_volume_slider.val(0);
+                $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
+            } else {
+                mobile_volume_slider.val(last_slider_val);
+                $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
+            }
+            audio_el.volume = $('#mobile-volume-slider').val() / 100;
+        });
+
+        playback_btn.click(handle_click);
+        big_btn_container.click(handle_click);
+        decoration_img.click(handle_click);
+        desktop_play.click(handle_click);
+
+
+        function card_play () {
+            $('#desktop-play > img').attr('src', control_pause_img);
+            play_audio();
+            overlay_background.fadeOut(250);
+        }
+        window.card_play = card_play;
+
+
+        function card_pause () {
+            $('#desktop-play > img').attr('src', control_play_img);
+            pause_audio();
+            overlay_two_buttons();
+            overlay_background.fadeIn(250);
+        }
+
+
+        function handle_click () {
+            if (playing) {
+                card_pause();
+            } else {
+                card_play();
+            }
+        }
+
+
+        replay_btn.click(handle_replay);
+        desktop_replay.click(handle_replay);
+        mobile_replay.click(handle_replay);
+        $('#big-alt-button').click(handle_replay);
+
+
+        function handle_replay () {
+            clearInterval(buffer_interval);
+            audio_el.currentTime = 0;
+            $('img', desktop_play).attr('src', control_pause_img);
+            play_audio();
+            overlay_background.fadeOut(250);
+        }
+
+
+        function play_audio () {
+            // play the audio and animate
+            clearInterval(buffer_interval);
+            audio_el.play();
+            buffer_interval = setInterval(() => {
+                // add the upcoming 250 ms of mouth animations based on current playback
+                var start_idx = Math.floor(audio_el.currentTime * 60);
+                feature_tickers.mouth.cancel();
+                // add a little extra the interval gets delayed
+                feature_tickers.mouth.add(card.animation_json.mouth_positions.slice(start_idx, start_idx + 60));
+            }, 250);
+            playing = true;
+        }
+
+
+        function pause_audio () {
+            clearInterval(buffer_interval);
+            audio_el.pause();
+            feature_tickers.mouth.cancel();
+            feature_tickers.mouth.add([0]);
+            playing = false;
+        }
+
+
+        function handle_audio_end () {
+            clearInterval(buffer_interval);
+            overlay_right_button();
+            overlay_background.fadeIn(500);
+            audio_el.currentTime = 0;
+            playing = false;
+        }
+    }
+
+
+    async function prepare_puppet () {
+        return new Promise(async (r) => {
+            var viewport_aspect = 1;
+            var image_url = `https://storage.googleapis.com/song_barker_sequences/${card.image_bucket_fp}`;
+            var fts = card.image_coordinates_json;
+            features = {
+                leftEyePosition: fts.leftEye,
+                rightEyePosition: fts.rightEye,
+                mouthPosition: fts.mouth,
+                mouthLeft: fts.mouthLeft,
+                mouthRight: fts.mouthRight,
+                headTop: fts.headTop,
+                headBottom: fts.headBottom,
+                headLeft: fts.headLeft,
+                headRight: fts.headRight,
+            };
+            _.each(features, (v, k) => {
+                features[k] = new THREE.Vector2(v[0], v[1]);
             });
-            back_pieces.css({
-                transition: 'top 1s',
+            await load_shader_files();
+            animation_noise_texture = await load_texture('noise_2D.png');
+            scene = new THREE.Scene();
+            renderer = new THREE.WebGLRenderer();
+            //renderer.autoClear = false;
+            scene.background = new THREE.Color(0x2E2E46);
+            camera = new THREE.OrthographicCamera(
+                -0.5 * viewport_aspect,
+                0.5 * viewport_aspect,
+                0.5,
+                -0.5,
+                0.001,
+                1000
+            );
+            camera.position.z = 1;
+            pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
+            background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
+            background_mesh.scale.x = 1; // this will get set when we know what the pet image is
+            background_mesh.renderOrder = 0;
+            face_mesh_material = new THREE.ShaderMaterial({
+                uniforms:       face_animation_shader.uniforms,
+                vertexShader:   face_animation_shader.vertexShader,
+                fragmentShader: face_animation_shader.fragmentShader,
+                depthFunc:      debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
+                side:           THREE.DoubleSide,
+                wireframe:      debug_face_mesh,
             });
+            face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
+            face_mesh.renderOrder = 1;
+            mouth_gltf = await load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
+            mouth_mesh = mouth_gltf.scene.children[0].children[0];
+            mouth_mesh.material = new THREE.ShaderMaterial({
+                uniforms:       mouth_shader.uniforms,
+                vertexShader:   mouth_shader.vertexShader,
+                fragmentShader: mouth_shader.fragmentShader,
+                depthFunc:      THREE.AlwaysDepth,
+                side:           THREE.DoubleSide,
+                blending:       THREE.CustomBlending,
+                blendEquation:  THREE.AddEquation,
+                blendSrc:       THREE.SrcAlphaFactor,
+                blendDst:       THREE.OneMinusSrcAlphaFactor,
+                vertexColors:   true
+            });
+            mouth_mesh.renderOrder = 2;
+            scene.add(background_mesh);
+            scene.add(face_mesh);
+            scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
+            renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+            $('#message').append(renderer.domElement);
+            renderer.setSize(render_pixels, render_pixels);
+            // if the card has a frame, it needs to be 72 * 2 smaller
+            // in width and height
+            var frame_margin = 72;
+            if (card_has_frame()) { // card_has_frame is determined in the create_decoration_image fn
+                console.log('has frame');
+                $(renderer.domElement).css({
+                    width: message_width - (frame_margin * 2),
+                    height: message_width - (frame_margin * 2),
+                    left: 72,
+                    top: 72,
+                    position: 'absolute',
+                    zIndex: 1,
+                });
+            } else {
+                $(renderer.domElement).css({
+                    width: message_width,
+                    height: message_width, // always a square
+                    zIndex: 1,
+                });
+            }
 
-            setTimeout(() => {
-                var y_dist = 600;
-                back_pieces.css({top: y_dist});
-                flap.css({top: y_dist});
+            // set the pet image on the mesh and on the shader
+            pet_image_texture = await load_texture(image_url);
+            pet_material.map = pet_image_texture;
+            face_animation_shader.uniforms.petImage.value = pet_image_texture;
 
-                setTimeout(on_complete, 1000);
+            // TODO which of these is actually necessary
+            background_mesh.needsUpdate = true;
+            pet_material.needsUpdate = true;
+            face_mesh.needsUpdate = true;
+            face_mesh_material.needsUpdate = true;
+            if (card.mouth_color) {
+                mouth_color(...card.mouth_color);
+            } else {
+                mouth_color(0.5686274509, 0.39607843137, 0.43137254902);
+            }
 
-                function on_complete () {
-                    back_pieces.fadeOut(100);
-                    flap.fadeOut(100);
-                    if (!wide_mode()) {
-                        $('body').css({
-                            overflow: 'scroll',
-                        });
-                    } else {
-                        $('body').css({
-                            overflow: 'hide',
-                        });
+            // use features to determine locations of stuff
+            sync_objects_to_features();
+            update_shaders();
+            direct_render();
+            animate();
+            head_sway(head_sway_amplitude, head_sway_speed);
+            random_gesture();
+            function random_gesture () {
+                var blinks = [
+                    [
+                        left_blink_quick,
+                        right_blink_quick,
+                    ],
+                    [
+                        left_blink_slow,
+                        right_blink_slow,
+                    ],
+                ]
+                function random_blink () {
+                    var fns = Math.random() > 0.5 ? blinks[0] : blinks[1];
+                    if (!document.hidden) {
+                        _.each(fns, (f) => { f(); })
                     }
+                    setTimeout(random_blink, Math.random() * 6000);
                 }
-            }, 100);
-            setTimeout(() => {
-                $('#card-container').css({
-                    transform: `translateX(-50%) translateY(-45%) scale(${card_maximize_scale})`,
-                    //transform: `translateX(-50%) translateY(-45%)`,
-                });
-            }, 750);
-        }, 250);
+                random_blink();
+
+                var brows = [
+                    [
+                        left_brow_furrow,
+                        right_brow_furrow,
+                    ],
+                    [
+                        left_brow_raise,
+                        right_brow_raise,
+                    ],
+                ]
+                function random_brow () {
+                    var fns = Math.random() > 0.5 ? brows[0] : brows[1];
+                    var amplitude = 0.25 + (Math.random() / 4);
+                    var speed = Math.max(Math.floor(Math.random() * 25), 10);
+                    var duration = 250 + (Math.random() * 500);
+                    if (!document.hidden) {
+                        _.each(fns, (f) => { f(amplitude, speed, duration); })
+                    }
+                    setTimeout(random_brow, duration + (Math.random() * 6000));
+                }
+                random_brow();
+            }
+            r();
+        });
     }
 }
 
@@ -924,180 +996,140 @@ async function init () {
 }
 
 
-// greeting card prep
-async function init_audio () {
-    var audio_url;
-    var audio_el;
-    var buffer_interval;
-    var playing = false;
-    var playback_btn = $('#play-control');
-    var big_btn_container = $('#big-play-button-overlay');
-    var big_btn = $('#big-play-button');
-    var mobile_replay = $('#mobile-replay-button');
-    var replay_btn = $('#replay-control');
-    var decoration_img = $('#decoration-image');
-    var desktop_volume_slider = $('#desktop-volume-slider');
-    var mobile_volume_slider = $('#mobile-volume-slider');
-    var desktop_replay = $('#desktop-replay');
-    var desktop_play = $('#desktop-play');
+// prepare scene for debugging
+// this should be used in puppet-debug.html
+async function init_debug () {
+    start_time = performance.now();
+    log('puppet.js DEBUG initializing');
 
-    // TODO: update these
-    var play_img = '/puppet/k9-icons/play-no-border-white.png';
-    var pause_img = '/puppet/k9-icons/pause-no-border-white.png';
-    var replay_img = '/puppet/k9-icons/replay-no-border-white.png';
+    stats = new Stats();
 
-    var control_play_img = '/puppet/k9-icons/play-no-border-white.png';
-    var blue_play_img = '/puppet/k9-icons/play-blue.png';
-    var control_pause_img = '/puppet/k9-icons/pause-no-border-white.png';
-    var control_replay_img = '/puppet/k9-icons/replay-no-border-white.png';
-    var control_volume_on_img = '/puppet/k9-icons/volume-on-no-border-white.png';
-    var control_volume_off_img = '/puppet/k9-icons/volume-off-no-border-white.png';
+    window.fade_spinner = _.noop; // just to simplify
 
-    var mobile_play_img = '/puppet/k9-icons/play-blue.png';
-    var mobile_pause_img = '/puppet/k9-icons/pause-blue.png';
-    var mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
-    var mobile_volume_on_img = '/puppet/k9-icons/volume-on-no-border-blue.png';
-    var mobile_volume_off_img = '/puppet/k9-icons/volume-off-no-border-blue.png';
+    // for turning images into b64
+    // this is just to help test in a browser
+    image_canvas = document.getElementById('image-canvas');
+    image_ctx = image_canvas.getContext('2d');
 
-    audio_url = `https://storage.googleapis.com/song_barker_sequences/${card.card_audio_bucket_fp}`;
-    // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
-    $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
-    audio_el = document.querySelector('audio');
-    audio_el.addEventListener('ended', handle_audio_end, { once: true });
+    // this just holds the three.js render element
+    container = document.getElementById('container');
 
-    // TODO consolidate volume slider logic
+    // client is using cropped images that are always square
+    // so expect a square viewport as well
+    var viewport_aspect = 1;
 
-    $('#mobile-volume-slider').on('input', () => {
-        audio_el.volume = $('#mobile-volume-slider').val() / 100;
-        if (audio_el.volume > 0) {
-            $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
-        } else {
-            $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
-        }
+    // see fps and memory for debugging
+    if (show_fps) {
+        stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        document.body.appendChild(stats.dom);
+        stats.dom.style.left = '120px';
+    }
+
+    // shader code lives in its on .hlsl files so they can be more easily
+    // syntax highlighted
+    // this loads the hlsl files, then populates the shader configs with the
+    // shader code
+    await load_shader_files();
+
+    // this is an image that has red and green channels for x and y displacement
+    // of the head
+    animation_noise_texture = await load_texture('noise_2D.png');
+
+    //
+    // create the threejs geometry and materials for the scene
+    //
+
+    scene = new THREE.Scene();
+    renderer = new THREE.WebGLRenderer();
+    //renderer.autoClear = false;
+    scene.background = new THREE.Color(0x2E2E46);
+
+    // Camera left and right frustrum to make sure the camera size is the same as viewport size
+    camera = new THREE.OrthographicCamera(
+        -0.5 * viewport_aspect,
+        0.5 * viewport_aspect,
+        0.5,
+        -0.5,
+        0.001,
+        1000
+    );
+    camera.position.z = 1;
+
+    // Create the background plane
+    // This is just the static pet image on the plane
+    // Draw this if we aren't debugging the face mesh
+    if (!debug_face_mesh) {
+        pet_material = new THREE.MeshBasicMaterial(); // map: pet_image_texture happens later, when we know what the pet image is
+        background_mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), pet_material);
+        background_mesh.scale.x = 1; // this will get set when we know what the pet image is
+        background_mesh.renderOrder = 0;
+    }
+
+    // create the face mesh
+    face_mesh_material = new THREE.ShaderMaterial({
+        uniforms:       face_animation_shader.uniforms,
+        vertexShader:   face_animation_shader.vertexShader,
+        fragmentShader: face_animation_shader.fragmentShader,
+        depthFunc:      debug_face_mesh ? THREE.AlwaysDepth : THREE.GreaterDepth,
+        side:           THREE.DoubleSide,
+        wireframe:      debug_face_mesh,
     });
 
-    $('#desktop-volume-slider').on('input', () => {
-        audio_el.volume = $('#desktop-volume-slider').val() / 100;
-        if (audio_el.volume > 0) {
-            $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
-        } else {
-            $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
-        }
+    // Adds the material to the geometry
+    face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
+
+    // This object renders on top of the background
+    face_mesh.renderOrder = 1;
+
+    // mouth sprite - this is a group in threejs lingo,
+    // the actual mouth mesh lives in mouth_mesh, a child of the group
+    mouth_gltf = await load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
+    mouth_mesh = mouth_gltf.scene.children[0].children[0];
+    mouth_mesh.material = new THREE.ShaderMaterial({
+        uniforms:       mouth_shader.uniforms,
+        vertexShader:   mouth_shader.vertexShader,
+        fragmentShader: mouth_shader.fragmentShader,
+        depthFunc:      THREE.AlwaysDepth,
+        side:           THREE.DoubleSide,
+        blending:       THREE.CustomBlending,
+        blendEquation:  THREE.AddEquation,
+        blendSrc:       THREE.SrcAlphaFactor,
+        blendDst:       THREE.OneMinusSrcAlphaFactor,
+        vertexColors:   true
     });
+    mouth_mesh.renderOrder = 2;
 
-    var last_slider_val = 75;
+    // add the meshes and stuff to the scene
+    scene.add(background_mesh);
+    scene.add(face_mesh);
+    scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
 
-    $('#desktop-volume-icon').on('click', () => {
-        if (desktop_volume_slider.val() > 0) {
-            last_slider_val = desktop_volume_slider.val();
-            desktop_volume_slider.val(0);
-            $('#desktop-volume-icon > img').attr('src', control_volume_off_img);
-        } else {
-            desktop_volume_slider.val(last_slider_val);
-            $('#desktop-volume-icon > img').attr('src', control_volume_on_img);
-        }
-        audio_el.volume = $('#desktop-volume-slider').val() / 100;
-    });
+    // prepare for rendering
+    renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+    container.appendChild(renderer.domElement);
+    renderer.setSize(2 * render_pixels, 2 * render_pixels);
 
-    $('#mobile-volume-icon').on('click', () => {
-        if (mobile_volume_slider.val() > 0) {
-            last_slider_val = mobile_volume_slider.val();
-            mobile_volume_slider.val(0);
-            $('#mobile-volume-icon').attr('src', mobile_volume_off_img);
-        } else {
-            mobile_volume_slider.val(last_slider_val);
-            $('#mobile-volume-icon').attr('src', mobile_volume_on_img);
-        }
-        audio_el.volume = $('#mobile-volume-slider').val() / 100;
-    });
-
-    playback_btn.click(handle_click);
-    big_btn_container.click(handle_click);
-    decoration_img.click(handle_click);
-    desktop_play.click(handle_click);
-
-
-    function card_play () {
-        $('img', playback_btn).attr('src', pause_img);
-        $('#desktop-play > img').attr('src', control_pause_img);
-        play_audio();
-        big_btn_container.fadeOut(250);
-        mobile_replay.fadeOut(250);
+    if (enable_controls) {
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
     }
 
-
-    function card_pause () {
-        $('img', playback_btn).attr('src', play_img);
-        $('#desktop-play > img').attr('src', control_play_img);
-        pause_audio();
-        big_btn_container.fadeIn(250);
-        if (!wide_mode()) {
-            mobile_replay.fadeIn(250);
-        }
+    if (log_mouse_position) {
+        window.addEventListener('click', (e) => {
+            var normalized_x = e.clientX / window.innerWidth;
+            var normalized_y = e.clientY / window.innerHeight;
+            var worldPos = screen_to_world_position(new THREE.Vector2(normalized_x, normalized_y));
+            console.log(`worldPos: ${worldPos.x}, ${worldPos.y}`);
+        });
     }
 
+    // dont render anything yet, that should happen when the app
+    // actually specifies an image
 
-    function handle_click () {
-        big_btn.attr('src', play_img);
-        if (playing) {
-            card_pause();
-        } else {
-            card_play();
-        }
-    }
-
-
-    replay_btn.click(handle_replay);
-    desktop_replay.click(handle_replay);
-    mobile_replay.click(handle_replay);
-
-    function handle_replay () {
-        clearInterval(buffer_interval);
-        audio_el.currentTime = 0;
-        $('img', playback_btn).attr('src', control_pause_img);
-        $('img', desktop_play).attr('src', control_pause_img);
-        play_audio();
-        big_btn_container.fadeOut(250);
-        if (!wide_mode()) {
-            mobile_replay.fadeOut(250);
-        }
-    }
-
-
-    function play_audio () {
-        // play the audio and animate
-        clearInterval(buffer_interval);
-        audio_el.play();
-        buffer_interval = setInterval(() => {
-            // add the upcoming 250 ms of mouth animations based on current playback
-            var start_idx = Math.floor(audio_el.currentTime * 60);
-            feature_tickers.mouth.cancel();
-            // add a little extra the interval gets delayed
-            feature_tickers.mouth.add(card.animation_json.mouth_positions.slice(start_idx, start_idx + 60));
-        }, 250);
-        playing = true;
-    }
-
-
-    function pause_audio () {
-        clearInterval(buffer_interval);
-        audio_el.pause();
-        feature_tickers.mouth.cancel();
-        feature_tickers.mouth.add([0]);
-        playing = false;
-    }
-
-
-    function handle_audio_end () {
-        clearInterval(buffer_interval);
-        big_btn.attr('src', replay_img);
-        big_btn_container.fadeIn(500);
-        // dont want two replay buttons
-        //if (!wide_mode()) {
-        //    mobile_replay.fadeIn(500);
-        //}
-        audio_el.currentTime = 0;
-        playing = false;
+    // tell client the webview is ready to create a puppet
+    log('finished DEBUG init');
+    if (get_url_param('dog')) {
+        log('found test dog in url, loading...');
+        test(get_url_param('dog'));
     }
 }
 
@@ -1916,6 +1948,17 @@ var feature_map = {
         headLeft:         new THREE.Vector2(-0.2235636901855469, 0.16604894002278645),
         headRight:        new THREE.Vector2(0.3, 0.0),
     },
+    'problem-dog.jpg': {
+        leftEyePosition: new THREE.Vector2(-0.070556640625, 0.2986653645833333),
+        rightEyePosition: new THREE.Vector2(0.125244140625, 0.2871229383680556),
+        mouthPosition: new THREE.Vector2(0.05029296875, 0.1004367404513889),
+        mouthLeft: new THREE.Vector2(-0.26171875, 0.2590196397569444),
+        mouthRight: new THREE.Vector2(0.09619140625, 0.07835557725694445),
+        headTop: new THREE.Vector2(0.02490234375, 0.4090711805555556),
+        headBottom: new THREE.Vector2(0.056396484375, -0.1188693576388889),
+        headLeft: new THREE.Vector2(-0.37744140625, 0.1501193576388889),
+        headRight: new THREE.Vector2(0.2822265625, 0.1646728515625),
+    }
 };
 
 

@@ -4,14 +4,12 @@
   "description": "woof",
   "main": "app.js",
   "watch": {
-    "transpile-puppet": "public/puppet/*.js",
-    "transpile-sketch": "public/puppet/*.js"
+    "transpile-puppet": "public/puppet/*.js"
   },
   "scripts": {
     "test": "jest",
     "dev": "nodemon app.js --ignore 'sessions/'",
     "transpile-puppet": "babel public/puppet/puppet.js -d public/build/",
-    "transpile-sketch": "babel public/puppet/sketch.js -d public/build/",
     "watch": "npm-watch"
   },
   "author": "Patrick Brooks",

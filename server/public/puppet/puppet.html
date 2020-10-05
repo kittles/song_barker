@@ -1,5 +1,6 @@
 <head>
     <script src="/puppet/jquery.min.js"></script>
+    <script src="/puppet/easing.js"></script>
     <script src="/puppet/lodash.js"></script>
     <script src="/puppet/lodash.fp.js"></script>
     <script src="/puppet/three.110.js"></script>
@@ -11,41 +12,149 @@
     <script src="/puppet/math.min.js"></script>
     <!-- for transpiling async await -->
     <script src="/puppet/runtime.js"></script>
-    <link rel="stylesheet" type="text/css" href="/puppet/spinners.css">
-    <style>
-    body {
-        margin: 0px auto;
-        overflow: hidden;
-        background: black;
-    }
-    #image-canvas {
-        visibility: hidden;
-    }
-    .sk-bounce {
-        position: fixed;
-        width: 200px;
-        height: 200px;
-        top: 50%;
-        left: 50%;
-        margin-top: -100px; /* Negative half of height. */
-        margin-left: -100px;
-    }
-    #video {
-        visibility: hidden;
-    }
-    </style>
+
+    <link rel="stylesheet" type="text/css" href="/puppet/loading_spinner.css">
+    <link rel="stylesheet" type="text/css" href="/puppet/puppet.css">
+
+    <meta property="og:title" content="K9 Karaoke Card">
+    <meta property="og:description" content="Someone's pet has a message for you">
+    <meta property="og:image" content="https://storage.googleapis.com/song_barker_sequences/{{image_bucket_fp}}">
+    <meta property="og:url" content="https://thedogbarksthesong.ml/card/{{uuid}}">
+
+    <meta name="twitter:title" content="K9 Karaoke Card">
+    <meta name="twitter:description" content="Someone's pet has a message for you">
+    <meta name="twitter:image" content="https://storage.googleapis.com/song_barker_sequences/{{image_bucket_fp}}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <script>
+        try {
+            window.greeting_card = {};
+            window.greeting_card.uuid='{{uuid}}';
+            window.greeting_card.card_audio_bucket_fp='{{card_audio_bucket_fp}}';
+            window.greeting_card.image_bucket_fp='{{image_bucket_fp}}';
+            window.greeting_card.decoration_image_bucket_fp='{{decoration_image_bucket_fp}}';
+            window.greeting_card.animation_json=JSON.parse('{{{animation_json}}}');
+            window.greeting_card.image_coordinates_json=JSON.parse('{{{image_coordinates_json}}}');
+            window.greeting_card.name='{{name}}';
+            window.greeting_card.recipient_name='{{recipient_name}}';
+            window.greeting_card.mouth_color='{{mouth_color}}';
+
+            // TODO remember why this is here...
+            if (!window.greeting_card.image_bucket_fp) {
+                window.greeting_card.image_bucket_fp = `images/${window.greeting_card.image_id}.jpg`;
+            }
+        } catch (error) {
+            $(document).ready(() => {
+                $('#error-message').text(`problem with greeting_card values: ${error}`);
+                $('#error').fadeIn(100);
+            });
+        }
+    </script>
+    <!-- this handles scaling the content -->
+    <script src="/puppet/puppet-scaling.js"></script>
 </head>
 <body>
-    <div id="loading-spinner" class="sk-bounce">
-        <div class="sk-bounce-dot"></div>
-        <div class="sk-bounce-dot"></div>
+    <div id="container">
+        <div id="flap"         class="envelope-piece above"></div>
+        <div id="pouch"        class="envelope-piece above"></div>
+        <div id="pouch-inside" class="envelope-piece above"></div>
+        <div id="message" style="display: none">
+            <div id="message-cover"></div>
+            <div class="lds-default loading-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+
+        <!-- app logo -->
+        <div id="k9-logo" style="display: none">
+            <img src="/puppet/k9_logotype_small.png"></img>
+        </div>
+
+        <!-- all the controls on the left side -->
+        <div id="desktop-controls" style="display: none">
+            <!-- share button -->
+            <div style="height: 20%">
+                <div id="share-button">
+                    <div id="share-text">SHARE</div>
+                </div>
+            </div>
+            <!-- hr -->
+            <div style="height: 8%">
+                <hr id="desktop-hr"></hr>
+            </div>
+            <!-- share icons -->
+            <div style="height: 15%">
+                <div id="desktop-share-icons">
+                    <div class="desktop-share-icon"><img src="/puppet/icons/social facebook.svg"></img></div>
+                    <div class="desktop-share-icon"><img src="/puppet/icons/social instagram.svg"></img></div>
+                    <div class="desktop-share-icon"><img src="/puppet/icons/social twitter.svg"></img></div>
+                </div>
+            </div>
+            <!-- playback controls -->
+            <div class="blue-background" style="height: auto; width: 100%; margin-top: 15%">
+                <div id="desktop-play" style="height: 15%; padding-top: 13%">
+                    <img class="flex-icon v-center" src="/puppet/k9-icons/play-no-border-white.png"></img>
+                </div>
+                <div id="desktop-replay" style="height: 15%">
+                    <img class="flex-icon v-center" src="/puppet/k9-icons/replay-no-border-white.png"></img>
+                </div>
+                <div id="desktop-volume-icon" style="height: 15%">
+                    <img class="flex-icon v-center" src="/puppet/k9-icons/volume-on-no-border-white.png"></img>
+                </div>
+                <div style="height: 65%">
+                    <input class="v-center range-vertical" type="range" id="desktop-volume-slider"></input>
+                </div>
+            </div>
+        </div>
+
+        <!-- controls on the right side -->
+        <div id="desktop-app-links" style="display: none">
+            <div id="app-tag-line">MAKE YOUR PETS SING!</div>
+            <div id="app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
+            <div id="app-logos">
+                <div>
+                    <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
+                </div>
+                <div>
+                    <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
+                </div>
+            </div>
+            <div id="app-badges">
+                <div class="app-badge-side">
+                    <img src="/puppet/app-store-badge.png"></img>
+                </div>
+                <div class="app-badge-side">
+                    <img src="/puppet/google-play-badge.png"></img>
+                </div>
+            </div>
+        </div>
+
+        <!-- mobile stuff all goes below the puppet -->
+        <div id="mobile-bottom-controls" style="display: none">
+            <!-- share -->
+            <div id="mobile-share-button">
+                <div>SHARE</div>
+            </div>
+            <!-- hr -->
+            <hr id="mobile-hr"></hr>
+            <!-- app links and such -->
+            <div id="mobile-app-tag-line">MAKE YOUR PETS SING!</div>
+            <div id="mobile-app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
+            <div id="mobile-app-logos">
+                <div>
+                    <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
+                </div>
+                <div>
+                    <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
+                </div>
+            </div>
+            <div id="mobile-app-badges">
+                <div class="app-badge">
+                    <img src="/puppet/app-store-badge.png"></img>
+                </div>
+                <div class="app-badge">
+                    <img src="/puppet/google-play-badge.png"></img>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <!-- puppet render canvas goes inside this -->
-    <div id="container"></div>
-
-    <!-- this is just for turning images into base64, for testing -->
-    <canvas id="image-canvas"></canvas>
-
     <script src="/build/puppet.js"></script>
 </body>
