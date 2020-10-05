@@ -11,11 +11,14 @@ once the transpiler is running, you can start a server with `npm run dev`. make 
 the server runs by default on port 3000, and the debug page can be found at `http://localhost:3000/puppet/puppet-debug.html` when the server is running.
 there are a few query parameters you can include in this url to make things a little easier:
 
-    * `debug=true` which will call the debug init sequence on document.ready, which is a streamlined version of the init sequence. you can modify the `init_debug` function
-as you see fit.
-    * `dog=problem-dog.jpg` which will automatically call `test()` with the value you assign to dog in the url. `problem-dog.jpg` is set up to show the
-current issue with the mouth. NOTE- the features do not line up with the image (which is not the issue), whats important in that the mouth is at a straight diagonal line instead of curved
-one. fixing the bug means the mouth will contour around the middle mouth position instead of a straight line like it currently.
+    * `debug=true` 
+    
+which will call the debug init sequence on document.ready, which is a streamlined version of the init sequence. you can modify the `init_debug` function as you see fit.
+    
+    * `dog=problem-dog.jpg` 
+    
+which will automatically call `test()` with the value you assign to dog in the url. `problem-dog.jpg` is set up to show the current issue with the mouth. NOTE- the features do not line up with the image (which is not the issue), whats important in that the mouth is at a straight diagonal line instead of curved one. fixing the bug means the mouth will contour around the middle mouth position instead of a straight line like it currently.
+
 you can modify the placement of dog features by altering the `feature_map` object near the end of the puppet.js file.
 you should still have all (or at least most of, im not sure) the testing functions from before available to you via the javascript console.
 
