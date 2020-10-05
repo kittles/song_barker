@@ -2,6 +2,7 @@
 
 ## initial setup
 the app is an express server, so to run the server first install the dependencies with `npm install` from the server directory.
+the following npm commands should also be run from the /server directory.
 the puppet debug page uses a transpiled javascript file, so in order to see the changes you make to javascript files, youll need
 to have the transpiler recompile everything if there is a change. this is handled by running `npm run watch`. NOTE- if you stop
 seeing your changes, theres a chance the transpiler is failing on a parse error, so be sure to check the output of that process.
