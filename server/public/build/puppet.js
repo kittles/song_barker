@@ -251,7 +251,8 @@ var mouth_mesh; // this is the mesh that comes from the gltf
 var pet_image_texture;
 var pet_material;
 var animation_noise_texture; // what head sway uses
-// some animation defaults
+
+var noise_url = '/puppet/noise_2D.png'; // some animation defaults
 
 var head_sway_amplitude = 1;
 var head_sway_speed = 1; // just for checking how long the initialization process takes
@@ -401,7 +402,7 @@ function _prepare_card() {
 
                                   case 8:
                                     _context6.next = 10;
-                                    return load_texture('noise_2D.png');
+                                    return load_texture(noise_url);
 
                                   case 10:
                                     animation_noise_texture = _context6.sent;
@@ -1116,7 +1117,7 @@ function _init() {
 
           case 17:
             _context9.next = 19;
-            return load_texture('noise_2D.png');
+            return load_texture(noise_url);
 
           case 19:
             animation_noise_texture = _context9.sent;
@@ -1269,7 +1270,7 @@ function _init_debug() {
 
           case 11:
             _context10.next = 13;
-            return load_texture('noise_2D.png');
+            return load_texture(noise_url);
 
           case 13:
             animation_noise_texture = _context10.sent;

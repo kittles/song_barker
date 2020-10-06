@@ -149,6 +149,7 @@ var mouth_mesh; // this is the mesh that comes from the gltf
 var pet_image_texture;
 var pet_material;
 var animation_noise_texture; // what head sway uses
+var noise_url = '/puppet/noise_2D.png';
 
 // some animation defaults
 var head_sway_amplitude = 1;
@@ -684,7 +685,7 @@ async function prepare_card () {
                 features[k] = new THREE.Vector2(v[0], v[1]);
             });
             await load_shader_files();
-            animation_noise_texture = await load_texture('noise_2D.png');
+            animation_noise_texture = await load_texture(noise_url);
             scene = new THREE.Scene();
             renderer = new THREE.WebGLRenderer();
             //renderer.autoClear = false;
@@ -887,7 +888,7 @@ async function init () {
 
     // this is an image that has red and green channels for x and y displacement
     // of the head
-    animation_noise_texture = await load_texture('noise_2D.png');
+    animation_noise_texture = await load_texture(noise_url);
 
     //
     // create the threejs geometry and materials for the scene
@@ -1033,7 +1034,7 @@ async function init_debug () {
 
     // this is an image that has red and green channels for x and y displacement
     // of the head
-    animation_noise_texture = await load_texture('noise_2D.png');
+    animation_noise_texture = await load_texture(noise_url);
 
     //
     // create the threejs geometry and materials for the scene
