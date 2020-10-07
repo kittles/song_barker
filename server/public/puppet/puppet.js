@@ -837,7 +837,7 @@ async function prepare_card () {
                 ]
                 function random_brow () {
                     var fns = Math.random() > 0.5 ? brows[0] : brows[1];
-                    var amplitude = 0.25 + (Math.random() / 4);
+                    var amplitude = 0.7 * (0.25 + (Math.random() / 4));
                     var speed = Math.max(Math.floor(Math.random() * 25), 10);
                     var duration = 250 + (Math.random() * 500);
                     if (!document.hidden) {
