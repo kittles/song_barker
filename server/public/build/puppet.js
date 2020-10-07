@@ -716,19 +716,28 @@ function _prepare_card() {
             overlay_right_button = function _overlay_right_button() {
               $('#big-play-button-overlay').hide();
               $('#big-alt-button-overlay').removeClass('overlay-left');
+              $('#big-alt-button-overlay').removeClass('overlay-right');
               $('#big-alt-button-overlay').addClass('overlay-center');
+              $('#big-alt-button-overlay').show();
             };
 
             overlay_one_button = function _overlay_one_button() {
               $('#big-alt-button-overlay').hide();
               $('#big-play-button-overlay').removeClass('overlay-left');
+              $('#big-play-button-overlay').removeClass('overlay-right');
               $('#big-play-button-overlay').addClass('overlay-center');
+              $('#big-play-button-overlay').show();
             };
 
             overlay_two_buttons = function _overlay_two_buttons() {
-              $('#big-alt-button-overlay').show();
               $('#big-play-button-overlay').removeClass('overlay-center');
+              $('#big-alt-button-overlay').removeClass('overlay-center');
+              $('#big-play-button-overlay').removeClass('overlay-right');
+              $('#big-alt-button-overlay').removeClass('overlay-left');
               $('#big-play-button-overlay').addClass('overlay-left');
+              $('#big-alt-button-overlay').addClass('overlay-right');
+              $('#big-play-button-overlay').show();
+              $('#big-alt-button-overlay').show();
             };
 
             _create_overlay_buttons = function _create_overlay_butto2() {

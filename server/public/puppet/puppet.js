@@ -458,21 +458,33 @@ async function prepare_card () {
 
     // when at the beginning or end
     function overlay_two_buttons () {
-        $('#big-alt-button-overlay').show();
         $('#big-play-button-overlay').removeClass('overlay-center');
+        $('#big-alt-button-overlay').removeClass('overlay-center');
+
+        $('#big-play-button-overlay').removeClass('overlay-right');
+        $('#big-alt-button-overlay').removeClass('overlay-left');
+
         $('#big-play-button-overlay').addClass('overlay-left');
+        $('#big-alt-button-overlay').addClass('overlay-right');
+
+        $('#big-play-button-overlay').show();
+        $('#big-alt-button-overlay').show();
     }
     // when paused in the middle
     function overlay_one_button () {
         $('#big-alt-button-overlay').hide();
         $('#big-play-button-overlay').removeClass('overlay-left');
+        $('#big-play-button-overlay').removeClass('overlay-right');
         $('#big-play-button-overlay').addClass('overlay-center');
+        $('#big-play-button-overlay').show();
     }
     // when you just want the replay
     function overlay_right_button () {
         $('#big-play-button-overlay').hide();
         $('#big-alt-button-overlay').removeClass('overlay-left');
+        $('#big-alt-button-overlay').removeClass('overlay-right');
         $('#big-alt-button-overlay').addClass('overlay-center');
+        $('#big-alt-button-overlay').show();
     }
 
 
