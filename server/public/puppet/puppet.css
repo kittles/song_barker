@@ -184,32 +184,21 @@ message inside envelope
     left: 50%;
     transform: translateX(-50%);
     /* position it below the opened message */
-    margin-top: calc(40px + (778px / 2));
+    margin-top: calc(40px + (662px / 2));
     width: calc(656px / 1.5);
     height: 625px; /* by eye, to give some margin at the bottom */
     text-align: center;
 }
 #mobile-share-button {
-    width: 239px;
+    width: 340px;
     font-size: 29px;
     margin: auto;
     border: 3px solid #004692;
-    border-radius: 20px;
-    line-height: 49px;
+    border-radius: 22px;
+    line-height: 60px;
     letter-spacing: 1.4;
     text-align: center;
     cursor: pointer;
-    /*
-    width: 200px;
-    font-size: 2em;
-    margin: auto;
-    border: 2px solid #004692;
-    border-radius: 14px;
-    line-height: 40px;
-    letter-spacing: 1.4;
-    text-align: center;
-    cursor: pointer;
-    */
 }
 #mobile-hr {
     width: 80px;
@@ -218,12 +207,12 @@ message inside envelope
     margin-bottom: 10px;
 }
 #mobile-app-tag-line {
-    font-size: 50px;
+    font-size: 58px;
     letter-spacing: 1.4;
 }
 #mobile-app-subhead {
     margin-top: 2.5%;
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1.6;
 }
 #mobile-app-logos {
@@ -253,12 +242,12 @@ message inside envelope
 #k9-logo {
     position: absolute;
     /* position it above the opened message */
-    top: calc(50% - (778px / 2) - 40px);
+    top: calc(50% - (778px / 2) + 20px);
     left: 50%;
     transform: translate(-50%, -100%);
 }
 #k9-logo > img {
-    width: calc(656px / 2);
+    width: calc(570px / 2);
 }
 /*
     186.84 : logo
@@ -326,6 +315,9 @@ desktop controls on the left
 .desktop-share-icon {
     flex: 1 1 0;
 }
+.desktop-share-icon > img {
+    width: 40px;
+}
 
 /* the blue vertical bar with play and pause and such */
 .blue-background {
@@ -336,7 +328,7 @@ desktop controls on the left
     border: 1px solid red;
 }
 .flex-icon {
-    width: 49%;
+    width: 50%;
     cursor: pointer;
 }
 /* scoot the volume icon closer to the slider on desktop */
@@ -387,12 +379,12 @@ the links and text on the right of the card
     text-align: center;
 }
 #app-tag-line {
-    font-size: 2.5em;
+    font-size: 2.8em;
     letter-spacing: 1.4;
 }
 #app-subhead {
     margin-top: 2.5%;
-    font-size: 0.8em;
+    font-size: 1.1em;
     line-height: 1.6;
 }
 #app-logos {
@@ -404,7 +396,7 @@ the links and text on the right of the card
     flex: 1 1 0;
 }
 #app-logos img {
-    height: 50px;
+    height: 55px;
 }
 #app-badges {
     margin-top: 50px;
@@ -415,5 +407,5 @@ the links and text on the right of the card
     flex: 1 1 0;
 }
 .app-badge-side > img {
-    width: 90px;
+    width: 98px;
 }
