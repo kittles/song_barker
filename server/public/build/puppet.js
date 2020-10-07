@@ -493,7 +493,7 @@ function _prepare_card() {
                                     face_mesh_material.needsUpdate = true;
 
                                     if (card.mouth_color) {
-                                      mouth_color.apply(void 0, _toConsumableArray(card.mouth_color));
+                                      mouth_color.apply(void 0, _toConsumableArray(JSON.parse(card.mouth_color)));
                                     } else {
                                       mouth_color(0.5686274509, 0.39607843137, 0.43137254902);
                                     } // use features to determine locations of stuff

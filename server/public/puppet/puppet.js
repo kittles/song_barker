@@ -779,7 +779,7 @@ async function prepare_card () {
             face_mesh.needsUpdate = true;
             face_mesh_material.needsUpdate = true;
             if (card.mouth_color) {
-                mouth_color(...card.mouth_color);
+                mouth_color(...JSON.parse(card.mouth_color));
             } else {
                 mouth_color(0.5686274509, 0.39607843137, 0.43137254902);
             }
