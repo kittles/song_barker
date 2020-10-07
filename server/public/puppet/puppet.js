@@ -812,8 +812,8 @@ async function prepare_card () {
                         right_blink_quick,
                     ],
                     [
-                        left_blink_slow,
-                        right_blink_slow,
+                        left_blink_medium,
+                        right_blink_medium,
                     ],
                 ]
                 function random_blink () {
@@ -1462,6 +1462,14 @@ function left_blink_quick () { // eslint-disable-line no-unused-vars
 }
 
 
+function left_blink_medium () { // eslint-disable-line no-unused-vars
+    left_blink_to_pos(0, 1, 7, easings.easeInOutQuad);
+    setTimeout(() => {
+        left_blink_to_pos(1, 0, 14, easings.easeInOutQuad);
+    });
+}
+
+
 function left_blink_slow () { // eslint-disable-line no-unused-vars
     left_blink_to_pos(0, 1, 15, easings.easeInOutQuad);
     setTimeout(() => {
@@ -1474,6 +1482,14 @@ function right_blink_quick () { // eslint-disable-line no-unused-vars
     right_blink_to_pos(0, 1, 4, easings.easeInOutQuad);
     setTimeout(() => {
         right_blink_to_pos(1, 0, 8, easings.easeInOutQuad);
+    });
+}
+
+
+function right_blink_medium () { // eslint-disable-line no-unused-vars
+    right_blink_to_pos(0, 1, 7, easings.easeInOutQuad);
+    setTimeout(() => {
+        right_blink_to_pos(1, 0, 14, easings.easeInOutQuad);
     });
 }
 

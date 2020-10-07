@@ -343,7 +343,7 @@ function _prepare_card() {
                                 switch (_context6.prev = _context6.next) {
                                   case 0:
                                     random_gesture = function _random_gesture() {
-                                      var blinks = [[left_blink_quick, right_blink_quick], [left_blink_slow, right_blink_slow]];
+                                      var blinks = [[left_blink_quick, right_blink_quick], [left_blink_medium, right_blink_medium]];
 
                                       function random_blink() {
                                         var fns = Math.random() > 0.5 ? blinks[0] : blinks[1];
@@ -1718,6 +1718,14 @@ function left_blink_quick() {
   });
 }
 
+function left_blink_medium() {
+  // eslint-disable-line no-unused-vars
+  left_blink_to_pos(0, 1, 7, easings.easeInOutQuad);
+  setTimeout(function () {
+    left_blink_to_pos(1, 0, 14, easings.easeInOutQuad);
+  });
+}
+
 function left_blink_slow() {
   // eslint-disable-line no-unused-vars
   left_blink_to_pos(0, 1, 15, easings.easeInOutQuad);
@@ -1731,6 +1739,14 @@ function right_blink_quick() {
   right_blink_to_pos(0, 1, 4, easings.easeInOutQuad);
   setTimeout(function () {
     right_blink_to_pos(1, 0, 8, easings.easeInOutQuad);
+  });
+}
+
+function right_blink_medium() {
+  // eslint-disable-line no-unused-vars
+  right_blink_to_pos(0, 1, 7, easings.easeInOutQuad);
+  setTimeout(function () {
+    right_blink_to_pos(1, 0, 14, easings.easeInOutQuad);
   });
 }
 
