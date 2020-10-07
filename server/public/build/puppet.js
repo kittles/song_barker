@@ -860,10 +860,23 @@ function _prepare_card() {
                                       transition: 'height 1s ease-in-out, width 1s ease-in-out',
                                       width: message_width,
                                       height: has_frame ? message_height : message_width
-                                    });
+                                    }); // adjust the ui around the frame
+
+                                    if (has_frame) {
+                                      $('#mobile-bottom-controls').css({
+                                        'margin-top': 'calc(40px + (765px / 2))'
+                                      });
+                                      $('#k9-logo').css({
+                                        'top': 'calc(50% - (778px / 2) + -17px)'
+                                      });
+                                      $('#logo-image').css({
+                                        'width': 'calc(470px / 2)'
+                                      });
+                                    }
+
                                     setTimeout(r, 1000);
 
-                                  case 6:
+                                  case 7:
                                   case "end":
                                     return _context2.stop();
                                 }
