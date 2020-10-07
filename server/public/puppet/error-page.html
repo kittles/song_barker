@@ -1,0 +1,50 @@
+<head>
+    <style>
+        @font-face {
+            font-family: 'museo';
+            src: url('/puppet/MuseoSansRounded-700.woff2') format('woff2'),
+                 url('puppet/MuseoSansRounded-700.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        body {
+            overflow-y: hidden;
+            overflow-x: hidden;
+            font-family: 'museo';
+            background-image: url('/puppet/k9_create_background.svg');
+            background-size: cover;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            font-size: 17px;
+            color: #004692;
+        }
+        #error-container {
+            text-align: center;
+            width: 100%;
+        }
+        #k9-logo-error {
+            padding-top: 10%;
+            margin: auto;
+            width: 50%;
+        }
+        #k9-logo-error > img {
+            width: 100%;
+        }
+        #error-message {
+            padding-top: 10%;
+            font-size: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div id="error-container">
+        <div id="k9-logo-error">
+            <img src="/puppet/k9_logotype_small.png"></img>
+        </div>
+        <div id="error-message">
+            Oops! Card not foooOOooOOuuuUUUund!
+        </div>
+    </div>
+</body>
