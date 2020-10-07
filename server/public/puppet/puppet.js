@@ -359,9 +359,11 @@ async function prepare_card () {
                     'margin-top': 'calc(40px + (765px / 2))',
                 });
                 $('#k9-logo').css({
+                    'transition': 'top 0.5s ease-in-out',
                     'top': 'calc(50% - (778px / 2) + -17px)',
                 });
                 $('#logo-image').css({
+                    'transition': 'width 0.5s ease-in-out',
                     'width': 'calc(470px / 2)',
                 });
             }
