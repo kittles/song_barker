@@ -1308,8 +1308,8 @@ async function test (img_url) { // eslint-disable-line no-unused-vars
     update_shaders();
 
     // do some animations
-    left_blink_slow();
-    right_blink_slow();
+    //left_blink_slow();
+    //right_blink_slow();
     feature_tickers.mouth.add(_.map(_.range(60 * 60), (i) => {
         return (1 + Math.sin(i / 5)) / 2;
     }));
