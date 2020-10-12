@@ -27,7 +27,7 @@ var controls;
 var animation_frame;
 
 // some vars for debugging
-var debug_face_mesh = false;
+var debug_face_mesh = true;
 var debug_face_points = true;
 var enable_controls = false;
 
