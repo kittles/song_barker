@@ -28,6 +28,7 @@ var animation_frame;
 
 // some vars for debugging
 var debug_face_mesh = false;
+var debug_face_points = true;
 var enable_controls = false;
 
 // show threejs stats about fps and mb
@@ -312,7 +313,10 @@ async function init () {
     mouth_mesh.renderOrder = 2;
 
     // add the meshes and stuff to the scene
-    scene.add(background_mesh);
+
+    if (debug_face_mesh !== true) {
+        scene.add(background_mesh);
+    }
     scene.add(face_mesh);
     scene.add(mouth_gltf.scene); // this adds mouth_mesh because its a child of this
 
