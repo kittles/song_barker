@@ -1318,6 +1318,9 @@ async function test (img_url) { // eslint-disable-line no-unused-vars
     anims.push(setInterval(left_brow_furrow, 900));
     anims.push(setInterval(right_brow_furrow, 700));
     head_sway(head_sway_amplitude, head_sway_speed);
+    // Disable head say so I can see if the points line up
+    //head_sway(head_sway_amplitude, head_sway_speed);
+    anims.push(head_sway(0, 0));
 }
 
 
