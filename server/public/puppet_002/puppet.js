@@ -1321,6 +1321,23 @@ async function test (img_url) { // eslint-disable-line no-unused-vars
     // Disable head say so I can see if the points line up
     //head_sway(head_sway_amplitude, head_sway_speed);
     anims.push(head_sway(0, 0));
+
+    // Used to debug facemap points
+    if (debug_face_points === true) {
+        log('debug_face_points enabled, drawing debug points...');
+
+        var dotGeometry = new THREE.Geometry();
+        dotGeometry.renderOrder = 100;
+
+        for (key in features) {
+            dotGeometry.vertices.push(new THREE.Vector3(features[key].x, features[key].y, 0.001));
+        };
+
+        var dotMaterial = new THREE.PointsMaterial( { size: 4, sizeAttenuation: false, color: new THREE.Color('magenta')} );
+        var dot = new THREE.Points( dotGeometry, dotMaterial );
+        scene.add( dot );
+
+    }
 }
 
 
