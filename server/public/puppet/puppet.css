@@ -33,7 +33,6 @@ body:before {
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
-    transform: scaleY(-1);
 }
 
 body:after {
@@ -50,6 +49,7 @@ body:after {
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
+    transform: scaleY(-1);
 }
 
 /*
