@@ -977,7 +977,8 @@ function _prepare_card() {
             };
 
             wide_mode = function _wide_mode() {
-              return document.body.offsetWidth > document.body.offsetHeight;
+              //return document.body.offsetWidth > document.body.offsetHeight;
+              return document.body.offsetWidth / document.body.offsetHeight > 1.1;
             };
 
             cancel_jiggle = function _cancel_jiggle(cb) {

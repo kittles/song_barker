@@ -289,7 +289,8 @@ async function prepare_card () {
 
 
     function wide_mode () {
-        return document.body.offsetWidth > document.body.offsetHeight;
+        //return document.body.offsetWidth > document.body.offsetHeight;
+        return (document.body.offsetWidth / document.body.offsetHeight) > 1.1;
     }
 
 

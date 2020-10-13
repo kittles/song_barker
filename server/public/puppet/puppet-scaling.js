@@ -2,7 +2,8 @@ var initial_viewport_height = window.innerHeight;
 $(document).ready(() => {
     /* amateur hour */
     function wide_mode () {
-        return document.body.offsetWidth > document.body.offsetHeight;
+        //return document.body.offsetWidth > document.body.offsetHeight;
+        return (document.body.offsetWidth / document.body.offsetHeight) > 1.1;
     }
     function aspect_ratio () {
         return document.body.offsetWidth / document.body.offsetHeight;
@@ -43,16 +44,16 @@ $(document).ready(() => {
         } else {
             // aspect ratio determines the top offset
             var top_adjust = (aspect_ratio() - 0.60) * 250;
-            if (aspect_ratio() > 0.72) {
-                top_adjust += 60 * scale;
-            }
-            console.log('top adjust', top_adjust);
+            //if (aspect_ratio() > 0.72) {
+            //    top_adjust += 60 * scale;
+            //}
+            //console.log('top adjust', top_adjust);
             $('#container').css({
                 position: 'relative',
                 top: `${top_adjust}px`,
             });
         }
-        console.log(aspect_ratio());
+        //console.log(aspect_ratio());
     }
     set_container_scale();
     $(window).on('resize', _.debounce(set_container_scale, 125));
