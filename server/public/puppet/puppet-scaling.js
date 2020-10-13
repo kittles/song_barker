@@ -1,7 +1,11 @@
 var initial_viewport_height = window.innerHeight;
 $(document).ready(() => {
+    /* amateur hour */
     function wide_mode () {
         return document.body.offsetWidth > document.body.offsetHeight;
+    }
+    function aspect_ratio () {
+        return document.body.offsetWidth / document.body.offsetHeight;
     }
     function set_container_scale () {
         var content_height = wide_mode() ? 1005 : 1158.84;
@@ -9,7 +13,14 @@ $(document).ready(() => {
         var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
         var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
 
-        var scale = vh / content_height;
+        var scale = 1;
+
+        if (wide_mode()) {
+            scale = vh / content_height;
+        } else {
+            scale = vw / 700;
+            scale = Math.min(scale, 1);
+        }
 
         //console.log('scale:', scale, 'vw:', vw, 'vw / scale:', vw / scale);
 
@@ -30,11 +41,18 @@ $(document).ready(() => {
                 top: `${scale * 60}px`,
             });
         } else {
+            // aspect ratio determines the top offset
+            var top_adjust = (aspect_ratio() - 0.60) * 250;
+            if (aspect_ratio() > 0.72) {
+                top_adjust += 60 * scale;
+            }
+            console.log('top adjust', top_adjust);
             $('#container').css({
                 position: 'relative',
-                top: '0px',
+                top: `${top_adjust}px`,
             });
         }
+        console.log(aspect_ratio());
     }
     set_container_scale();
     $(window).on('resize', _.debounce(set_container_scale, 125));
