@@ -385,16 +385,50 @@ input[type=range][orient=vertical] {
 the links and text on the right of the card
 */
 
-#desktop-app-links {
-    position: absolute;
-    text-align: left;
-    width: 200px;
-    height: 240px;
-    top: calc(50% - 100px);
-    left: calc(50% + 462px);
-    transform: translate(-50%, -50%);
-    text-align: center;
+/* width < 1230px the stuff on the right gets cut off */
+@media (max-width:1230px) {
+    #desktop-app-links {
+        position: absolute;
+        text-align: left;
+        width: 200px;
+        height: 240px;
+        top: calc(50% - 100px);
+        left: calc(50% + 448px);
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    #app-logos img {
+        height: 50px;
+        margin: 5px;
+    }
+    .app-badge-side > img {
+        width: 80px;
+        margin: 5px;
+    }
 }
+
+
+@media (min-width:1230px) {
+    #desktop-app-links {
+        position: absolute;
+        text-align: left;
+        width: 287px;
+        height: 240px;
+        top: calc(50% - 100px);
+        left: calc(50% + 510px);
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    #app-logos img {
+        height: 80px;
+        margin: 5px;
+    }
+    .app-badge-side > img {
+        width: 140px;
+        margin: 5px;
+    }
+}
+
 #app-tag-line {
     font-size: 2.8em;
     letter-spacing: 1.4;
@@ -412,9 +446,6 @@ the links and text on the right of the card
 #app-logos > div {
     flex: 1 1 0;
 }
-#app-logos img {
-    height: 55px;
-}
 #app-badges {
     margin-top: 50px;
     display: flex;
@@ -422,7 +453,4 @@ the links and text on the right of the card
 }
 .app-badge-side {
     flex: 1 1 0;
-}
-.app-badge-side > img {
-    width: 98px;
 }
