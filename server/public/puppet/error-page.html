@@ -20,48 +20,95 @@
             font-size: 17px;
             color: #004692;
         }
-        #error-container {
-            text-align: center;
-            width: 100%;
-            max-width: 800px;
-            margin: 0px auto;
+        @media (max-width: 800px) {
+            #error-container {
+                text-align: center;
+                width: 100%;
+                max-width: 800px;
+                margin: 0px auto;
+            }
+            #k9-logo-error {
+                padding-top: 10%;
+                margin: auto;
+                width: 50%;
+            }
+            #k9-logo-error > img {
+                width: 100%;
+            }
+            #error-message {
+                padding-top: 10%;
+                font-size: 25px;
+            }
+            #app-logos {
+                margin-top: 5%;
+                text-align: center;
+            }
+            #app-logos > div {
+                display: inline;
+            }
+            #app-logos img {
+                width: 250px;
+                margin: 10px;
+            }
+            #app-badges {
+                margin-top: 10px;
+                text-align: center;
+            }
+            #app-badges > div {
+                display: inline;
+            }
+            #app-badges img {
+                width: 250px;
+                margin: 10px;
+            }
+            #links > img {
+                cursor: pointer;
+            }
         }
-        #k9-logo-error {
-            padding-top: 10%;
-            margin: auto;
-            width: 50%;
-        }
-        #k9-logo-error > img {
-            width: 100%;
-        }
-        #error-message {
-            padding-top: 10%;
-            font-size: 25px;
-        }
-        #app-logos {
-            margin-top: 5%;
-            text-align: center;
-        }
-        #app-logos > div {
-            display: inline;
-        }
-        #app-logos img {
-            width: 155px;
-            margin: 10px;
-        }
-        #app-badges {
-            margin-top: 10px;
-            text-align: center;
-        }
-        #app-badges > div {
-            display: inline;
-        }
-        #app-badges img {
-            width: 155px;
-            margin: 10px;
-        }
-        #links > img {
-            cursor: pointer;
+        @media (min-width: 800px) {
+            #error-container {
+                text-align: center;
+                width: 100%;
+                max-width: 800px;
+                margin: 0px auto;
+            }
+            #k9-logo-error {
+                padding-top: 10%;
+                margin: auto;
+                width: 50%;
+            }
+            #k9-logo-error > img {
+                width: 100%;
+            }
+            #error-message {
+                padding-top: 10%;
+                font-size: 25px;
+            }
+            #app-logos {
+                margin-top: 5%;
+                text-align: center;
+            }
+            #app-logos > div {
+                display: inline;
+            }
+            #app-logos img {
+                width: 155px;
+                margin: 10px;
+            }
+            #app-badges {
+                margin-top: 10px;
+                text-align: center;
+            }
+            #app-badges > div {
+                display: inline;
+            }
+            #app-badges img {
+                width: 155px;
+                margin: 10px;
+            }
+            #links > img {
+                cursor: pointer;
+            }
         }
     </style>
 </head>
