@@ -377,6 +377,13 @@ app.post('/create-account', async (req, res) => {
         }
 
         // if there is a confirmed account, try to log in with the password
+        if (user_obj.password == null) {
+            res.json({
+                success: false,
+                error: 'account already exists, but was created with openid, not password',
+            });
+            return;
+        }
         var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
         if (accept_password) {
             req.session.user_id = req.body.email;
@@ -421,11 +428,19 @@ app.post('/create-account', async (req, res) => {
     });
 
     var email_confirmation_url = `https://thedogbarksthesong.ml/confirm/${email_confirmation_string}`;
-    await transporter.sendMail({
-        from: '"K-9 Bot" <no-reply@turboblasterunlimited.com>', // sender address
-        to: req.body.email,
-        subject: 'K-9 Karaoke email confirmation ✔', // Subject line
-        text: `Follow this link to confirm your email address: ${email_confirmation_url}`,
+
+
+    fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+        var html = template({
+            confirmation_link: email_confirmation_url,
+        });
+        transporter.sendMail({
+            from: '"K-9 Bot" <no-reply@turboblasterunlimited.com>', // sender address
+            to: req.body.email,
+            subject: 'K-9 Karaoke email confirmation ✔', // Subject line
+            html: html,
+        });
     });
 
     res.json({
