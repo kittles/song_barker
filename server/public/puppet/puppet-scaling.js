@@ -38,7 +38,7 @@ $(document).ready(() => {
         if (wide_mode()) {
             $('#container').css({
                 position: 'relative',
-                top: `${scale * 60}px`,
+                top: `${scale * 70}px`,
             });
         } else {
             // aspect ratio determines the top offset
