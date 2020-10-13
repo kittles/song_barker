@@ -386,7 +386,7 @@ the links and text on the right of the card
 */
 
 /* width < 1230px the stuff on the right gets cut off */
-@media (max-width:1230px) {
+@media (max-aspect-ratio:34/25) {
     #desktop-app-links {
         position: absolute;
         text-align: left;
@@ -408,7 +408,7 @@ the links and text on the right of the card
 }
 
 
-@media (min-width:1230px) {
+@media (min-aspect-ratio:34/25) {
     #desktop-app-links {
         position: absolute;
         text-align: left;
