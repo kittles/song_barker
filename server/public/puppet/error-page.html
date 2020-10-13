@@ -21,95 +21,86 @@
             font-size: 17px;
             color: #004692;
         }
-        @media (max-width: 800px) {
-            #error-container {
-                text-align: center;
-                width: 100%;
-                max-width: 800px;
-                margin: 0px auto;
-            }
-            #k9-logo-error {
-                padding-top: 10%;
-                margin: auto;
-                width: 50%;
-            }
-            #k9-logo-error > img {
-                width: 100%;
-            }
-            #error-message {
-                padding-top: 10%;
+        #error-container {
+            position: relative;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            max-width: 800px;
+            max-height: 800px;
+            margin: 0px auto;
+        }
+        #k9-logo-error {
+            position: relative;
+            margin: auto;
+            width: 50%;
+            height: 20%;
+        }
+        #k9-logo-error > img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #error-message {
+            position: relative;
+            width: 50%;
+            height: 20%;
+            margin: auto;
+        }
+        @media (min-width: 1000px) {
+            #message-text {
+                margin-top: 5%;
                 font-size: 25px;
             }
-            #app-logos {
+
+        }
+        @media (max-width: 1000px) {
+            #message-text {
                 margin-top: 5%;
-                text-align: center;
-            }
-            #app-logos > div {
-                display: inline;
-            }
-            #app-logos img {
-                width: 130px;
-                margin: 10px;
-            }
-            #app-badges {
-                margin-top: 10px;
-                text-align: center;
-            }
-            #app-badges > div {
-                display: inline;
-            }
-            #app-badges img {
-                width: 130px;
-                margin: 10px;
-            }
-            #links > img {
-                cursor: pointer;
+                font-size: 3vmax;
             }
         }
-        @media (min-width: 800px) {
-            #error-container {
-                text-align: center;
-                width: 100%;
-                max-width: 800px;
-                margin: 0px auto;
-            }
-            #k9-logo-error {
-                padding-top: 10%;
-                margin: auto;
-                width: 50%;
-            }
-            #k9-logo-error > img {
-                width: 100%;
-            }
-            #error-message {
-                padding-top: 10%;
-                font-size: 25px;
-            }
-            #app-logos {
-                margin-top: 5%;
-                text-align: center;
-            }
-            #app-logos > div {
-                display: inline;
-            }
-            #app-logos img {
-                width: 155px;
-                margin: 10px;
-            }
-            #app-badges {
-                margin-top: 10px;
-                text-align: center;
-            }
-            #app-badges > div {
-                display: inline;
-            }
-            #app-badges img {
-                width: 155px;
-                margin: 10px;
-            }
-            #links > img {
-                cursor: pointer;
-            }
+        #app-logos {
+            position: relative;
+            text-align: center;
+            width: 50%;
+            height: 15%;
+            margin: 0px auto;
+        }
+        #app-logos > div {
+            display: inline-block;
+        }
+        .app-logo-container {
+            height: 100%;
+            width: 45%;
+        }
+        #app-logos img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #app-badges {
+            position: relative;
+            text-align: center;
+            width: 50%;
+            height: 15%;
+            margin: 0px auto;
+            padding-top: 30px;
+        }
+        #app-badges > div {
+            display: inline-block;
+        }
+        .app-badge-side {
+            height: 100%;
+            width: 45%;
+        }
+        #app-badges img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #links > img {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -119,14 +110,16 @@
             <img src="/puppet/k9_logotype_small.png"></img>
         </div>
         <div id="error-message">
-            Oops! Card not foooOOooOOuuuUUUund!
+            <div id="message-text">
+                Sorry, we couldn't find your card
+            </div>
         </div>
         <div id="links">
             <div id="app-logos">
-                <div>
+                <div class="app-logo-container">
                     <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
                 </div>
-                <div>
+                <div class="app-logo-container">
                     <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
                 </div>
             </div>
