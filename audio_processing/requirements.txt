@@ -7,8 +7,10 @@ certifi==2019.11.28
 cffi==1.13.2
 chardet==3.0.4
 cycler==0.10.0
+Cython==0.29.21
 decorator==4.4.1
 eyeD3==0.8.12
+future==0.18.2
 gast==0.2.2
 google==2.0.3
 google-api-core==1.16.0
@@ -45,9 +47,9 @@ opt-einsum==3.1.0
 parso==0.6.1
 pexpect==4.8.0
 pickleshare==0.7.5
+praat-parselmouth==0.3.3
 prompt-toolkit==3.0.3
 protobuf==3.11.3
-praat-parselmouth
 ptyprocess==0.6.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
@@ -55,6 +57,7 @@ pyAudioAnalysis==0.2.5
 pycparser==2.19
 pydub==0.23.1
 Pygments==2.5.2
+pyloudnorm==0.1.0
 pyparsing==2.4.6
 python-dateutil==2.8.1
 python-magic==0.4.15

@@ -13,6 +13,7 @@ import argparse
 import time
 import db_queries as dbq
 import audio_conversion as ac
+import pyloudnorm as pyln
 
 
 THRESHOLD = 200
@@ -72,17 +73,48 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                 if debug:
                     print('crop avg', avg)
                 if avg > THRESHOLD:
+
+                    # data needs to be floating point [-1, 1] for lufs library
+                    float_data = data[:] / data.max()
+                    float_data *= 2
+                    float_data -= 1
+
+                    # do a little audio processing to get crops at a consistent volume
+                    meter = pyln.Meter(samplerate) # create BS.1770 meter
+
+                    # get the lufs of the original sample
+                    loudness = meter.integrated_loudness(float_data) # measure loudness
+
+                    # normalize the peaks
+                    float_data = pyln.normalize.peak(float_data, -12.0)
+
+                    # normalize the lufs
+                    loudness_normed_audio = pyln.normalize.loudness(float_data, loudness, -6.0)
+
+                    # do a little fade in and out
+                    ramp_length = 200
+                    fade_in = np.linspace(0, 1, ramp_length)
+                    fade_out = np.linspace(1, 0, ramp_length)
+                    loudness_normed_audio[:ramp_length] = loudness_normed_audio[:ramp_length] * fade_in
+                    loudness_normed_audio[-ramp_length:] = loudness_normed_audio[-ramp_length:] * fade_out
+
+                    wavfile.write(crop_fp, samplerate, loudness_normed_audio)
+
                     good_crops.append({
                         'crop_fp': crop_fp,
                         'crop_duration': len(data) / samplerate,
                     })
-            except:
+            except Exception as e:
                 if debug:
                     print('couldnt get crop avg')
+                    print(e)
         log(raw_uuid, 'filtered split count {}'.format(
             len(good_crops)
         ))
         if debug:
+            print(raw_uuid, '\n filtered split count {}'.format(
+                len(good_crops)
+            ))
             for crop in good_crops:
                 sp.call('play {}'.format(crop['crop_fp']), shell=True)
                 keep_going = input()
