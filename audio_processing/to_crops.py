@@ -75,18 +75,19 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                 if avg > THRESHOLD:
 
                     # data needs to be floating point [-1, 1] for lufs library
+                    # the initial data array is immutable hence the copy
                     float_data = data[:] / data.max()
                     float_data *= 2
                     float_data -= 1
 
+                    # normalize the peaks
+                    float_data = pyln.normalize.peak(float_data, -12.0)
+
                     # do a little audio processing to get crops at a consistent volume
                     meter = pyln.Meter(samplerate) # create BS.1770 meter
 
-                    # get the lufs of the original sample
+                    # get the lufs of the peak normed sample
                     loudness = meter.integrated_loudness(float_data) # measure loudness
-
-                    # normalize the peaks
-                    float_data = pyln.normalize.peak(float_data, -12.0)
 
                     # normalize the lufs
                     loudness_normed_audio = pyln.normalize.loudness(float_data, loudness, -6.0)
