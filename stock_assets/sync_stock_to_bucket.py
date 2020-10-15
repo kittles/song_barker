@@ -43,10 +43,10 @@ for crop_dir in glob.glob(os.path.join(crops_dir, '*/')):
     crop_fp = glob.glob(os.path.join(crop_dir, '*.aac'))[0]
     info_fp = glob.glob(os.path.join(crop_dir, 'info.json'))[0]
     print('----')
-    print('crop_dir:', img_dir)
-    print('crop_fp :', img_fp)
+    print('crop_dir:', crop_dir)
+    print('crop_fp :', crop_fp)
     print('info_fp  :', info_fp)
     info = json.load(open(info_fp))
-    crop_upload_fp = os.path.join(crop_bucket_base, info['uuid'] + '.jpg')
+    crop_upload_fp = os.path.join(crop_bucket_base, info['uuid'] + '.aac')
     print('uploading to :', crop_upload_fp)
     upload(crop_fp, crop_upload_fp)
