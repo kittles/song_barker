@@ -7,6 +7,7 @@ import time
 import tempfile
 import os
 import argparse
+import shutil
 dir_path = os.path.dirname(os.path.realpath(__file__))
 tmp_audio_dir = os.path.join(dir_path, 'tmp_audio')
 
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     aac_to_wav(aac_in_fp, wav_in_fp)
 
     data, rate = sf.read(wav_in_fp) # load audio (with shape (samples, channels))
-    meter = pyln.Meter(rate) # create BS.1770 meter
+    meter = pyln.Meter(rate, block_size=0.1) # create BS.1770 meter
 
     # normalize peak
     data = pyln.normalize.peak(data, args.peak)
@@ -58,7 +59,9 @@ if __name__ == '__main__':
 
     if os.path.exists(aac_out_fp):
         # replace original aac with local aac
-        print('would replace...')
+        print('replacing old aac with new normed one')
+        shutil.copy(aac_out_fp, aac_in_fp)
+
 
         # clean up
         os.remove(wav_in_fp)
