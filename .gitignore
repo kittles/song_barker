@@ -32,5 +32,3 @@ audio_processing/tune_split_params/wav_samples/
 audio_processing/plots
 
 server/sessions
-
-config.sh
