@@ -9,7 +9,7 @@ export k9_audio_dir=$k9_project_root"/audio_processing"
 export k9_server_dir=$k9_project_root"/server"
 export k9_database=$k9_server_dir"/barker_database.db"
 
-# this is for bucket upload etc
+# this is for bucket upload etc (test config.sh merge strategy)
 export GOOGLE_APPLICATION_CREDENTIALS=$k9_credentials_dir"/bucket-credentials.json"
 
 export k9_EMAIL_CREDENTIALS=$k9_credentials_dir"/email.json"
