@@ -1,1 +1,1 @@
-ssh patrick@165.227.178.14
+ssh patrick@$k9_ip_address

@@ -2,7 +2,7 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var sqlite = require('sqlite');
 
-var DB_FILE = process.env.DB_FILE || 'barker_database.db';
+var DB_FILE = process.env.k9_database || 'barker_database.db';
 
 // TODO probably want to use dev db on server
 var dbPromise = sqlite.open(DB_FILE, { Promise });

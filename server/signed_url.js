@@ -1,10 +1,11 @@
 const { Storage } = require('@google-cloud/storage');
-const bucketName = 'song_barker_sequences';
+const BUCKET_NAME = process.env.k9_bucket_name || 'song_barker_sequences';
 const content_type = 'audio/mpeg';
-// from https://cloud.google.com/storage/docs/access-control/signing-urls-with-helpers#storage-signed-url-object-nodejs
+var CREDENTIALS = process.env.GOOGLE_APPLICATION_CREDENTIALS || '../credentials/bucket-credentials.json';
 
+// from https://cloud.google.com/storage/docs/access-control/signing-urls-with-helpers#storage-signed-url-object-nodejs
 const storage = new Storage({
-    keyFilename: '../credentials/bucket-credentials.json',
+    keyFilename: CREDENTIALS,
 });
 
 
@@ -18,7 +19,7 @@ async function to_signed_upload_url (filename, content_type) {
 
     // Get a v4 signed URL for uploading file
     const [url] = await storage
-        .bucket(bucketName)
+        .bucket(BUCKET_NAME)
         .file(filename)
         .getSignedUrl(options);
 
@@ -46,7 +47,7 @@ async function to_signed_playback_url (filename) {
 
     // Get a v4 signed URL for uploading file
     const [url] = await storage
-        .bucket(bucketName)
+        .bucket(BUCKET_NAME)
         .file(filename)
         .getSignedUrl(options);
     return (url);

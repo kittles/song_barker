@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "jest",
-    "dev": "nodemon app.js --ignore 'sessions/'",
+    "dev": " . ../config.sh && ../check_env.sh && nodemon app.js --ignore 'sessions/'",
     "transpile-puppet": "babel public/puppet/puppet.js -d public/build/",
     "watch": "npm-watch"
   },

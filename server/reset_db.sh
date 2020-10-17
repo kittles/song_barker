@@ -1,4 +1,4 @@
-db_file='./barker_database.db'
+db_file=$k9_database
 if test -f "$db_file"; then
     echo "removing old $db_file"
     rm $db_file

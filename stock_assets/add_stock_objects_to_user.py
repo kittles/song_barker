@@ -9,15 +9,18 @@ import argparse
 storage_client = storage.Client()
 
 
+BUCKET_NAME = os.environ.get('k9_bucket_name', 'song_barker_sequences')
+
+
 def copy_blob (blob_name, destination_blob_name):
     """Copies a blob from one bucket to another with a new name."""
     # bucket_name = "your-bucket-name"
     # blob_name = "your-object-name"
     # destination_bucket_name = "destination-bucket-name"
     # destination_blob_name = "destination-object-name"
-    source_bucket = storage_client.bucket('song_barker_sequences')
+    source_bucket = storage_client.bucket(BUCKET_NAME)
     source_blob = source_bucket.blob(blob_name)
-    destination_bucket = storage_client.bucket('song_barker_sequences')
+    destination_bucket = storage_client.bucket(BUCKET_NAME)
     blob_copy = source_bucket.copy_blob(
         source_blob, destination_bucket, destination_blob_name
     )
@@ -30,8 +33,7 @@ def dict_factory (cursor, row):
     return d
 
 
-DB_FILE = os.environ.get('DB_FILE', 'barker_database.db')
-db_fp = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../server', DB_FILE)
+db_fp = os.environ.get('k9_database', '../server/barker_database.db')
 conn = sqlite3.connect(db_fp)
 conn.row_factory = dict_factory
 #conn.set_trace_callback(print)
@@ -86,7 +88,7 @@ if __name__ == '__main__':
         info['uuid'] = new_uuid
         info['coordinates_json'] = json.dumps(info['coordinates_json'])
         info['mouth_color'] = json.dumps(info['mouth_color'])
-        info['bucket_url'] = os.path.join('gs://song_barker_sequences', old_blob)
+        info['bucket_url'] = os.path.join('gs://{}'.format(BUCKET_NAME), old_blob)
         info['bucket_fp'] = old_blob
         info['user_id'] = args.user_id
         info['is_stock'] = 1
@@ -101,7 +103,7 @@ if __name__ == '__main__':
         new_uuid = str(uuid.uuid4())
         old_blob = os.path.join(crop_bucket_base, info['uuid'] + '.jpg')
         info['uuid'] = new_uuid
-        info['bucket_url'] = os.path.join('gs://song_barker_sequences', old_blob)
+        info['bucket_url'] = os.path.join('gs://{}'.format(BUCKET_NAME), old_blob)
         info['bucket_fp'] = old_blob
         info['user_id'] = args.user_id
         info['is_stock'] = 1

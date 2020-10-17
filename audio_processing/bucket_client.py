@@ -3,9 +3,9 @@ from google.cloud import storage
 import logger
 from io import BytesIO
 
-BUCKET_NAME = os.environ.get('BUCKET_NAME', 'song_barker_sequences')
+BUCKET_NAME = os.environ.get('k9_bucket_name', 'song_barker_sequences')
 
-log = logger.log_fn(os.path.basename(__file__)) 
+log = logger.log_fn(os.path.basename(__file__))
 
 storage_client = storage.Client()
 
@@ -62,4 +62,4 @@ def upload_to_bucket (bytestream, dest_fp):
 
 
 if __name__ == '__main__':
-    pass
+    print('bucket client will use bucket named:', BUCKET_NAME)

@@ -3,12 +3,13 @@ import glob
 import json
 from google.cloud import storage
 
+BUCKET_NAME = os.environ.get('k9_bucket_name', 'song_barker_sequences')
 storage_client = storage.Client()
 
 
 def upload (fp, dest_fp):
     # dest_fp format is just the filename and subdir within the gs://bucket-name
-    bucket = storage_client.bucket('song_barker_sequences')
+    bucket = storage_client.bucket(BUCKET_NAME)
     blob = bucket.blob(dest_fp)
     # TODO the file type is text/plain in the bucket... should be audio
     blob.upload_from_filename(fp)

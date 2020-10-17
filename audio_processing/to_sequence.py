@@ -19,6 +19,7 @@ import db_queries as dbq
 import audio_conversion as ac
 from crop_sampler import CropSampler
 
+BUCKET_NAME = os.environ.get('k9_bucket_name', 'song_barker_sequences')
 samplerate = 44100
 log = logger.log_fn(os.path.basename(__file__))
 
@@ -169,10 +170,10 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
 
         # persistence
         remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
-        remote_sequence_url = 'gs://song_barker_sequences/{}'.format(remote_sequence_fp)
+        remote_sequence_url = 'gs://{}/{}'.format(BUCKET_NAME, remote_sequence_fp)
         song_name = dbq.get_song_name(song_id)
         if backing_fp:
-            backing_url = 'gs://song_barker_sequences/' + backing_fp
+            backing_url = 'gs://{}/{}'.format(BUCKET_NAME, backing_fp)
         else:
             backing_url = None
         dbq.db_insert('sequences', **{

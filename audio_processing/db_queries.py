@@ -15,8 +15,7 @@ def dict_factory(cursor, row):
     return d
 
 
-DB_FILE = os.environ.get('DB_FILE', 'barker_database.db')
-db_fp = os.path.join('../server', DB_FILE)
+db_fp = os.environ.get('k9_database', '../server/barker_database.db')
 conn = sqlite3.connect(db_fp)
 conn.row_factory = dict_factory
 #conn.set_trace_callback(print)

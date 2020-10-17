@@ -14,7 +14,7 @@ from google.cloud import storage
 import logger
 from io import BytesIO
 
-BUCKET_NAME = os.environ.get('BUCKET_NAME', 'song_barker_sequences')
+BUCKET_NAME = os.environ.get('k9_bucket_name', 'song_barker_sequences')
 storage_client = storage.Client()
 
 cur = db_queries.cur

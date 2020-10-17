@@ -62,9 +62,6 @@ app.use(
 //
 
 
-// TODO  one of these needs to go i think?
-
-
 app.get('/card/:uuid', async (req, res) => {
     // uuid gets a greeting_card object
     // greeting card is used to get necessary info to make a page
@@ -73,10 +70,11 @@ app.get('/card/:uuid', async (req, res) => {
     // 1. wait until everything is loaded before allowing playback
     // 2. control playback (keep in sync etc), allow repeats and pause
     // 3. links to download app etc
-
     function show_error_page () {
         res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
     }
+
+    // TODO delete
 
     if (!uuid_validate(req.params.uuid)) {
         // TODO should redirect to a user friendly page
@@ -85,6 +83,9 @@ app.get('/card/:uuid', async (req, res) => {
         return;
     }
     const db = await _db.dbPromise;
+    console.log(process.env.k9_database);
+    var check = await db.get('select * from users limit 1');
+    console.log(check);
     var card = await db.get('select * from greeting_cards where uuid = ?', req.params.uuid);
     if (_.isUndefined(card)) {
         //res.status(404).send('card does not exist');
@@ -129,6 +130,8 @@ app.get('/card/:uuid', async (req, res) => {
             name: card.name,
             recipient_name: card.recipient_name,
             mouth_color: image.mouth_color,
+            domain_name: process.env.k9_domain_name,
+            bucket_name: process.env.k9_bucket_name,
         });
         res.send(html);
     });
