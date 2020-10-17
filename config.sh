@@ -1,7 +1,7 @@
 export k9_dev=False
-export k9_domain_name="k9karaoke.com"
+export k9_domain_name="k-9karaoke.com"
 export k9_ip_address=68.183.113.8
-export k9_bucket_name="k9karaoke-bucket"
+export k9_bucket_name="k9karaoke_bucket"
 export k9_project_root="/home/patrick/song_barker"
 
 export k9_credentials_dir=$k9_project_root"/credentials"
