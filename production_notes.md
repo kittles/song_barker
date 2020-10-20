@@ -1,8 +1,8 @@
 # production server notes
-branch is `prod`
-server is at `68.183.113.8`
-domain is `k-9karaoke.com`
-see `config.sh` for all the env vars
+- branch is `prod`
+- server is at `68.183.113.8`
+- domain is `k-9karaoke.com`
+- see [config.sh](config.sh) in the project root for all the env vars
 
 ## initial setup
 follow: https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-20-04
