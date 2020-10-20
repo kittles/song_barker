@@ -7,16 +7,16 @@ see `config.sh` for all the env vars
 ## initial setup
 follow: https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-20-04
 
-created user "patrick"
-UFW firewall
+- created user "patrick"
+- UFW firewall
 
 ## nginx setup
 follow: https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-20-04
 
 using /etc/nginx/sites-enabled/default
 server logs are at:
-    - /var/log/nginx/access.log: Every request to your web server is recorded in this log file unless Nginx is configured to do otherwise.
-    - /var/log/nginx/error.log: Any Nginx errors will be recorded in this log.
+- /var/log/nginx/access.log: Every request to your web server is recorded in this log file unless Nginx is configured to do otherwise.
+- /var/log/nginx/error.log: Any Nginx errors will be recorded in this log.
 
 
 ## ssl encryption for nginx
@@ -44,28 +44,28 @@ This is a log of the steps taken to set up this server
 
 
 # this is just stuff from digital ocean guides
-#sudo apt update
-#sudo apt install nginx
-#sudo ufw app list
-#sudo ufw allow 'Nginx HTTP'
-#sudo ufw allow 'Nginx HTTPS'
-#sudo ufw status
-#systemctl status nginx
-#vim /etc/nginx/sites-enabled/default 
-#sudo vim /etc/nginx/sites-enabled/default 
-#sudo vim /etc/nginx/nginx.conf 
-#sudo nginx -t
-#sudo systemctl restart nginx
-#sudo apt install certbot python3-certbot-nginx
-#cat /etc/nginx/sites-enabled/default 
-#sudo ufw allow 'Nginx Full'
-#sudo ufw delete allow 'Nginx HTTP'
-#sudo ufw status
-#sudo ufw reset
-#sudo certbot --nginx -d k-9karaoke.com -d www.k-9karaoke.com
-#sudo systemctl status certbot.timer
-#sudo certbot renew --dry-run
-#cd ~
+sudo apt update
+sudo apt install nginx
+sudo ufw app list
+sudo ufw allow 'Nginx HTTP'
+sudo ufw allow 'Nginx HTTPS'
+sudo ufw status
+systemctl status nginx
+vim /etc/nginx/sites-enabled/default 
+sudo vim /etc/nginx/sites-enabled/default 
+sudo vim /etc/nginx/nginx.conf 
+sudo nginx -t
+sudo systemctl restart nginx
+sudo apt install certbot python3-certbot-nginx
+cat /etc/nginx/sites-enabled/default 
+sudo ufw allow 'Nginx Full'
+sudo ufw delete allow 'Nginx HTTP'
+sudo ufw status
+sudo ufw reset
+sudo certbot --nginx -d k-9karaoke.com -d www.k-9karaoke.com
+sudo systemctl status certbot.timer
+sudo certbot renew --dry-run
+cd ~
 
 # set up node and npm
 curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh
@@ -86,6 +86,7 @@ ssh-keygen -t rsa -b 2048 -C "pat.w.brooks@gmail.com"
 # get the k-9 code
 git clone git@github.com:kittles/song_barker.git
 
+# system wide dependencies
 sudo apt-get install python-dev   # for python2.x installs
 sudo apt-get install python3-dev  # for python3.x installs
 sudo apt install rubberband-cli
@@ -107,23 +108,22 @@ npm install
 # get credentials to server somehow
 
 # from project root, run this to set env vars
-# `. ./config.sh`
+. ./config.sh
 
 # set ssh to stay alive so you arent constantly booted from the server
 # edit /etc/ssh_config as follows:
-#ClientAliveInterval 120
-#ClientAliveCountMax 720
-# then `sudo systemctl reload sshd`
+ClientAliveInterval 120
+ClientAliveCountMax 720
+sudo systemctl reload sshd
 
 # init database, from /song_barker/server
-# `./initialize_database
+./initialize_database
 
 # init bucket
 # TODO make a gsutil script instead of manually making on in the web console
 # ...
 
 # NEXT set up pm2 config for running app
-
 
 # some niceities
 added vim dotfiles
