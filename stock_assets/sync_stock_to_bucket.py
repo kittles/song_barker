@@ -3,13 +3,12 @@ import glob
 import json
 from google.cloud import storage
 
-BUCKET_NAME = os.environ.get('k9_bucket_name', 'song_barker_sequences')
 storage_client = storage.Client()
 
 
 def upload (fp, dest_fp):
     # dest_fp format is just the filename and subdir within the gs://bucket-name
-    bucket = storage_client.bucket(BUCKET_NAME)
+    bucket = storage_client.bucket('song_barker_sequences')
     blob = bucket.blob(dest_fp)
     # TODO the file type is text/plain in the bucket... should be audio
     blob.upload_from_filename(fp)
@@ -44,10 +43,10 @@ for crop_dir in glob.glob(os.path.join(crops_dir, '*/')):
     crop_fp = glob.glob(os.path.join(crop_dir, '*.aac'))[0]
     info_fp = glob.glob(os.path.join(crop_dir, 'info.json'))[0]
     print('----')
-    print('crop_dir:', crop_dir)
-    print('crop_fp :', crop_fp)
+    print('crop_dir:', img_dir)
+    print('crop_fp :', img_fp)
     print('info_fp  :', info_fp)
     info = json.load(open(info_fp))
-    crop_upload_fp = os.path.join(crop_bucket_base, info['uuid'] + '.aac')
+    crop_upload_fp = os.path.join(crop_bucket_base, info['uuid'] + '.jpg')
     print('uploading to :', crop_upload_fp)
     upload(crop_fp, crop_upload_fp)
