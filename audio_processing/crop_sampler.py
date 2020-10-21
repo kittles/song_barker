@@ -49,10 +49,13 @@ class CropSampler (object):
         if rate != self.samplerate:
             duration = len(self.audio_data) / rate
             self.audio_data = signal.resample(self.audio_data, int(self.samplerate * duration))
+        # NOTE audio data should already be mastered before being loaded by crop sampler
+        # it should also be a consistent dtype (i think its currently 16bit pcm)
+        #print(self.audio_data.astype(np.float32))
         # convert to 32 bit float
-        self.audio_data = self.audio_data.astype(np.float32)
+        #self.audio_data = self.audio_data.astype(np.float32)
         # normalize
-        self.audio_data = self.audio_data / np.max(self.audio_data)
+        #self.audio_data = self.audio_data / np.max(self.audio_data)
         # overwrite the file with one at the correct sample rate
         wavfile.write(wav_fp, self.samplerate, self.audio_data)
         self.duration = len(self.audio_data) / self.samplerate
@@ -301,7 +304,7 @@ if __name__ == '__main__':
         #    #cs.plot_audio('./plots/' + fname + '.png')
         ##cs.play_original()
         ##print(cs.nearest_concert_freq())
-        fp = './fixture_assets/crops/one.aac'
+        fp = './test_crop.aac'
         fname = fp.split('/')[-1].replace('.aac', '')
         print(fname)
         tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
@@ -310,5 +313,8 @@ if __name__ == '__main__':
         cs = CropSampler(fp, tmp_dir)
         print(cs.audio_data.shape)
         print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
-        cs.plot_audio()
+        cs.play_original()
+        data = cs.to_pitch_duration(cs.nearest_pitch + 2, cs.duration)
+        print('data len', len(data))
+        cs.play(data)
         #cs.plot_audio('./plots/' + fname + '.png')

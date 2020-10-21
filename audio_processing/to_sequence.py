@@ -36,6 +36,9 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
 
         # instantiate crop objects
         crop_objs = [dbq.crop_sampler_from_uuid(crop, tmp_dir) for crop in crops]
+        if debug:
+            for co in crop_objs:
+                co.play_original()
 
         # instatiate the midi object
         mb = dbq.midi_bridge_from_song_id(song_id, tmp_dir)
