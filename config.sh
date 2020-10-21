@@ -1,1 +1,0 @@
-../song_barker_config/config-prod-local.sh
