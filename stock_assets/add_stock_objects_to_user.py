@@ -15,9 +15,9 @@ def copy_blob (blob_name, destination_blob_name):
     # blob_name = "your-object-name"
     # destination_bucket_name = "destination-bucket-name"
     # destination_blob_name = "destination-object-name"
-    source_bucket = storage_client.bucket('song_barker_sequences')
+    source_bucket = storage_client.bucket(os.environ.get('k9_bucket_name', 'song_barker_sequences'))
     source_blob = source_bucket.blob(blob_name)
-    destination_bucket = storage_client.bucket('song_barker_sequences')
+    destination_bucket = storage_client.bucket(os.environ.get('k9_bucket_name', 'song_barker_sequences'))
     blob_copy = source_bucket.copy_blob(
         source_blob, destination_bucket, destination_blob_name
     )
@@ -30,8 +30,8 @@ def dict_factory (cursor, row):
     return d
 
 
-DB_FILE = os.environ.get('DB_FILE', 'barker_database.db')
-db_fp = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../server', DB_FILE)
+
+db_fp = os.environ.get('k9_database', '../server/barker_database.db')
 conn = sqlite3.connect(db_fp)
 conn.row_factory = dict_factory
 #conn.set_trace_callback(print)
