@@ -14,13 +14,13 @@ tmp_audio_dir = os.path.join(dir_path, 'tmp_audio')
 
 def aac_to_wav (aac_fp, wav_fp):
     with warnings.catch_warnings():
-        sp.call('ffmpeg -nostats -hide_banner -loglevel panic -y -i {} {}'.format(aac_fp, wav_fp), shell=True)
+        sp.call('ffmpeg -nostats -hide_banner -loglevel panic -y -i "{}" "{}"'.format(aac_fp, wav_fp), shell=True)
     return wav_fp
 
 
 def wav_to_aac (wav_fp, aac_fp):
     with warnings.catch_warnings():
-        sp.call('ffmpeg -nostats -hide_banner -loglevel panic -y -i {} {}'.format(wav_fp, aac_fp), shell=True)
+        sp.call('ffmpeg -nostats -hide_banner -loglevel panic -y -i "{}" "{}"'.format(wav_fp, aac_fp), shell=True)
     return aac_fp
 
 
@@ -42,10 +42,12 @@ if __name__ == '__main__':
     aac_to_wav(aac_in_fp, wav_in_fp)
 
     data, rate = sf.read(wav_in_fp) # load audio (with shape (samples, channels))
-    meter = pyln.Meter(rate, block_size=0.1) # create BS.1770 meter
+
+    block_size = min(0.5, (len(data) / rate)/2)
+    meter = pyln.Meter(rate, block_size=block_size) # create BS.1770 meter
 
     # normalize peak
-    data = pyln.normalize.peak(data, args.peak)
+    #data = pyln.normalize.peak(data, args.peak)
     loudness = meter.integrated_loudness(data) # measure loudness
 
     # normalize the wav

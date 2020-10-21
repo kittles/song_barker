@@ -1,3 +1,5 @@
+. ./config.sh
+
 # delete all song objects in db
 sqlite3 $k9_database ".read ./sql_commands/delete_old_song_info.sql"
 
