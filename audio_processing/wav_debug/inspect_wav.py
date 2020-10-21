@@ -25,7 +25,8 @@ def play_audio (audio_fp):
     sp.call('play {}'.format(audio_fp), shell=True)
 
 
-crop_fp = 'soft_to_loud.wav'
+crop_fp = 'long_mutt.aac'
+crop_fp = aac_to_wav(crop_fp)
 
 def see_mouth_positions (data, rate):
     print(rate, len(data), data.min(), data.max())
@@ -46,9 +47,11 @@ def see_mouth_positions (data, rate):
         print(idx, frame)
 
 data, rate = sf.read(crop_fp) # load audio (with shape (samples, channels))
+data = np.array([d[0] for d in data])
+print(data)
 print('soft to loud')
 see_mouth_positions(data, rate)
 
-data = pyln.normalize.peak(data, -16.0)
-wavfile.write('peak-normed.wav', rate, data)
-see_mouth_positions(data, rate)
+#data = pyln.normalize.peak(data, -16.0)
+#wavfile.write('peak-normed.wav', rate, data)
+#see_mouth_positions(data, rate)

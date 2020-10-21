@@ -80,18 +80,8 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                     float_data *= 2
                     float_data -= 1
 
-                    # normalize the peaks
-                    #float_data = pyln.normalize.peak(float_data, -12.0)
-
-                    # do a little audio processing to get crops at a consistent volume
-                    block_size = min(0.5, (len(float_data) / samplerate)/2)
-                    meter = pyln.Meter(samplerate) # create BS.1770 meter
-
-                    # get the lufs of the peak normed sample
-                    loudness = meter.integrated_loudness(float_data) # measure loudness
-
                     # normalize the lufs
-                    loudness_normed_audio = pyln.normalize.loudness(float_data, loudness, -24.0)
+                    loudness_normed_audio = pyln.normalize.peak(float_data, -20.0)
 
                     # do a little fade in and out
                     ramp_length = 200
