@@ -35,3 +35,6 @@ audio_processing/plots
 server/sessions
 
 config.sh
+
+audio_processing/wav_debug/*.aac
+audio_processing/wav_debug/*.wav

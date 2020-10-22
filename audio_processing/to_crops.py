@@ -36,6 +36,8 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
 
         # get the raw input file
         remote_fp = os.path.join(raw_uuid, 'raw.aac')
+        if debug:
+            print('downloading from: ', remote_fp)
         local_fp_aac = os.path.join(tmp_dir, 'raw.aac')
         bucket_client.download_filename_from_bucket(remote_fp, local_fp_aac)
 
@@ -71,17 +73,20 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                 samplerate, data = wavfile.read(crop_fp)
                 avg = np.average(abs(data))
                 if debug:
+                    print('\n\n\n---------------- NEW CROP ---------------\n\n')
                     print('crop avg', avg)
-                if avg > THRESHOLD:
+                    print('SAMPLERATE:', samplerate, 'data min, max', data.min(), data.max())
+                if avg > THRESHOLD: #TODO thresholding should be sample data type agnostic
 
                     # data needs to be floating point [-1, 1] for lufs library
                     # the initial data array is immutable hence the copy
-                    float_data = data[:] / data.max()
-                    float_data *= 2
-                    float_data -= 1
+                    #float_data = data[:] / data.max()
+                    #float_data *= 2
+                    #float_data -= 1
 
                     # normalize the lufs
-                    loudness_normed_audio = pyln.normalize.peak(float_data, -20.0)
+                    loudness_normed_audio = pyln.normalize.peak(data[:], -20.0)
+                    #loudness_normed_audio = float_data
 
                     # do a little fade in and out
                     ramp_length = 200
