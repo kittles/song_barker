@@ -26,9 +26,9 @@ def play_audio (audio_fp):
 
 
 start = time.perf_counter()
-crop_fp_aac = 'A.aac'
-crop_fp = aac_to_wav(crop_fp_aac)
-#crop_fp = 'test_dynamic.wav'
+#crop_fp_aac = 'A.aac'
+#crop_fp = aac_to_wav(crop_fp_aac)
+crop_fp = '../wav_debug/soft_to_loud.wav'
 data, rate = sf.read(crop_fp) # load audio (with shape (samples, channels))
 
 duration = len(data) / rate

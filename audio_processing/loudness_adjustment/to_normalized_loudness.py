@@ -28,7 +28,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--infile', '-i', help='aac audio file')
     parser.add_argument('--peak', '-p', help='peak value to normalize', type=float)
-    parser.add_argument('--loudness', '-l', help='lufs loudness to normalize to', type=float)
     args = parser.parse_args()
 
     # convert an aac to wav locally temp
@@ -43,15 +42,8 @@ if __name__ == '__main__':
 
     data, rate = sf.read(wav_in_fp) # load audio (with shape (samples, channels))
 
-    block_size = min(0.5, (len(data) / rate)/2)
-    meter = pyln.Meter(rate, block_size=block_size) # create BS.1770 meter
-
-    # normalize peak
-    #data = pyln.normalize.peak(data, args.peak)
-    loudness = meter.integrated_loudness(data) # measure loudness
-
-    # normalize the wav
-    loudness_normed_audio = pyln.normalize.loudness(data, loudness, args.loudness)
+    # normalize the wav (NOTE: peak doesnt compress, but .loudness does)
+    loudness_normed_audio = pyln.normalize.peak(data, args.peak)
 
     # save normed wav locally
     wavfile.write(wav_out_fp, rate, loudness_normed_audio)
