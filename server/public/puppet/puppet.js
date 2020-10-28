@@ -565,7 +565,7 @@ async function prepare_card () {
         // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
         $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
         audio_el = document.querySelector('audio');
-        audio_el.addEventListener('ended', handle_audio_end, { once: true });
+        audio_el.addEventListener('ended', handle_audio_end);
 
         // TODO consolidate volume slider logic
 
@@ -684,6 +684,7 @@ async function prepare_card () {
 
 
         function handle_audio_end () {
+            log('audio ended');
             clearInterval(buffer_interval);
             overlay_right_button();
             overlay_background.fadeIn(500);
