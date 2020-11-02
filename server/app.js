@@ -807,6 +807,8 @@ app.post('/to_sequence', async function (req, res) {
 
     // generate sequence
     var uuids_string = _.join(req.body.uuids, ' ');
+    var cmd_for_logging = `python to_sequence.py -c ${uuids_string} -u "${req.session.user_id}" -s "${req.body.song_id}"`;
+    console.log('CALLING to_sequence.py: ', cmd_for_logging);
     exec(`
         cd ../audio_processing &&
         source .env/bin/activate &&
