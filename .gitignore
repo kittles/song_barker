@@ -38,3 +38,9 @@ config.sh
 
 audio_processing/wav_debug/*.aac
 audio_processing/wav_debug/*.wav
+
+audio_processing/one_two_three.aac
+audio_processing/one_two_three.wav
+audio_processing/sync_audio_test.aac
+audio_processing/test_sequence_output
+audio_processing/test_sequence_output/*

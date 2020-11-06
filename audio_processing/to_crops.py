@@ -42,6 +42,8 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         bucket_client.download_filename_from_bucket(remote_fp, local_fp_aac)
 
         # convert to wav
+        # NOTE from ffmpeg docs: The default for muxing into WAV files is pcm_s16le
+        # so that is what we will get here
         local_fp_wav = ac.aac_to_wav(local_fp_aac)
 
         if debug:

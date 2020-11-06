@@ -42,6 +42,8 @@ class CropSampler (object):
         self.frequency_table = [self.f0 * np.power((self.a), n) for n in np.arange(-120, 120)]
         self.wav_fp = wav_fp
         rate, self.audio_data = wavfile.read(self.wav_fp)
+        #if (self.audio_data.dtype != np.int16):
+        #    raise Exception('Crop Sampler Data Type Error: got {} but it should be int16'.format(self.audio_data.dtype))
         # handle stereo
         if self.audio_data.ndim == 2:
             self.audio_data = self.audio_data.sum(axis=1) / 2
