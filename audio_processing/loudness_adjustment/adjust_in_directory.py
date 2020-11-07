@@ -26,7 +26,7 @@ def wav_to_aac (wav_fp, aac_fp):
     return aac_fp
 
 def normalize_all_songs ():
-    peak = '-12.0'
+    peak = '-16.0'
     for fp in glob.glob('../../songs/*/*.aac'):
         cmd = 'python to_normalized_loudness.py -i "{}" -p "{}"'.format(fp, peak)
         print(cmd)

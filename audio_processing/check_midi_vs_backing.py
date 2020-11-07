@@ -4,14 +4,14 @@ from midi2audio import FluidSynth
 fs = FluidSynth()
 
 
-#input_fp = '../songs/jingle_bells_harmonized/song.mid'
-#backing_fp_aac = '../songs/jingle_bells_harmonized/C.aac'
+input_fp = '../songs/old_macdonald_harmonized/song.mid'
+backing_fp_aac = '../songs/old_macdonald_harmonized/C.aac'
 
 #input_fp = '../../../../Downloads/song (1).mid'
 #backing_fp_aac = '../songs/old_macdonald_pitched/C.aac'
 
-input_fp = '../songs/old_macdonald_harmonized/song.mid'
-backing_fp_aac = '/home/patrick/Desktop/A-old.aac'
+#input_fp = '../songs/old_macdonald_harmonized/song.mid'
+#backing_fp_aac = '/home/patrick/Desktop/A-old.aac'
 
 output_fp = 'midi-audio.wav'
 output_louder_fp = 'midi-audio-louder.wav'
