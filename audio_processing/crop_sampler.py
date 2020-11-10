@@ -49,8 +49,10 @@ class CropSampler (object):
             self.audio_data = self.audio_data.sum(axis=1) / 2
         # resample
         if rate != self.samplerate:
+            log(None, 'rate was {}, resampling to 44100'.format(rate))
             duration = len(self.audio_data) / rate
             self.audio_data = signal.resample(self.audio_data, int(self.samplerate * duration))
+            self.audio_data = self.audio_data.astype(np.int16)
         # NOTE audio data should already be mastered before being loaded by crop sampler
         # it should also be a consistent dtype (i think its currently 16bit pcm)
         #print(self.audio_data.astype(np.float32))
@@ -74,12 +76,15 @@ class CropSampler (object):
 
 
     def get_freq (self):
-        # TODO handle bad samples
-        snd = parselmouth.Sound(self.wav_fp)
-        pitch = snd.to_pitch()
-        pitch_values = pitch.selected_array['frequency']
-        pitch_values = [pv for pv in pitch_values if pv != 0]
-        return np.median(pitch_values)
+        try:
+            # TODO handle bad samples
+            snd = parselmouth.Sound(self.wav_fp)
+            pitch = snd.to_pitch()
+            pitch_values = pitch.selected_array['frequency']
+            pitch_values = [pv for pv in pitch_values if pv != 0]
+            return np.median(pitch_values)
+        except Exception as e:
+            log(None, 'get_freq failed with {}'.format(e))
 
 
     def steps_between_freqs (self, f1, f2):
@@ -306,7 +311,7 @@ if __name__ == '__main__':
         #    #cs.plot_audio('./plots/' + fname + '.png')
         ##cs.play_original()
         ##print(cs.nearest_concert_freq())
-        fp = './test_crop.aac'
+        fp = './error-crop.aac'
         fname = fp.split('/')[-1].replace('.aac', '')
         print(fname)
         tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
