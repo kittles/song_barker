@@ -117,12 +117,13 @@ class CropSampler (object):
         out_fp = os.path.join(self.tmp_dir, 'out.wav')
         duration = min(duration, self.duration)
         rubberband_args = {
-            'duration': duration,
+            #'duration': duration,
             'crop_fp': self.wav_fp,
             'out_fp': out_fp,
         }
         try:
-            sp.call('rubberband -F -D {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
+            #sp.call('rubberband -F -D {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
+            sp.call('rubberband -F {crop_fp} {out_fp} > /dev/null 2>&1'.format(
                 **rubberband_args
             ), shell=True)
             # TODO handle bad renders
@@ -131,7 +132,7 @@ class CropSampler (object):
             return audio_data
         except Exception as e:
             # log error
-            log('rubberband failed with {}'.format(e))
+            log(None, 'rubberband failed with {}'.format(e))
             return np.zeros((int(duration * self.samplerate), ))
 
 
@@ -141,12 +142,13 @@ class CropSampler (object):
         duration = min(duration, self.duration)
         rubberband_args = {
             'pitch': pitch,
-            'duration': duration,
+            #'duration': duration,
             'crop_fp': self.wav_fp,
             'out_fp': out_fp,
         }
         try:
-            sp.call('rubberband -F -p {pitch} -D {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
+            #sp.call('rubberband -F -p {pitch} -D {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
+            sp.call('rubberband -F -p {pitch} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
                 **rubberband_args
             ), shell=True)
             # TODO handle bad renders
@@ -155,7 +157,7 @@ class CropSampler (object):
             return audio_data
         except Exception as e:
             # log error
-            log('rubberband failed with {}'.format(e))
+            log(None, 'rubberband failed with {}'.format(e))
             return np.zeros((int(duration * self.samplerate), ))
 
 
@@ -169,12 +171,13 @@ class CropSampler (object):
         duration = min(duration, self.duration)
         rubberband_args = {
             'pitch': pitch_offset + self.tuning_offset,
-            'duration': duration,
+            #'duration': duration,
             'crop_fp': self.wav_fp,
             'out_fp': out_fp,
         }
         try:
-            sp.call('rubberband -F -p {pitch} -D {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
+            #sp.call('rubberband -F -p {pitch} -D {duration} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
+            sp.call('rubberband -F -p {pitch} {crop_fp} {out_fp} > /dev/null 2>&1'.format(
                 **rubberband_args
             ), shell=True)
             # TODO handle bad renders
@@ -183,7 +186,7 @@ class CropSampler (object):
             return audio_data
         except Exception as e:
             # log error
-            log('rubberband failed with {}'.format(e))
+            log(None, 'rubberband failed with {}'.format(e))
             return np.zeros((int(duration * self.samplerate), ))
 
 
@@ -321,7 +324,8 @@ if __name__ == '__main__':
         print(cs.audio_data.shape)
         print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
         cs.play_original()
-        data = cs.to_pitch_duration(cs.nearest_pitch + 2, cs.duration)
+        data = cs.to_pitch_duration(60, cs.duration * .3)
+        data = cs.to_relative_pitch_duration(6, cs.duration * .3)
         print('data len', len(data))
         cs.play(data)
         #cs.plot_audio('./plots/' + fname + '.png')

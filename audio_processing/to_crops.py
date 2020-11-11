@@ -73,6 +73,7 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         for crop_fp in sorted(glob.glob(os.path.join(tmp_dir, 'crop_*.wav'))):
             try:
                 samplerate, data = wavfile.read(crop_fp)
+                # TODO: force int16
                 avg = np.average(abs(data))
                 if debug:
                     print('\n\n\n---------------- NEW CROP ---------------\n\n')
