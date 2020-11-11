@@ -36,10 +36,14 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
 
         # get the raw input file
         remote_fp = os.path.join(raw_uuid, 'raw.aac')
+        if debug:
+            print('downloading from: ', remote_fp)
         local_fp_aac = os.path.join(tmp_dir, 'raw.aac')
         bucket_client.download_filename_from_bucket(remote_fp, local_fp_aac)
 
         # convert to wav
+        # NOTE from ffmpeg docs: The default for muxing into WAV files is pcm_s16le
+        # so that is what we will get here
         local_fp_wav = ac.aac_to_wav(local_fp_aac)
 
         if debug:
@@ -69,19 +73,24 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         for crop_fp in sorted(glob.glob(os.path.join(tmp_dir, 'crop_*.wav'))):
             try:
                 samplerate, data = wavfile.read(crop_fp)
+                data = data.astype(np.int16)
                 avg = np.average(abs(data))
                 if debug:
+                    print('\n\n\n---------------- NEW CROP ---------------\n\n')
+                    print('dtype', data.dtype)
                     print('crop avg', avg)
-                if avg > THRESHOLD:
+                    print('SAMPLERATE:', samplerate, 'data min, max', data.min(), data.max())
+                if avg > THRESHOLD: #TODO thresholding should be sample data type agnostic
 
                     # data needs to be floating point [-1, 1] for lufs library
                     # the initial data array is immutable hence the copy
-                    float_data = data[:] / data.max()
-                    float_data *= 2
-                    float_data -= 1
+                    #float_data = data[:] / data.max()
+                    #float_data *= 2
+                    #float_data -= 1
 
                     # normalize the lufs
-                    loudness_normed_audio = pyln.normalize.peak(float_data, -20.0)
+                    loudness_normed_audio = pyln.normalize.peak(data[:], -3.0)
+                    #loudness_normed_audio = float_data
 
                     # do a little fade in and out
                     ramp_length = 200

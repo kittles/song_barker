@@ -570,9 +570,7 @@ function _prepare_card() {
 
               $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
               audio_el = document.querySelector('audio');
-              audio_el.addEventListener('ended', handle_audio_end, {
-                once: true
-              }); // TODO consolidate volume slider logic
+              audio_el.addEventListener('ended', handle_audio_end); // TODO consolidate volume slider logic
 
               $('#mobile-volume-slider').on('input', function () {
                 audio_el.volume = $('#mobile-volume-slider').val() / 100;
@@ -681,6 +679,7 @@ function _prepare_card() {
               }
 
               function handle_audio_end() {
+                log('audio ended');
                 clearInterval(buffer_interval);
                 overlay_right_button();
                 overlay_background.fadeIn(500);

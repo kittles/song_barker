@@ -189,8 +189,9 @@ class MidiBridge (object):
 if __name__ == '__main__':
     import tempfile
     with tempfile.TemporaryDirectory() as tmp_dir:
-        midi_fp = '../songs/jingle_bells_harmonized/song.mid'
+        midi_fp = '../songs/old_macdonald_harmonized/song.mid'
         mb = MidiBridge(midi_fp, tmp_dir, False)
+        print('BPM:', mb.bpm)
         mb.visualize()
     for track in mb.tracks:
         for idx, note in enumerate(track['notes']):

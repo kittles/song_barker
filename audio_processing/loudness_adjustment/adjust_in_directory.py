@@ -26,7 +26,7 @@ def wav_to_aac (wav_fp, aac_fp):
     return aac_fp
 
 def normalize_all_songs ():
-    peak = '-32.0'
+    peak = '-12.0'
     for fp in glob.glob('../../songs/*/*.aac'):
         cmd = 'python to_normalized_loudness.py -i "{}" -p "{}"'.format(fp, peak)
         print(cmd)
@@ -34,7 +34,7 @@ def normalize_all_songs ():
 
 
 def normalize_all_barks ():
-    peak = '-20.0'
+    peak = '-3.0'
     for fp in glob.glob('../../stock_assets/barks/*/*.aac'):
         cmd = 'python to_normalized_loudness.py -i "{}" -p "{}"'.format(fp, peak)
         print(cmd)
@@ -84,7 +84,7 @@ def check_all_songs_LUFS ():
 
 if __name__ == '__main__':
     #normalize_all_songs()
-    #normalize_all_barks()
-    check_all_barks()
+    normalize_all_barks()
+    #check_all_barks()
     #check_all_songs_LUFS()
     #check_all_barks_LUFS()

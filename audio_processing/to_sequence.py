@@ -18,6 +18,7 @@ from functools import partial
 import db_queries as dbq
 import audio_conversion as ac
 from crop_sampler import CropSampler
+import pyloudnorm as pyln
 
 BUCKET_NAME = os.environ.get('k9_bucket_name', 'song_barker_sequences')
 samplerate = 44100
@@ -38,7 +39,11 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
         crop_objs = [dbq.crop_sampler_from_uuid(crop, tmp_dir) for crop in crops]
         if debug:
             for co in crop_objs:
-                co.play_original()
+                #co.play_original()
+                print(co)
+                print('crop audio data: min {} max {} dtype {}'.format(co.audio_data.min(), co.audio_data.max(), co.audio_data.dtype))
+
+            pass
 
         # instatiate the midi object
         mb = dbq.midi_bridge_from_song_id(song_id, tmp_dir)
@@ -103,10 +108,12 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
             total_samples = mb.total_samples(samplerate)
 
             # need audio padding for crop offset timing
+            # this just determines how many samples are going to be used
             audio_padding = samplerate * 2
 
             # initialize an array with zeros that is the length of the song
-            track_sequence = np.zeros((total_samples + audio_padding,))
+            # plus the audio padding
+            track_sequence = np.zeros((total_samples + audio_padding,), dtype=np.int16) #TODO crops need to be all int16!!
 
             # splice in audio data for each crop sample by sample index
             for note in track['notes']:
@@ -132,40 +139,59 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
 
                 # calculate sample offset so peak intesity falls on beat
                 # get the relative spot of the peak
+                # this is a percent, so it is independent of sample stretching or squishing
+                # in theory
                 peak_pct = crop.peak()
 
                 # get the number of samples from the beginning of the audio data to the peak
+                # (audio_data is the pitch / duration shifted result)
                 peak_offset = int(len(audio_data) * peak_pct)
 
                 # determine the number of samples needed before the note starts in the track
                 # (this will get adjusted below based on the peak of the sample)
+                # if we put the sound in at this point, it would be late in most cases,
+                # as the peak is not usually the first sample
                 rest_samples = mb.ticks_to_samples(note['time'], samplerate)
 
                 # add some padding so that samples that start at the beginning
                 # but have a late peak still have room to exist in full
                 # (this is just accounting for that, not actually adding it)
+                # another way of thinking about this is now we are shifting the sound
+                # later in time, by the length of the audio padding
                 rest_samples += audio_padding
 
-                # subtrack that number from the number of rest samples before the audio data
+                # subtract that number from the number of rest samples before the audio data
+                # finally shift the sound back in time a bit, so that
+                # the peak of the sound (instead of the first sample of the sound)
+                # lines up with the note time
                 rest_samples -= peak_offset
+
+                # rest_samples now represents the number of samples from the beginning
+                # of the track to the point where the first sample of the sound should be
 
                 # splice the audio data in to the track data the determined time
                 track_sequence[rest_samples:rest_samples + len(audio_data)] += audio_data
 
-            track_sequence /= track_sequence.max()
+            # NOTE: since samples should already be mastered, dont mess with the levels anymore
+            #track_sequence /= track_sequence.max()
             track_sequences.append(track_sequence)
 
         # combine tracks into single array
         sequence_uuid = uuid.uuid4()
         sequence_fp = os.path.join(tmp_dir, '{}.wav'.format(sequence_uuid))
         sequence_length = max([len(track) for track in track_sequences])
-        sequence = np.zeros((sequence_length,))
+        sequence = np.zeros((sequence_length,), dtype=np.int16)
         for track in track_sequences:
             sequence[0:len(track)] += track
-        sequence /= sequence.max()
+
+        # NOTE again, dont mess with levels!
+        #sequence /= sequence.max()
 
         # unshift audio padding
         sequence = sequence[audio_padding:]
+
+        if debug:
+            print('sequence min {} max {} dtype {}'.format(sequence.min(), sequence.max(), sequence.dtype))
 
         # write to file
         wavfile.write(sequence_fp, samplerate, sequence)
@@ -196,7 +222,8 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
 
         if debug:
             for crop in crop_objs:
-                print(crop)
+                #print(crop)
+                pass
             if backing_fp:
                 local_backing = os.path.join(tmp_dir, 'backing.aac')
                 bc.download_filename_from_bucket(backing_fp, local_backing)
@@ -204,12 +231,13 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
                     sequence_fp,
                     local_backing
                 )
-                sp.call(cmd, shell=True)
+                #sp.call(cmd, shell=True)
             else:
-                sp.call('play {}'.format(sequence_fp), shell=True)
+                #sp.call('play {}'.format(sequence_fp), shell=True)
+                pass
 
             if output:
-                cmd = 'ffmpeg -i {} -i {} -filter_complex amix=inputs=2:duration=longest {}'.format(
+                cmd = 'ffmpeg -i {} -i {} -y -filter_complex amix=inputs=2:duration=longest {}'.format(
                     sequence_fp,
                     local_backing,
                     output
