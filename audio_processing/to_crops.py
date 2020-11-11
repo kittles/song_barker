@@ -73,10 +73,11 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         for crop_fp in sorted(glob.glob(os.path.join(tmp_dir, 'crop_*.wav'))):
             try:
                 samplerate, data = wavfile.read(crop_fp)
-                # TODO: force int16
+                data = data.astype(np.int16)
                 avg = np.average(abs(data))
                 if debug:
                     print('\n\n\n---------------- NEW CROP ---------------\n\n')
+                    print('dtype', data.dtype)
                     print('crop avg', avg)
                     print('SAMPLERATE:', samplerate, 'data min, max', data.min(), data.max())
                 if avg > THRESHOLD: #TODO thresholding should be sample data type agnostic
@@ -88,7 +89,7 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                     #float_data -= 1
 
                     # normalize the lufs
-                    loudness_normed_audio = pyln.normalize.peak(data[:], -20.0)
+                    loudness_normed_audio = pyln.normalize.peak(data[:], -3.0)
                     #loudness_normed_audio = float_data
 
                     # do a little fade in and out
