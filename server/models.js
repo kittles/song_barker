@@ -170,6 +170,11 @@ exports.models = [
                     type: 'text',
                     desc: 'the backing track that goes with this song',
                 },
+                {
+                    name: 'backingtrack_offset',
+                    type: 'real',
+                    desc: 'when the song actually starts in the audio file (in seconds)',
+                },
             ],
         },
     },
