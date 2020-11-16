@@ -89,7 +89,7 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                     #float_data -= 1
 
                     # normalize the lufs
-                    loudness_normed_audio = pyln.normalize.peak(data[:], -3.0)
+                    loudness_normed_audio = pyln.normalize.peak(data[:], -1.0)
                     #loudness_normed_audio = float_data
 
                     # do a little fade in and out
