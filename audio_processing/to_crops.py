@@ -53,11 +53,50 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
 
 
         # split with sox
-        split_cmd = 'sox {in_fp} {out_fp_prefix} silence 1 0.3 0.001% 1 0.1 1% : newfile : restart'
+        # the parameters here are fairly arcane, see https://digitalcardboard.com/blog/2009/08/25/the-sox-of-silence/
+        # its really two groups:
+        #    above-periods: 1
+        #    duration: 0.3
+        #    threshold: 0.001%
+        # and
+        #    below-periods: 1
+        #    duration: 0.1
+        #    threshold: 1%
+        #
+        # the first triplet is for the beginning of sounds, and the second triplet is for the end
+        #
+        # - "above-periods" is how many times does the loudness need to cross the threshold before
+        # we care. if its 0, then no silence is stripped, if its > 1 then it needs to cross more than
+        # once before the silence kicks in. so for most uses, its set to 1, as in our case
+        #
+        # - "duration" how long the sound must be before it counts as non silence.
+        # you can treat bursts or quick transients as silence if you make the duration longer than the bursts
+        #
+        # - "threshold" is the sample value that counts as sound. this is a percent based on ??
+        #
+        # the "-l" flag: "The option -l indicates that below-periods duration length of audio
+        # should be left intact at the beginning of each period of silence.
+        # For example, if you want to remove long pauses between words but do
+        # not want to remove the pauses completely."
+        split_cmd = '''
+            sox "{in_fp}" "{out_fp_prefix}"
+                silence -l {start-above-periods} {start-duration} {start-threshold}
+                {end-above-periods} {end-duration} {end-threshold}
+                : newfile : restart
+        '''
         split_args = {
             'in_fp': local_fp_wav,
             'out_fp_prefix': os.path.join(tmp_dir, 'crop_.wav'),
+            'start-above-periods': 1,
+            'start-duration': 0.1,
+            'start-threshold': '1%',
+            'end-above-periods': 1,
+            'end-duration': 0.3,
+            'end-threshold': '1%',
         }
+        split_cmd = ' '.join(split_cmd.format(**split_args).split())
+        if debug:
+            print(split_cmd)
         sp.call(split_cmd.format(**split_args), shell=True)
 
         # log initial split count
