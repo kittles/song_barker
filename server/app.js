@@ -440,7 +440,7 @@ app.post('/create-account', async (req, res) => {
             confirmation_link: email_confirmation_url,
         });
         transporter.sendMail({
-            from: '"K-9 Bot" <no-reply@turboblasterunlimited.com>', // sender address
+            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
             to: req.body.email,
             subject: 'K-9 Karaoke email confirmation ✔', // Subject line
             html: html,
