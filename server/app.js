@@ -396,6 +396,7 @@ app.post('/create-account', async (req, res) => {
                 payload: {
                     email: req.body.email,
                 },
+                account_already_exists: true, // this is useful if a user tries to click sign in and hits sign up by accident
             });
             return;
         } else {
@@ -451,6 +452,7 @@ app.post('/create-account', async (req, res) => {
         payload: {
             email: req.body.email,
         },
+        account_already_exists: false,
     });
 });
 
