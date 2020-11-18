@@ -163,6 +163,17 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                 else:
                     break
 
+        # TODO:
+        # make sure there is at least one crop
+        # less than .7 seconds
+        # one crop > .7 and less than 1.2 seconds
+        # and one crop > 1.2 and less than 3.5 seconds
+        # ... in cases where this does not happen naturally
+        # join longest crops until you get this
+        # if you still dont have it, repeat the crops
+        # and use ffmpeg to join them
+        # make sure to append to the list of good crops
+
         crop_info = dbq.get_crop_defaults(user_id, image_id)
 
         # upload good crops and log in db
