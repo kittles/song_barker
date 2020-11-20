@@ -478,7 +478,8 @@ app.get('/confirm/:uuid', async (req, res) => {
     // subprocess to add stock objects
     add_stock_objects_to_user(result.user_id)
 
-    res.send('K9 Karaoke has confirmed your email address, go to the app to log in!');
+    //res.send('K9 Karaoke has confirmed your email address, go to the app to log in!');
+    res.sendFile(path.join(__dirname + '/public/puppet/confirm-page.html'));
 });
 
 

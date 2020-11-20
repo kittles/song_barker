@@ -173,6 +173,24 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         # if you still dont have it, repeat the crops
         # and use ffmpeg to join them
         # make sure to append to the list of good crops
+        has_short = False
+        has_medium = False
+        has_long = False
+        for crop in good_crops:
+            if 0 < crop['crop_duration'] <= .7:
+                has_short = True
+            if 0.7 < crop['crop_duration'] <= 1.2:
+                has_medium = True
+            if 1.2 < crop['crop_duration'] <= 3.5:
+                has_long = True
+
+        if debug:
+            print('short, medium, long', has_short, has_medium, has_long)
+
+        # handle missing short: truncate shortest clip on either side?
+        # handle missing medium: concat shorts or surround with silence?
+        # handle missing long: same?
+
 
         crop_info = dbq.get_crop_defaults(user_id, image_id)
 

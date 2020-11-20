@@ -1,0 +1,122 @@
+<!-- just reusing the error page, apologies for the poor class names -->
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @font-face {
+            font-family: 'museo';
+            src: url('/puppet/MuseoSansRounded-700.woff2') format('woff2'),
+                 url('puppet/MuseoSansRounded-700.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        body {
+            overflow-y: hidden;
+            overflow-x: hidden;
+            font-family: 'museo';
+            background-image: url('/puppet/k9_create_background.svg');
+            background-size: cover;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            font-size: 17px;
+            color: #004692;
+        }
+        #error-container {
+            position: relative;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            max-width: 800px;
+            max-height: 800px;
+            margin: 0px auto;
+        }
+        #k9-logo-error {
+            position: relative;
+            margin: auto;
+            width: 50%;
+            height: 20%;
+        }
+        #k9-logo-error > img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            margin-top: 10px;
+        }
+        #error-message {
+            position: relative;
+            width: 50%;
+            height: 20%;
+            margin: auto;
+        }
+        @media (min-width: 1000px) {
+            #message-text {
+                margin-top: 5%;
+                font-size: 25px;
+            }
+
+        }
+        @media (max-width: 1000px) {
+            #message-text {
+                margin-top: 5%;
+                font-size: 3vmax;
+            }
+        }
+        #app-logos {
+            position: relative;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            height: 15%;
+            margin: 0px auto;
+        }
+        #app-badges {
+            position: relative;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            height: 15%;
+            margin: 0px auto;
+            padding-top: 30px;
+        }
+        #app-logos > div {
+            display: inline-block;
+        }
+        .app-logo-container {
+            height: 100%;
+            width: 45%;
+        }
+        #app-logos img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #app-badges > div {
+            display: inline-block;
+        }
+        .app-badge-side {
+            height: 100%;
+            width: 45%;
+        }
+        #app-badges img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #links > img {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="error-container">
+        <div id="k9-logo-error">
+            <img src="/puppet/k9_logotype_small.png"></img>
+        </div>
+        <div id="error-message">
+            <div id="message-text">
+                K-9 Karaoke has confirmed your email address, go to the app to log in!
+            </div>
+        </div>
+    </div>
+</body>
