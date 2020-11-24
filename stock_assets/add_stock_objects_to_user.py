@@ -9,6 +9,7 @@ import argparse
 storage_client = storage.Client()
 
 
+# NOTE this isnt needed
 def copy_blob (blob_name, destination_blob_name):
     """Copies a blob from one bucket to another with a new name."""
     # bucket_name = "your-bucket-name"
