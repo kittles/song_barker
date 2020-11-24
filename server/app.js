@@ -431,7 +431,8 @@ app.post('/create-account', async (req, res) => {
         },
     });
 
-    var email_confirmation_url = `https://thedogbarksthesong.ml/confirm/${email_confirmation_string}`;
+    var url_root = `https://${process.env.k9_domain_name}/confirm/` || 'https://k-9karaoke.com/confirm/';
+    var email_confirmation_url = url_root + email_confirmation_string;
 
 
     fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
