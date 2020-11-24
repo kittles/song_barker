@@ -43,6 +43,11 @@ exports.models = [
                     type: 'integer default 0',
                     desc: 'whether the account is waiting to be confirmed via email (this is for when users sign up manually)',
                 },
+                {
+                    name: 'user_agreed_to_terms_v1',
+                    type: 'integer DEFAULT 0',
+                    desc: 'when the user agreed to terms',
+                },
             ],
         },
     },

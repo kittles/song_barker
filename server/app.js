@@ -396,6 +396,7 @@ app.post('/create-account', async (req, res) => {
                 payload: {
                     email: req.body.email,
                 },
+                account_already_exists: true, // this is useful if a user tries to click sign in and hits sign up by accident
             });
             return;
         } else {
@@ -439,7 +440,7 @@ app.post('/create-account', async (req, res) => {
             confirmation_link: email_confirmation_url,
         });
         transporter.sendMail({
-            from: '"K-9 Bot" <no-reply@turboblasterunlimited.com>', // sender address
+            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
             to: req.body.email,
             subject: 'K-9 Karaoke email confirmation ✔', // Subject line
             html: html,
@@ -451,6 +452,7 @@ app.post('/create-account', async (req, res) => {
         payload: {
             email: req.body.email,
         },
+        account_already_exists: false,
     });
 });
 
@@ -476,7 +478,8 @@ app.get('/confirm/:uuid', async (req, res) => {
     // subprocess to add stock objects
     add_stock_objects_to_user(result.user_id)
 
-    res.send('K9 Karaoke has confirmed your email address, go to the app to log in!');
+    //res.send('K9 Karaoke has confirmed your email address, go to the app to log in!');
+    res.sendFile(path.join(__dirname + '/public/puppet/confirm-page.html'));
 });
 
 

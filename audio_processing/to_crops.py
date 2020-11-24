@@ -53,11 +53,50 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
 
 
         # split with sox
-        split_cmd = 'sox {in_fp} {out_fp_prefix} silence 1 0.3 0.001% 1 0.1 1% : newfile : restart'
+        # the parameters here are fairly arcane, see https://digitalcardboard.com/blog/2009/08/25/the-sox-of-silence/
+        # its really two groups:
+        #    above-periods: 1
+        #    duration: 0.3
+        #    threshold: 0.001%
+        # and
+        #    below-periods: 1
+        #    duration: 0.1
+        #    threshold: 1%
+        #
+        # the first triplet is for the beginning of sounds, and the second triplet is for the end
+        #
+        # - "above-periods" is how many times does the loudness need to cross the threshold before
+        # we care. if its 0, then no silence is stripped, if its > 1 then it needs to cross more than
+        # once before the silence kicks in. so for most uses, its set to 1, as in our case
+        #
+        # - "duration" how long the sound must be before it counts as non silence.
+        # you can treat bursts or quick transients as silence if you make the duration longer than the bursts
+        #
+        # - "threshold" is the sample value that counts as sound. this is a percent based on ??
+        #
+        # the "-l" flag: "The option -l indicates that below-periods duration length of audio
+        # should be left intact at the beginning of each period of silence.
+        # For example, if you want to remove long pauses between words but do
+        # not want to remove the pauses completely."
+        split_cmd = '''
+            sox "{in_fp}" "{out_fp_prefix}"
+                silence -l {start-above-periods} {start-duration} {start-threshold}
+                {end-above-periods} {end-duration} {end-threshold}
+                : newfile : restart
+        '''
         split_args = {
             'in_fp': local_fp_wav,
             'out_fp_prefix': os.path.join(tmp_dir, 'crop_.wav'),
+            'start-above-periods': 1,
+            'start-duration': 0.1,
+            'start-threshold': '1%',
+            'end-above-periods': 1,
+            'end-duration': 0.3,
+            'end-threshold': '1%',
         }
+        split_cmd = ' '.join(split_cmd.format(**split_args).split())
+        if debug:
+            print(split_cmd)
         sp.call(split_cmd.format(**split_args), shell=True)
 
         # log initial split count
@@ -89,7 +128,7 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                     #float_data -= 1
 
                     # normalize the lufs
-                    loudness_normed_audio = pyln.normalize.peak(data[:], -3.0)
+                    loudness_normed_audio = pyln.normalize.peak(data[:], -1.0)
                     #loudness_normed_audio = float_data
 
                     # do a little fade in and out
@@ -123,6 +162,172 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
                     continue
                 else:
                     break
+
+        # TODO:
+        # make sure there is at least one crop
+        # less than .7 seconds
+        # one crop > .7 and less than 1.2 seconds
+        # and one crop > 1.2 and less than 3.5 seconds
+        # ... in cases where this does not happen naturally
+        # join longest crops until you get this
+        # if you still dont have it, repeat the crops
+        # and use ffmpeg to join them
+        # make sure to append to the list of good crops
+        has_short = False
+        has_medium = False
+        has_long = False
+        for crop in good_crops:
+            if 0 < crop['crop_duration'] <= .7:
+                has_short = True
+            if 0.7 < crop['crop_duration'] <= 1.2:
+                has_medium = True
+            if 1.2 < crop['crop_duration'] <= 3.5:
+                has_long = True
+
+        if debug:
+            print('short, medium, long', has_short, has_medium, has_long)
+
+        durations = [c['crop_duration'] for c in good_crops]
+
+        # handle missing short: truncate shortest clip on either side?
+        if not has_short:
+            if debug:
+                print('creating a short crop!')
+            shortest_duration = min(durations)
+            shortest_index = durations.index(shortest_duration)
+            shortest_crop = good_crops[shortest_index]
+
+            samplerate, data = wavfile.read(shortest_crop['crop_fp'])
+            #print(len(data), max(data), min(data))
+            data = data.astype(np.float64)
+            #print(len(data), max(data), min(data))
+
+            # slice samples for correct duration
+            samples_needed = int(samplerate * 0.60)
+            midpoint = int(len(data) / 2)
+            half_samples = int(samples_needed / 2)
+            short_data = data[midpoint - half_samples : midpoint + half_samples]
+            if debug:
+                print('modifying', shortest_crop)
+                print(samplerate, samples_needed, len(short_data))
+                print(min(short_data), max(short_data))
+
+            # need to re fade out since end has been cut off
+            ramp_length = 200
+            fade_in = np.linspace(0, 1, ramp_length)
+            fade_out = np.linspace(1, 0, ramp_length)
+            short_data[:ramp_length] = short_data[:ramp_length] * fade_in
+            short_data[-ramp_length:] = short_data[-ramp_length:] * fade_out
+
+            crop_fp = os.path.join(tmp_dir, 'crop_short.wav')
+            wavfile.write(crop_fp, samplerate, short_data)
+
+            good_crops.append({
+                'crop_fp': crop_fp,
+                'crop_duration': len(short_data) / samplerate,
+            })
+
+            if debug:
+                sp.call('play {}'.format(crop_fp), shell=True)
+                keep_going = input()
+
+        # handle missing medium
+        # has shorts: pad with silence
+        # has longs: truncate
+        # has shorts and longs: truncate
+        if not has_medium:
+            if debug:
+                print('creating a medium!')
+            longest_duration = max(durations)
+            longest_index = durations.index(longest_duration)
+            longest_crop = good_crops[longest_index]
+            samplerate, data = wavfile.read(longest_crop['crop_fp'])
+            data = data.astype(np.float64)
+
+            if longest_duration > 1.19:
+                # truncate
+                if debug:
+                    print('creating a medium from longer sample by truncating')
+                # slice samples for correct duration
+                samples_needed = int(samplerate * 1)
+                midpoint = int(len(data) / 2)
+                half_samples = int(samples_needed / 2)
+                medium_data = data[midpoint - half_samples : midpoint + half_samples]
+            else:
+                # pad
+                if debug:
+                    print('creating a medium from longer sample by padding')
+                # slice samples for correct duration
+                padding_needed = int(samplerate * 1) - len(data)
+                medium_data = np.concatenate((data, np.zeros(padding_needed, dtype=np.float64)))
+
+            # need to re fade out since end has been cut off
+            ramp_length = 200
+            fade_in = np.linspace(0, 1, ramp_length)
+            fade_out = np.linspace(1, 0, ramp_length)
+            medium_data[:ramp_length] = medium_data[:ramp_length] * fade_in
+            medium_data[-ramp_length:] = medium_data[-ramp_length:] * fade_out
+
+            crop_fp = os.path.join(tmp_dir, 'crop_medium.wav')
+            wavfile.write(crop_fp, samplerate, medium_data)
+
+            good_crops.append({
+                'crop_fp': crop_fp,
+                'crop_duration': len(medium_data) / samplerate,
+            })
+
+            if debug:
+                sp.call('play {}'.format(crop_fp), shell=True)
+                keep_going = input()
+
+        # handle missing long: take longest crop and
+        # if its close, pad it
+        # if its not, double it until its close
+        if not has_long:
+            if debug:
+                print('creating a long!')
+            longest_duration = max(durations)
+            longest_index = durations.index(longest_duration)
+            longest_crop = good_crops[longest_index]
+            samplerate, data = wavfile.read(longest_crop['crop_fp'])
+            data = data.astype(np.float64)
+
+            if longest_duration > 3.45:
+                # truncate
+                if debug:
+                    print('creating a long from longer sample by truncating')
+                # slice samples for correct duration
+                samples_needed = int(samplerate * 3)
+                midpoint = int(len(data) / 2)
+                half_samples = int(samples_needed / 2)
+                long_data = data[midpoint - half_samples : midpoint + half_samples]
+            else:
+                # pad
+                if debug:
+                    print('creating a long by padding')
+                # slice samples for correct duration
+                padding_needed = int(samplerate * 1) - len(data)
+                long_data = np.concatenate((data, np.zeros(padding_needed, dtype=np.float64)))
+
+            # need to re fade out since end has been cut off
+            ramp_length = 200
+            fade_in = np.linspace(0, 1, ramp_length)
+            fade_out = np.linspace(1, 0, ramp_length)
+            long_data[:ramp_length] = long_data[:ramp_length] * fade_in
+            long_data[-ramp_length:] = long_data[-ramp_length:] * fade_out
+
+            crop_fp = os.path.join(tmp_dir, 'crop_long.wav')
+            wavfile.write(crop_fp, samplerate, long_data)
+
+            good_crops.append({
+                'crop_fp': crop_fp,
+                'crop_duration': len(long_data) / samplerate,
+            })
+
+            if debug:
+                sp.call('play {}'.format(crop_fp), shell=True)
+                keep_going = input()
+
 
         crop_info = dbq.get_crop_defaults(user_id, image_id)
 
