@@ -42,13 +42,16 @@ class CropSampler (object):
         self.frequency_table = [self.f0 * np.power((self.a), n) for n in np.arange(-120, 120)]
         self.wav_fp = wav_fp
         rate, self.audio_data = wavfile.read(self.wav_fp)
+
         #if (self.audio_data.dtype != np.int16):
         #    raise Exception('Crop Sampler Data Type Error: got {} but it should be int16'.format(self.audio_data.dtype))
         # handle stereo
         if self.audio_data.ndim == 2:
-            self.audio_data = self.audio_data.sum(axis=1) / 2
+            raise Exception('cant have stereo crop')
+            #self.audio_data = self.audio_data.sum(axis=1) / 2
         # resample
         if rate != self.samplerate:
+            #raise Exception('cant have non 44100 sample rate')
             log(None, 'rate was {}, resampling to 44100'.format(rate))
             duration = len(self.audio_data) / rate
             self.audio_data = signal.resample(self.audio_data, int(self.samplerate * duration))
@@ -85,8 +88,6 @@ class CropSampler (object):
             pitch_values = [pv for pv in pitch_values if pv != 0]
             return np.median(pitch_values)
         except Exception as e:
-            print(self.audio_data.dtype)
-            print(e)
             log(None, 'get_freq failed with {}'.format(e))
 
 

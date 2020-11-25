@@ -142,6 +142,9 @@ def crop_sampler_from_uuid (uuid, tmp_dir):
     crop_aac = os.path.join(tmp_dir, '{}.aac'.format(uuid))
     bc.download_filename_from_bucket(row['bucket_fp'], crop_aac)
     wav_fp = ac.aac_to_wav(crop_aac)
+    #import subprocess as sp
+    #sp.call('ffmpeg -i {}'.format(wav_fp), shell=True)
+    #sp.call('play {}'.format(wav_fp), shell=True)
     return CropSampler(wav_fp, tmp_dir)
 
 
