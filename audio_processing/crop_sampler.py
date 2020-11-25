@@ -283,49 +283,60 @@ class CropSampler (object):
 if __name__ == '__main__':
     import shutil
     import uuid
+
+    test_uuids = [
+        '7ddc9800-9424-41a2-825b-67b85910560e',
+        '37b63248-d73c-41f7-82a5-81a992a99542',
+        '6a6dafca-8966-49f8-bcaf-8d1eb7596f74',
+    ]
     with tempfile.TemporaryDirectory() as tmp_dir:
-        #for fp in glob.glob('./fixture_assets/crops/*.aac'):
-        #    try:
-        #        tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
-        #        shutil.copyfile(fp, tmp_fp)
-        #        fp = ac.aac_to_wav(tmp_fp)
-        #        cs = CropSampler(fp, tmp_dir)
-        #        print(cs)
-        #        start = dt.datetime.now()
-        #        data = cs.to_pitch_duration(cs.nearest_pitch + 2, cs.duration())
-        #        print('data len', len(data))
-        #        cs.play(data)
-        #        data = cs.to_duration(cs.duration() / 2)
-        #        print('data len', len(data))
-        #        cs.play(data)
-        #        #print('took {} s'.format(dt.datetime.now() - start))
-        #    except Exception as e:
-        #        print('\n*** \n\n !!!! FAILED {} \n\n***'.format(fp))
-        #        print(e)
-        #for fp in glob.glob('./fixture_assets/crops/*.aac'):
-        #    #fp = './fixture_assets/crops/three.aac'
-        #    fname = fp.split('/')[-1].replace('.aac', '')
-        #    print(fname)
-        #    tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
-        #    shutil.copyfile(fp, tmp_fp)
-        #    fp = ac.aac_to_wav(tmp_fp)
-        #    cs = CropSampler(fp, tmp_dir)
-        #    print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
-        #    #cs.plot_audio('./plots/' + fname + '.png')
-        ##cs.play_original()
-        ##print(cs.nearest_concert_freq())
-        fp = './error-crop.aac'
-        fname = fp.split('/')[-1].replace('.aac', '')
-        print(fname)
-        tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
-        shutil.copyfile(fp, tmp_fp)
-        fp = ac.aac_to_wav(tmp_fp)
-        cs = CropSampler(fp, tmp_dir)
-        print(cs.audio_data.shape)
-        print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
-        cs.play_original()
-        data = cs.to_pitch_duration(60, cs.duration * .3)
-        data = cs.to_relative_pitch_duration(6, cs.duration * .3)
-        print('data len', len(data))
-        cs.play(data)
-        #cs.plot_audio('./plots/' + fname + '.png')
+        for test_uuid in test_uuids:
+            print(test_uuid)
+    #    #        cs = CropSampler(fp, tmp_dir)
+
+    #with tempfile.TemporaryDirectory() as tmp_dir:
+    #    #for fp in glob.glob('./fixture_assets/crops/*.aac'):
+    #    #    try:
+    #    #        tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
+    #    #        shutil.copyfile(fp, tmp_fp)
+    #    #        fp = ac.aac_to_wav(tmp_fp)
+    #    #        cs = CropSampler(fp, tmp_dir)
+    #    #        print(cs)
+    #    #        start = dt.datetime.now()
+    #    #        data = cs.to_pitch_duration(cs.nearest_pitch + 2, cs.duration())
+    #    #        print('data len', len(data))
+    #    #        cs.play(data)
+    #    #        data = cs.to_duration(cs.duration() / 2)
+    #    #        print('data len', len(data))
+    #    #        cs.play(data)
+    #    #        #print('took {} s'.format(dt.datetime.now() - start))
+    #    #    except Exception as e:
+    #    #        print('\n*** \n\n !!!! FAILED {} \n\n***'.format(fp))
+    #    #        print(e)
+    #    #for fp in glob.glob('./fixture_assets/crops/*.aac'):
+    #    #    #fp = './fixture_assets/crops/three.aac'
+    #    #    fname = fp.split('/')[-1].replace('.aac', '')
+    #    #    print(fname)
+    #    #    tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
+    #    #    shutil.copyfile(fp, tmp_fp)
+    #    #    fp = ac.aac_to_wav(tmp_fp)
+    #    #    cs = CropSampler(fp, tmp_dir)
+    #    #    print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
+    #    #    #cs.plot_audio('./plots/' + fname + '.png')
+    #    ##cs.play_original()
+    #    ##print(cs.nearest_concert_freq())
+    #    fp = './error-crop.aac'
+    #    fname = fp.split('/')[-1].replace('.aac', '')
+    #    print(fname)
+    #    tmp_fp = os.path.join(tmp_dir, '{}.aac'.format(uuid.uuid4()))
+    #    shutil.copyfile(fp, tmp_fp)
+    #    fp = ac.aac_to_wav(tmp_fp)
+    #    cs = CropSampler(fp, tmp_dir)
+    #    print(cs.audio_data.shape)
+    #    print(cs.peak(), len(cs.audio_data), cs.peak() * len(cs.audio_data))
+    #    cs.play_original()
+    #    data = cs.to_pitch_duration(60, cs.duration * .3)
+    #    data = cs.to_relative_pitch_duration(6, cs.duration * .3)
+    #    print('data len', len(data))
+    #    cs.play(data)
+    #    #cs.plot_audio('./plots/' + fname + '.png')

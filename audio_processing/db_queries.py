@@ -151,3 +151,19 @@ def midi_bridge_from_song_id (song_id, tmp_dir):
     })
     row = cur.fetchone()
     return MidiBridge(row['bucket_fp'], tmp_dir, True)
+
+
+if __name__ == '__main__':
+    import shutil
+    import uuid
+
+    test_uuids = [
+        '7ddc9800-9424-41a2-825b-67b85910560e',
+        '37b63248-d73c-41f7-82a5-81a992a99542',
+        '6a6dafca-8966-49f8-bcaf-8d1eb7596f74',
+    ]
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        for test_uuid in test_uuids:
+            print(test_uuid)
+            co = crop_sampler_from_uuid(test_uuid, tmp_dir)
+            print(co)
