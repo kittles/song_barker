@@ -57,7 +57,8 @@ class CropSampler (object):
         # it should also be a consistent dtype (i think its currently 16bit pcm)
         #print(self.audio_data.astype(np.float32))
         # convert to 32 bit float
-        #self.audio_data = self.audio_data.astype(np.float32)
+        #if self.audio_data.dtype == np.float64:
+        #    self.audio_data = self.audio_data.astype(np.float32)
         # normalize
         #self.audio_data = self.audio_data / np.max(self.audio_data)
         # overwrite the file with one at the correct sample rate
@@ -84,8 +85,8 @@ class CropSampler (object):
             pitch_values = [pv for pv in pitch_values if pv != 0]
             return np.median(pitch_values)
         except Exception as e:
-            #print(self.audio_data.dtype)
-            #print(e)
+            print(self.audio_data.dtype)
+            print(e)
             log(None, 'get_freq failed with {}'.format(e))
 
 

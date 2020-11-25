@@ -13,7 +13,7 @@ for fp in glob.glob('barks/*/*.aac'):
     if fp.find('-mono.aac') > 0:
         continue
     temp_mono_fp = fp.replace('.aac', '-mono.aac')
-    ##sp.call('ffmpeg -i "{}" -ac 1 "{}" -y'.format(fp, temp_mono_fp), shell=True)
+    sp.call('ffmpeg -i "{}" -ac 1 "{}" -y'.format(fp, temp_mono_fp), shell=True)
     sp.call('mv "{}" "{}"'.format(temp_mono_fp, fp), shell=True)
 
 

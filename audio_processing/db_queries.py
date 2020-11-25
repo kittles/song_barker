@@ -168,3 +168,4 @@ if __name__ == '__main__':
             print(test_uuid)
             co = crop_sampler_from_uuid(test_uuid, tmp_dir)
             print(co)
+            co.play_original()
