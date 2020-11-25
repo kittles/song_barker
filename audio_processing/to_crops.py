@@ -179,9 +179,9 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
         for crop in good_crops:
             if 0 < crop['crop_duration'] <= .7:
                 has_short = True
-            if 0.7 < crop['crop_duration'] <= 1.2:
+            if 0.7 < crop['crop_duration'] <= 1.1:
                 has_medium = True
-            if 1.2 < crop['crop_duration'] <= 3.5:
+            if 1.1 < crop['crop_duration']:
                 has_long = True
 
         if debug:
@@ -204,9 +204,10 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
 
             # slice samples for correct duration
             samples_needed = int(samplerate * 0.60)
-            midpoint = int(len(data) / 2)
-            half_samples = int(samples_needed / 2)
-            short_data = data[midpoint - half_samples : midpoint + half_samples]
+            short_data = data[:samples_needed]
+            #midpoint = int(len(data) / 2)
+            #half_samples = int(samples_needed / 2)
+            #short_data = data[midpoint - half_samples : midpoint + half_samples]
             if debug:
                 print('modifying', shortest_crop)
                 print(samplerate, samples_needed, len(short_data))
@@ -244,7 +245,7 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
             samplerate, data = wavfile.read(longest_crop['crop_fp'])
             data = data.astype(np.float64)
 
-            if longest_duration > 1.19:
+            if longest_duration > 1.09:
                 # truncate
                 if debug:
                     print('creating a medium from longer sample by truncating')
@@ -256,10 +257,14 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
             else:
                 # pad
                 if debug:
-                    print('creating a medium from longer sample by padding')
-                # slice samples for correct duration
-                padding_needed = int(samplerate * 1) - len(data)
-                medium_data = np.concatenate((data, np.zeros(padding_needed, dtype=np.float64)))
+                    print('creating a medium from shorter sample by repeating')
+                medium_data = data
+                # repeat the sound to get above 1 second
+                while (len(medium_data) / samplerate) < 1:
+                    medium_data = np.concatenate((medium_data, data))
+                # crop the end off if needed to keep it under 1.1
+                if (len(medium_data) / samplerate) > 1.1:
+                    medium_data = medium_data[:samplerate * 1]
 
             # need to re fade out since end has been cut off
             ramp_length = 200
@@ -292,22 +297,15 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
             samplerate, data = wavfile.read(longest_crop['crop_fp'])
             data = data.astype(np.float64)
 
-            if longest_duration > 3.45:
-                # truncate
-                if debug:
-                    print('creating a long from longer sample by truncating')
-                # slice samples for correct duration
-                samples_needed = int(samplerate * 3)
-                midpoint = int(len(data) / 2)
-                half_samples = int(samples_needed / 2)
-                long_data = data[midpoint - half_samples : midpoint + half_samples]
-            else:
-                # pad
-                if debug:
-                    print('creating a long by padding')
-                # slice samples for correct duration
-                padding_needed = int(samplerate * 1) - len(data)
-                long_data = np.concatenate((data, np.zeros(padding_needed, dtype=np.float64)))
+            # now accept all crops > 1.1 as longs, no truncating needed
+
+            # pad
+            if debug:
+                print('creating a long by padding')
+            # slice samples for correct duration
+            long_data = data
+            while (len(long_data) / samplerate) < 1.5:
+                long_data = np.concatenate((long_data, data))
 
             # need to re fade out since end has been cut off
             ramp_length = 200
