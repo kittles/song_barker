@@ -100,7 +100,7 @@ if __name__ == '__main__':
         info = json.load(open(info_fp))
         # new uuid, but use existing bucket_fp and bucket_url
         new_uuid = str(uuid.uuid4())
-        old_blob = os.path.join(crop_bucket_base, info['uuid'] + '.jpg')
+        old_blob = os.path.join(crop_bucket_base, info['uuid'] + '.aac')
         info['uuid'] = new_uuid
         info['bucket_url'] = os.path.join('gs://song_barker_sequences', old_blob)
         info['bucket_fp'] = old_blob
