@@ -189,142 +189,144 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
 
         durations = [c['crop_duration'] for c in good_crops]
 
-        # handle missing short: truncate shortest clip on either side?
-        if not has_short:
-            if debug:
-                print('creating a short crop!')
-            shortest_duration = min(durations)
-            shortest_index = durations.index(shortest_duration)
-            shortest_crop = good_crops[shortest_index]
-
-            samplerate, data = wavfile.read(shortest_crop['crop_fp'])
-            #print(len(data), max(data), min(data))
-            data = data.astype(np.float64)
-            #print(len(data), max(data), min(data))
-
-            # slice samples for correct duration
-            samples_needed = int(samplerate * 0.60)
-            short_data = data[:samples_needed]
-            #midpoint = int(len(data) / 2)
-            #half_samples = int(samples_needed / 2)
-            #short_data = data[midpoint - half_samples : midpoint + half_samples]
-            if debug:
-                print('modifying', shortest_crop)
-                print(samplerate, samples_needed, len(short_data))
-                print(min(short_data), max(short_data))
-
-            # need to re fade out since end has been cut off
-            ramp_length = 200
-            fade_in = np.linspace(0, 1, ramp_length)
-            fade_out = np.linspace(1, 0, ramp_length)
-            short_data[:ramp_length] = short_data[:ramp_length] * fade_in
-            short_data[-ramp_length:] = short_data[-ramp_length:] * fade_out
-
-            crop_fp = os.path.join(tmp_dir, 'crop_short.wav')
-            wavfile.write(crop_fp, samplerate, short_data)
-
-            good_crops.append({
-                'crop_fp': crop_fp,
-                'crop_duration': len(short_data) / samplerate,
-            })
-
-            if debug:
-                sp.call('play {}'.format(crop_fp), shell=True)
-                keep_going = input()
-
-        # handle missing medium
-        # has shorts: pad with silence
-        # has longs: truncate
-        # has shorts and longs: truncate
-        if not has_medium:
-            if debug:
-                print('creating a medium!')
-            longest_duration = max(durations)
-            longest_index = durations.index(longest_duration)
-            longest_crop = good_crops[longest_index]
-            samplerate, data = wavfile.read(longest_crop['crop_fp'])
-            data = data.astype(np.float64)
-
-            if longest_duration > 1.09:
-                # truncate
+        # avoid potential infinite while loops
+        if len(good_crops) > 0:
+            # handle missing short: truncate shortest clip on either side?
+            if not has_short:
                 if debug:
-                    print('creating a medium from longer sample by truncating')
+                    print('creating a short crop!')
+                shortest_duration = min(durations)
+                shortest_index = durations.index(shortest_duration)
+                shortest_crop = good_crops[shortest_index]
+
+                samplerate, data = wavfile.read(shortest_crop['crop_fp'])
+                #print(len(data), max(data), min(data))
+                data = data.astype(np.float64)
+                #print(len(data), max(data), min(data))
+
                 # slice samples for correct duration
-                samples_needed = int(samplerate * 1)
-                midpoint = int(len(data) / 2)
-                half_samples = int(samples_needed / 2)
-                medium_data = data[midpoint - half_samples : midpoint + half_samples]
-            else:
+                samples_needed = int(samplerate * 0.60)
+                short_data = data[:samples_needed]
+                #midpoint = int(len(data) / 2)
+                #half_samples = int(samples_needed / 2)
+                #short_data = data[midpoint - half_samples : midpoint + half_samples]
+                if debug:
+                    print('modifying', shortest_crop)
+                    print(samplerate, samples_needed, len(short_data))
+                    print(min(short_data), max(short_data))
+
+                # need to re fade out since end has been cut off
+                ramp_length = 200
+                fade_in = np.linspace(0, 1, ramp_length)
+                fade_out = np.linspace(1, 0, ramp_length)
+                short_data[:ramp_length] = short_data[:ramp_length] * fade_in
+                short_data[-ramp_length:] = short_data[-ramp_length:] * fade_out
+
+                crop_fp = os.path.join(tmp_dir, 'crop_short.wav')
+                wavfile.write(crop_fp, samplerate, short_data)
+
+                good_crops.append({
+                    'crop_fp': crop_fp,
+                    'crop_duration': len(short_data) / samplerate,
+                })
+
+                if debug:
+                    sp.call('play {}'.format(crop_fp), shell=True)
+                    keep_going = input()
+
+            # handle missing medium
+            # has shorts: pad with silence
+            # has longs: truncate
+            # has shorts and longs: truncate
+            if not has_medium:
+                if debug:
+                    print('creating a medium!')
+                longest_duration = max(durations)
+                longest_index = durations.index(longest_duration)
+                longest_crop = good_crops[longest_index]
+                samplerate, data = wavfile.read(longest_crop['crop_fp'])
+                data = data.astype(np.float64)
+
+                if longest_duration > 1.09:
+                    # truncate
+                    if debug:
+                        print('creating a medium from longer sample by truncating')
+                    # slice samples for correct duration
+                    samples_needed = int(samplerate * 1)
+                    midpoint = int(len(data) / 2)
+                    half_samples = int(samples_needed / 2)
+                    medium_data = data[midpoint - half_samples : midpoint + half_samples]
+                else:
+                    # pad
+                    if debug:
+                        print('creating a medium from shorter sample by repeating')
+                    medium_data = data
+                    # repeat the sound to get above 1 second
+                    while (len(medium_data) / samplerate) < 1:
+                        medium_data = np.concatenate((medium_data, data))
+                    # crop the end off if needed to keep it under 1.1
+                    if (len(medium_data) / samplerate) > 1.1:
+                        medium_data = medium_data[:samplerate * 1]
+
+                # need to re fade out since end has been cut off
+                ramp_length = 200
+                fade_in = np.linspace(0, 1, ramp_length)
+                fade_out = np.linspace(1, 0, ramp_length)
+                medium_data[:ramp_length] = medium_data[:ramp_length] * fade_in
+                medium_data[-ramp_length:] = medium_data[-ramp_length:] * fade_out
+
+                crop_fp = os.path.join(tmp_dir, 'crop_medium.wav')
+                wavfile.write(crop_fp, samplerate, medium_data)
+
+                good_crops.append({
+                    'crop_fp': crop_fp,
+                    'crop_duration': len(medium_data) / samplerate,
+                })
+
+                if debug:
+                    sp.call('play {}'.format(crop_fp), shell=True)
+                    keep_going = input()
+
+            # handle missing long: take longest crop and
+            # if its close, pad it
+            # if its not, double it until its close
+            if not has_long:
+                if debug:
+                    print('creating a long!')
+                longest_duration = max(durations)
+                longest_index = durations.index(longest_duration)
+                longest_crop = good_crops[longest_index]
+                samplerate, data = wavfile.read(longest_crop['crop_fp'])
+                data = data.astype(np.float64)
+
+                # now accept all crops > 1.1 as longs, no truncating needed
+
                 # pad
                 if debug:
-                    print('creating a medium from shorter sample by repeating')
-                medium_data = data
-                # repeat the sound to get above 1 second
-                while (len(medium_data) / samplerate) < 1:
-                    medium_data = np.concatenate((medium_data, data))
-                # crop the end off if needed to keep it under 1.1
-                if (len(medium_data) / samplerate) > 1.1:
-                    medium_data = medium_data[:samplerate * 1]
+                    print('creating a long by padding')
+                # slice samples for correct duration
+                long_data = data
+                while (len(long_data) / samplerate) < 1.5:
+                    long_data = np.concatenate((long_data, data))
 
-            # need to re fade out since end has been cut off
-            ramp_length = 200
-            fade_in = np.linspace(0, 1, ramp_length)
-            fade_out = np.linspace(1, 0, ramp_length)
-            medium_data[:ramp_length] = medium_data[:ramp_length] * fade_in
-            medium_data[-ramp_length:] = medium_data[-ramp_length:] * fade_out
+                # need to re fade out since end has been cut off
+                ramp_length = 200
+                fade_in = np.linspace(0, 1, ramp_length)
+                fade_out = np.linspace(1, 0, ramp_length)
+                long_data[:ramp_length] = long_data[:ramp_length] * fade_in
+                long_data[-ramp_length:] = long_data[-ramp_length:] * fade_out
 
-            crop_fp = os.path.join(tmp_dir, 'crop_medium.wav')
-            wavfile.write(crop_fp, samplerate, medium_data)
+                crop_fp = os.path.join(tmp_dir, 'crop_long.wav')
+                wavfile.write(crop_fp, samplerate, long_data)
 
-            good_crops.append({
-                'crop_fp': crop_fp,
-                'crop_duration': len(medium_data) / samplerate,
-            })
+                good_crops.append({
+                    'crop_fp': crop_fp,
+                    'crop_duration': len(long_data) / samplerate,
+                })
 
-            if debug:
-                sp.call('play {}'.format(crop_fp), shell=True)
-                keep_going = input()
-
-        # handle missing long: take longest crop and
-        # if its close, pad it
-        # if its not, double it until its close
-        if not has_long:
-            if debug:
-                print('creating a long!')
-            longest_duration = max(durations)
-            longest_index = durations.index(longest_duration)
-            longest_crop = good_crops[longest_index]
-            samplerate, data = wavfile.read(longest_crop['crop_fp'])
-            data = data.astype(np.float64)
-
-            # now accept all crops > 1.1 as longs, no truncating needed
-
-            # pad
-            if debug:
-                print('creating a long by padding')
-            # slice samples for correct duration
-            long_data = data
-            while (len(long_data) / samplerate) < 1.5:
-                long_data = np.concatenate((long_data, data))
-
-            # need to re fade out since end has been cut off
-            ramp_length = 200
-            fade_in = np.linspace(0, 1, ramp_length)
-            fade_out = np.linspace(1, 0, ramp_length)
-            long_data[:ramp_length] = long_data[:ramp_length] * fade_in
-            long_data[-ramp_length:] = long_data[-ramp_length:] * fade_out
-
-            crop_fp = os.path.join(tmp_dir, 'crop_long.wav')
-            wavfile.write(crop_fp, samplerate, long_data)
-
-            good_crops.append({
-                'crop_fp': crop_fp,
-                'crop_duration': len(long_data) / samplerate,
-            })
-
-            if debug:
-                sp.call('play {}'.format(crop_fp), shell=True)
-                keep_going = input()
+                if debug:
+                    sp.call('play {}'.format(crop_fp), shell=True)
+                    keep_going = input()
 
 
         crop_info = dbq.get_crop_defaults(user_id, image_id)
