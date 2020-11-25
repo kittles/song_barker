@@ -42,7 +42,7 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
                 #co.play_original()
                 print(co)
                 print('crop audio data: min {} max {} dtype {}'.format(co.audio_data.min(), co.audio_data.max(), co.audio_data.dtype))
-
+                co.play_original()
             pass
 
         # instatiate the midi object
@@ -170,6 +170,18 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
                 # of the track to the point where the first sample of the sound should be
 
                 # splice the audio data in to the track data the determined time
+                if debug:
+                    print(crop)
+                    print('len splice point', len(track_sequence[rest_samples:rest_samples + len(audio_data)]))
+                    print('len audio data', len(audio_data))
+                    print('rest samples start', rest_samples)
+                    print('track sequence length', len(track_sequence))
+
+                # if there is a long sample at the very end, add some more room for it
+                if len(track_sequence) < (rest_samples + len(audio_data)):
+                    padding = (rest_samples + len(audio_data)) - len(track_sequence)
+                    track_sequence = np.concatenate((track_sequence, np.zeros(padding, dtype=np.int16)))
+
                 track_sequence[rest_samples:rest_samples + len(audio_data)] += audio_data
 
             # NOTE: since samples should already be mastered, dont mess with the levels anymore
