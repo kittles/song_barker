@@ -113,7 +113,11 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
 
             # initialize an array with zeros that is the length of the song
             # plus the audio padding
-            track_sequence = np.zeros((total_samples + audio_padding,), dtype=np.int16) #TODO crops need to be all int16!!
+            # this may be very sus, so TODO: look into a better methodolgy...
+            # use int32 arrays to avoid overflow
+            # then clamp mins and maxes to max for int16, and convert back to int16
+            # for output to file
+            track_sequence = np.zeros((total_samples + audio_padding,), dtype=np.int32) #TODO crops need to be all int16!!
 
             # splice in audio data for each crop sample by sample index
             for note in track['notes']:
@@ -170,31 +174,42 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
                 # of the track to the point where the first sample of the sound should be
 
                 # splice the audio data in to the track data the determined time
-                if debug:
-                    print(crop)
-                    print('len splice point', len(track_sequence[rest_samples:rest_samples + len(audio_data)]))
-                    print('len audio data', len(audio_data))
-                    print('rest samples start', rest_samples)
-                    print('track sequence length', len(track_sequence))
+                #if debug:
+                #    print(crop)
+                #    print('len splice point', len(track_sequence[rest_samples:rest_samples + len(audio_data)]))
+                #    print('len audio data', len(audio_data))
+                #    print('rest samples start', rest_samples)
+                #    print('track sequence length', len(track_sequence))
 
                 # if there is a long sample at the very end, add some more room for it
                 if len(track_sequence) < (rest_samples + len(audio_data)):
                     padding = (rest_samples + len(audio_data)) - len(track_sequence)
-                    track_sequence = np.concatenate((track_sequence, np.zeros(padding, dtype=np.int16)))
+                    track_sequence = np.concatenate((track_sequence, np.zeros(padding, dtype=np.int32)))
 
                 track_sequence[rest_samples:rest_samples + len(audio_data)] += audio_data
 
             # NOTE: since samples should already be mastered, dont mess with the levels anymore
             #track_sequence /= track_sequence.max()
             track_sequences.append(track_sequence)
+            if debug:
+                print('track range', min(track_sequence), max(track_sequence))
 
         # combine tracks into single array
         sequence_uuid = uuid.uuid4()
         sequence_fp = os.path.join(tmp_dir, '{}.wav'.format(sequence_uuid))
         sequence_length = max([len(track) for track in track_sequences])
-        sequence = np.zeros((sequence_length,), dtype=np.int16)
+        sequence = np.zeros((sequence_length,), dtype=np.int32)
         for track in track_sequences:
             sequence[0:len(track)] += track
+        # do the clamping (this was in response to some sequences having overflow problems
+        if debug:
+            print('int32 sequence range', min(sequence), max(sequence))
+        ii16 = np.iinfo(np.int16)
+        np.clip(sequence, ii16.min, ii16.max, out=sequence)
+        sequence = sequence.astype(np.int16)
+
+        if debug:
+            print('full sequence min and max', min(sequence), max(sequence), sequence.dtype)
 
         # NOTE again, dont mess with levels!
         #sequence /= sequence.max()
@@ -230,12 +245,16 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
             'stream_url': None,
             'hidden': 0,
         })
-        bc.upload_filename_to_bucket(sequence_fp_aac, remote_sequence_fp)
+        if not debug:
+            bc.upload_filename_to_bucket(sequence_fp_aac, remote_sequence_fp)
+        else:
+            print('WARNING: debug enabled, skipping uploading file to bucket')
 
         if debug:
             for crop in crop_objs:
                 #print(crop)
                 pass
+            print('looking for backing track at', backing_fp)
             if backing_fp:
                 local_backing = os.path.join(tmp_dir, 'backing.aac')
                 bc.download_filename_from_bucket(backing_fp, local_backing)
@@ -243,7 +262,7 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
                     sequence_fp,
                     local_backing
                 )
-                #sp.call(cmd, shell=True)
+                sp.call(cmd, shell=True)
             else:
                 #sp.call('play {}'.format(sequence_fp), shell=True)
                 pass

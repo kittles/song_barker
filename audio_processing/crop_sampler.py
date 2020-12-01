@@ -288,16 +288,22 @@ if __name__ == '__main__':
     import shutil
     import uuid
 
+    # IF YOU WANT TO TEST A CROP BY UUID, HEAD
+    # OVER TO db_queries.py...
+
     test_uuids = [
         #'7ddc9800-9424-41a2-825b-67b85910560e',
         #'37b63248-d73c-41f7-82a5-81a992a99542',
         #'6a6dafca-8966-49f8-bcaf-8d1eb7596f74',
-        'defeeb63-cab0-4fce-9d0b-b4f8dbe05122'
+        #'defeeb63-cab0-4fce-9d0b-b4f8dbe05122'
+        'ca7384e5-d0b4-48c1-8a00-d77c650531ab'
     ]
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        for test_uuid in test_uuids:
-            print(test_uuid)
-            cs = CropSampler(fp, tmp_dir)
+    #with tempfile.TemporaryDirectory() as tmp_dir:
+    #    for test_uuid in test_uuids:
+    #        print(test_uuid)
+    #        cs = CropSampler(fp, tmp_dir)
+    #        cs.play_original()
+    #        cs.play(cs.to_pitch_duration(60, 1))
 
     #with tempfile.TemporaryDirectory() as tmp_dir:
     #    #for fp in glob.glob('./fixture_assets/crops/*.aac'):

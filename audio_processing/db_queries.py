@@ -164,7 +164,8 @@ if __name__ == '__main__':
         #'7ddc9800-9424-41a2-825b-67b85910560e',
         #'37b63248-d73c-41f7-82a5-81a992a99542',
         #'6a6dafca-8966-49f8-bcaf-8d1eb7596f74',
-        'defeeb63-cab0-4fce-9d0b-b4f8dbe05122'
+        #'defeeb63-cab0-4fce-9d0b-b4f8dbe05122'
+        'ca7384e5-d0b4-48c1-8a00-d77c650531ab'
     ]
     with tempfile.TemporaryDirectory() as tmp_dir:
         for test_uuid in test_uuids:
@@ -172,3 +173,5 @@ if __name__ == '__main__':
             co = crop_sampler_from_uuid(test_uuid, tmp_dir)
             print(co)
             co.play_original()
+            co.play(co.to_pitch_duration(60, 1))
+            print(min(co.audio_data), max(co.audio_data))
