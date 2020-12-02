@@ -76,6 +76,8 @@ if __name__ == '__main__':
     parser.add_argument('--user-id', '-u', help='the user id to which these objects will be associated')
     args = parser.parse_args()
 
+    bucket_name = os.environ.get('k9_bucket_name', 'song_barker_sequences')
+
     for img_dir in glob.glob(os.path.join(images_dir, '*/')):
         # TODO handle other image extensions
         img_fp = glob.glob(os.path.join(img_dir, '*.jpg'))[0]
@@ -87,7 +89,7 @@ if __name__ == '__main__':
         info['uuid'] = new_uuid
         info['coordinates_json'] = json.dumps(info['coordinates_json'])
         info['mouth_color'] = json.dumps(info['mouth_color'])
-        info['bucket_url'] = os.path.join('gs://song_barker_sequences', old_blob)
+        info['bucket_url'] = os.path.join('gs://{}'.format(bucket_name), old_blob)
         info['bucket_fp'] = old_blob
         info['user_id'] = args.user_id
         info['is_stock'] = 1
@@ -102,7 +104,7 @@ if __name__ == '__main__':
         new_uuid = str(uuid.uuid4())
         old_blob = os.path.join(crop_bucket_base, info['uuid'] + '.aac')
         info['uuid'] = new_uuid
-        info['bucket_url'] = os.path.join('gs://song_barker_sequences', old_blob)
+        info['bucket_url'] = os.path.join('gs://{}'.format(bucket_name), old_blob)
         info['bucket_fp'] = old_blob
         info['user_id'] = args.user_id
         info['is_stock'] = 1
