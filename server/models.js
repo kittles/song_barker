@@ -180,6 +180,11 @@ exports.models = [
                     type: 'real',
                     desc: 'when the song actually starts in the audio file (in seconds)',
                 },
+                {
+                    name: 'display_order',
+                    type: 'integer',
+                    desc: 'used by the front end for...you guessed it, display order',
+                },
             ],
         },
     },
