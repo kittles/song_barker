@@ -10,10 +10,11 @@ exports.get_user = get_user;
 
 async function add_user (user_id, name, email) {
     var db = await _db.dbPromise;
-    return db.run('insert into users (user_id, name, email) values (?, ?, ?)', [
+    return db.run('insert into users (user_id, name, email, user_agreed_to_terms_v1) values (?, ?, ?, ?)', [
         user_id,
         name,
         email,
+        1,
     ]);
 }
 exports.add_user = add_user;
