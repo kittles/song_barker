@@ -142,6 +142,9 @@ def crop_sampler_from_uuid (uuid, tmp_dir):
     crop_aac = os.path.join(tmp_dir, '{}.aac'.format(uuid))
     bc.download_filename_from_bucket(row['bucket_fp'], crop_aac)
     wav_fp = ac.aac_to_wav(crop_aac)
+    #import subprocess as sp
+    #sp.call('ffmpeg -i {}'.format(wav_fp), shell=True)
+    #sp.call('play {}'.format(wav_fp), shell=True)
     return CropSampler(wav_fp, tmp_dir)
 
 
@@ -151,3 +154,25 @@ def midi_bridge_from_song_id (song_id, tmp_dir):
     })
     row = cur.fetchone()
     return MidiBridge(row['bucket_fp'], tmp_dir, True)
+
+
+if __name__ == '__main__':
+    import shutil
+    import uuid
+
+    test_uuids = [
+        #'7ddc9800-9424-41a2-825b-67b85910560e',
+        #'37b63248-d73c-41f7-82a5-81a992a99542',
+        #'6a6dafca-8966-49f8-bcaf-8d1eb7596f74',
+        #'defeeb63-cab0-4fce-9d0b-b4f8dbe05122'
+        'ca7384e5-d0b4-48c1-8a00-d77c650531ab'
+    ]
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        for test_uuid in test_uuids:
+            print(test_uuid)
+            co = crop_sampler_from_uuid(test_uuid, tmp_dir)
+            print(co)
+            co.play_original()
+            co.play(co.to_pitch_duration(60, 1))
+            print(min(co.audio_data), max(co.audio_data))
+            print(sum(co.audio_data)/len(co.audio_data))
