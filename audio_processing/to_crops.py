@@ -157,6 +157,7 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
             ))
             for crop in good_crops:
                 sp.call('play {}'.format(crop['crop_fp']), shell=True)
+
                 keep_going = input()
                 if keep_going != 'q':
                     continue
@@ -337,6 +338,9 @@ def to_crops (raw_uuid, user_id, image_id, debug=False):
             crop_duration = good_crop['crop_duration']
             if debug:
                 print(crop_fp_wav)
+                from matplotlib import pyplot as plt
+                plt.plot(loudness_normed_audio)
+                plt.show()
             crop_info['crop_count'] += 1
             crop_uuid = uuid.uuid4()
             crop_uuids.append(crop_uuid)

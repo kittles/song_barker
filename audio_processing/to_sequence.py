@@ -206,7 +206,7 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
             print('int32 sequence range', min(sequence), max(sequence))
         ii16 = np.iinfo(np.int16)
         np.clip(sequence, ii16.min, ii16.max, out=sequence)
-        sequence = sequence.astype(np.int16)
+        sequence = sequence.astype(np.int16) # back to int16 fingers crossed
 
         if debug:
             print('full sequence min and max', min(sequence), max(sequence), sequence.dtype)
@@ -222,6 +222,9 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
 
         # write to file
         wavfile.write(sequence_fp, samplerate, sequence)
+        if debug and output:
+            # this is just the crops, no backing
+            wavfile.write(output.replace('aac', 'wav'), samplerate, sequence)
         sequence_fp_aac = ac.wav_to_aac(sequence_fp)
 
         # persistence

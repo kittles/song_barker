@@ -175,3 +175,4 @@ if __name__ == '__main__':
             co.play_original()
             co.play(co.to_pitch_duration(60, 1))
             print(min(co.audio_data), max(co.audio_data))
+            print(sum(co.audio_data)/len(co.audio_data))
