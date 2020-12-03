@@ -1,6 +1,8 @@
 '''
 expects a directory name in the songs dir
 will read the info.json and do the bucket uploading and db insertion
+
+NOTE: deprecated, use sync_songs_with_db_and_bucket.py instead
 '''
 from db_queries import db_insert
 import argparse

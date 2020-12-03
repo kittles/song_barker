@@ -79,8 +79,10 @@ if __name__ == '__main__':
         with open(info_fp, 'r') as json_fh:
             song_info = json.loads(json_fh.read())
 
-        backing_uuid = str(uuid.uuid4())
-        midi_uuid = str(uuid.uuid4())
+        # NOTE these used to be uuids, remember this
+        # if something breaks...
+        backing_uuid = song_info['id']
+        midi_uuid = song_info['id']
 
         remote_backing_dir = 'backing_tracks/{}'.format(backing_uuid)
         remote_midi_fp = 'midi_files/{}.mid'.format(midi_uuid)
@@ -130,4 +132,6 @@ if __name__ == '__main__':
                     print('deleted', blob.name)
                 except:
                     print(blob.name, 'failed')
+
+    #TODO keep midi files in sync as well
 
