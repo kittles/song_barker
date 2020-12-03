@@ -1,0 +1,8 @@
+need a script to run all update scripts when deploying
+X sync stock to bucket
+    maybe can just run every deploy, since it doesnt change
+    anything and just overwrites them in the bucket
+- sync songs to bucket
+- update song info
+- update user stock info
+- update db if needed
