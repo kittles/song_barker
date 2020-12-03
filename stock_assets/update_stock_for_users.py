@@ -1,5 +1,7 @@
 '''
 this should run with every deploy
+
+its atomic on a user level so it shouldnt mess with people currently using the app?
 '''
 import sqlite3
 import glob

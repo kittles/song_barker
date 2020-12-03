@@ -1,4 +1,0 @@
-TODO list
-- probably want to migrate app.js to a flask server that lives in the same dir as the
-audio processing code
-- migrate to postgres with an orm now that objects have mostly stabilized

@@ -1,6 +1,10 @@
 '''
 cleans out raws and everything within their dir
 if they arent in the db
+
+BE CAREFUL!!!
+
+this should probably only ever run on dev!
 '''
 import argparse
 import os
@@ -14,6 +18,9 @@ import re
 
 
 if __name__ == '__main__':
+    if not os.environ.get('k9_dev', False):
+        raise Exception('not on dev server, aborting')
+
     if input('are you sure you want to delete raws with no uuid in the db? [y/n] ') == 'y':
         all_blobs = bc.storage_client.list_blobs(
             bc.BUCKET_NAME, prefix='', delimiter=None
