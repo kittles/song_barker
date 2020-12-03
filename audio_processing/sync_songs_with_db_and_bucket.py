@@ -95,14 +95,14 @@ if __name__ == '__main__':
             print(json.dumps(song_info, sort_keys=True, indent=4))
 
         # upload midi file
-        bc.upload_filename_to_bucket(midi_fp, remote_midi_fp)
+        #bc.upload_filename_to_bucket(midi_fp, remote_midi_fp)
 
         # upload backing tracks
         for backing_fp in backing_track_fps:
             backing_name = backing_fp.split('/')[-1].replace('.aac', '')
             backing_name = key_map.get(backing_name.lower(), 0)
             remote_backing_fp = os.path.join(remote_backing_dir, '{}.aac'.format(backing_name))
-            bc.upload_filename_to_bucket(backing_fp, remote_backing_fp)
+            #bc.upload_filename_to_bucket(backing_fp, remote_backing_fp)
             print('uploaded', remote_backing_fp)
 
         db_insert('songs', **song_info)
@@ -111,44 +111,23 @@ if __name__ == '__main__':
     conn.commit()
 
     # delete old stuff from bucket
-    """Lists all the blobs in the bucket that begin with the prefix.
 
-    This can be used to list all blobs in a "folder", e.g. "public/".
-
-    The delimiter argument can be used to restrict the results to only the
-    "files" in the given "folder". Without the delimiter, the entire tree under
-    the prefix is returned. For example, given these blobs:
-
-        a/1.txt
-        a/b/2.txt
-
-    If you just specify prefix = 'a', you'll get back:
-
-        a/1.txt
-        a/b/2.txt
-
-    However, if you specify prefix='a' and delimiter='/', you'll get back:
-
-        a/1.txt
-
-    Additionally, the same request will return blobs.prefixes populated with:
-
-        a/b/
-    """
+    # get all backing tracks in the bucket
     all_backing_tracks = bc.storage_client.list_blobs(
         bc.BUCKET_NAME, prefix='backing_tracks', delimiter=None
     )
-    old_backing_uuids = set([
-        bt.name.split('/')[1] for bt in all_backing_tracks
-    ])
     # this should get only the new backing uuids in the db
+    # these are the ones we should keep
     backing_uuids = set([
         row['backing_track'] for row in cur.execute('select backing_track from songs').fetchall()
     ])
-    old_backing_uuids.difference_update(backing_uuids)
-    bucket = bc.storage_client.bucket(bc.BUCKET_NAME)
-    for to_remove_uuid in old_backing_uuids:
-        blob_name = 'gs://{}/backing_tracks/{}/*.aac'.format(bc.BUCKET_NAME, to_remove_uuid)
-        blob = bucket.blob(blob_name)
-        blob.delete()
+    with bc.storage_client.batch():
+        for blob in all_backing_tracks:
+            uuid = blob.name.split('/')[1]
+            if uuid not in backing_uuids:
+                try:
+                    blob.delete()
+                    print('deleted', blob.name)
+                except:
+                    print(blob.name, 'failed')
 
