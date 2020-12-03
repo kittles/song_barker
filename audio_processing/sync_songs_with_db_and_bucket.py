@@ -95,14 +95,14 @@ if __name__ == '__main__':
             print(json.dumps(song_info, sort_keys=True, indent=4))
 
         # upload midi file
-        #bc.upload_filename_to_bucket(midi_fp, remote_midi_fp)
+        bc.upload_filename_to_bucket(midi_fp, remote_midi_fp)
 
         # upload backing tracks
         for backing_fp in backing_track_fps:
             backing_name = backing_fp.split('/')[-1].replace('.aac', '')
             backing_name = key_map.get(backing_name.lower(), 0)
             remote_backing_fp = os.path.join(remote_backing_dir, '{}.aac'.format(backing_name))
-            #bc.upload_filename_to_bucket(backing_fp, remote_backing_fp)
+            bc.upload_filename_to_bucket(backing_fp, remote_backing_fp)
             print('uploaded', remote_backing_fp)
 
         db_insert('songs', **song_info)
