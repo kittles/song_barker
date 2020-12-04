@@ -5,7 +5,8 @@
   "key": 0,
   "price": 1,
   "style": "",
-  "category": "rock",
+  "category": "Rock",
   "name": "That's Alright",
-  "arrangement": "harmonized"
+  "arrangement": "harmonized",
+  "display_order": 13
 }
