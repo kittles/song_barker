@@ -7,5 +7,7 @@
   "style": "rock",
   "arrangement": "pitched",
   "name": "Happy Birthday",
-  "category": "Festive"
+  "category": "Festive",
+  "display_order": 1
+
 }

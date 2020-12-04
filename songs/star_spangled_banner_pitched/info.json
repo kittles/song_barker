@@ -7,5 +7,6 @@
     "style": "",
     "category": "National",
     "name": "Star Spangled Banner",
-    "arrangement": "pitched"
+    "arrangement": "pitched",
+    "display_order": 10
 }
