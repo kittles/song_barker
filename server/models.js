@@ -1,11 +1,13 @@
 exports.models = [
     {
-        // TODO users shouldn't be available at all through rest
         table_name: 'users',
         obj_type: 'user',
         primary_key: 'user_id',
         primary_key_is_uuid: false,
         user_owned: false,
+        immutable: true, // this stops rest api calls that change anything
+        disable_all: true,
+        // TODO: probably just want an allowed_methods array...
         schema: {
             columns: [
                 {
@@ -57,6 +59,8 @@ exports.models = [
         primary_key: 'uuid',
         primary_key_is_uuid: true,
         user_owned: true,
+        immutable: false,
+        disable_all: false,
         schema: {
             columns: [
                 {
@@ -108,6 +112,8 @@ exports.models = [
         primary_key: 'id',
         primary_key_is_uuid: false,
         user_owned: false,
+        immutable: false,
+        disable_all: false,
         schema: {
             columns: [
                 {
@@ -195,6 +201,8 @@ exports.models = [
         primary_key_is_uuid: true,
         order_by: 'created',
         user_owned: true,
+        immutable: false,
+        disable_all: false,
         schema: {
             columns: [
                 {
@@ -262,6 +270,8 @@ exports.models = [
         primary_key_is_uuid: true,
         order_by: 'created',
         user_owned: true,
+        immutable: false,
+        disable_all: false,
         schema: {
             columns: [
                 {
@@ -334,6 +344,8 @@ exports.models = [
         primary_key_is_uuid: true,
         order_by: 'created',
         user_owned: true,
+        immutable: false,
+        disable_all: false,
         schema: {
             columns: [
                 {
@@ -406,6 +418,8 @@ exports.models = [
         primary_key_is_uuid: true,
         order_by: 'created',
         user_owned: true,
+        immutable: false,
+        disable_all: false,
         schema: {
             columns: [
                 {
@@ -458,6 +472,8 @@ exports.models = [
         primary_key_is_uuid: true,
         order_by: 'created',
         user_owned: true,
+        immutable: false,
+        disable_all: false,
         schema: {
             columns: [
                 {
@@ -505,6 +521,8 @@ exports.models = [
         primary_key_is_uuid: true,
         order_by: 'created',
         user_owned: true,
+        immutable: false,
+        disable_all: false,
         schema: {
             columns: [
                 {

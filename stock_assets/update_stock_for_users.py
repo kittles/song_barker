@@ -1,3 +1,8 @@
+'''
+this should run with every deploy
+
+its atomic on a user level so it shouldnt mess with people currently using the app?
+'''
 import sqlite3
 import glob
 import json
@@ -23,13 +28,7 @@ if __name__ == '__main__':
     cur = conn.cursor()
     cur.execute('SELECT user_id FROM users')
     for row in cur.fetchall():
-        # clear old stuff
-        cur.execute('DELETE FROM images WHERE user_id = "{}" AND is_stock = 1'.format(row['user_id']))
-        cur.execute('DELETE FROM crops WHERE user_id = "{}" AND is_stock = 1'.format(row['user_id']))
-        conn.commit()
-
         cmd = 'python add_stock_objects_to_user.py -u "{}"'.format(row['user_id'])
-        print(cmd)
         sp.call(cmd, shell=True)
 
 

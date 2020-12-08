@@ -1,3 +1,4 @@
+# this is for local dev, to pull down remote dev server's db
 . ../config.sh
 
 while true; do

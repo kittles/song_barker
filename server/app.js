@@ -412,13 +412,12 @@ app.post('/create-account', async (req, res) => {
     var password = await hash_password(req.body.password);
     const db = await _db.dbPromise;
     // create an account that is pending confirmation
-    var result = await db.run('insert into users (user_id, name, email, password, email_confirmation_string, pending_confirmation, user_agreed_to_terms_v1) values (?, ?, ?, ?, ?, ?, ?)',
+    var result = await db.run('insert into users (user_id, name, email, password, email_confirmation_string, pending_confirmation) values (?, ?, ?, ?, ?, ?)',
         req.body.email,
         'Canine Friend',
         req.body.email,
         password,
         email_confirmation_string,
-        1,
         1,
     );
 
@@ -679,11 +678,22 @@ app.get('/describe', (req, res) => {
 //
 // audio processing apis
 //
+async function terms_agreed (req) {
+    // users cant do anything until they agree to terms
+    var user_obj = await user_sess.get_user(req.session.user_id);
+    return user_obj.user_agreed_to_terms_v1;
+}
+
 
 // signed uploads from app instead of giving them the credential
 app.post('/signed-upload-url', async (req, res) => {
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    var agreed = await terms_agreed(req);
+    if (!agreed) {
+        res.status(401).send('you must have agree to terms to access this resource');
         return;
     }
     if (!req.body.filepath) {
@@ -708,6 +718,11 @@ app.post('/to_crops', async function (req, res) {
     // auth
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    var agreed = await terms_agreed(req);
+    if (!agreed) {
+        res.status(401).send('you must have agree to terms to access this resource');
         return;
     }
     const db = await _db.dbPromise;
@@ -777,6 +792,11 @@ app.post('/to_sequence', async function (req, res) {
     // auth
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    var agreed = await terms_agreed(req);
+    if (!agreed) {
+        res.status(401).send('you must have agree to terms to access this resource');
         return;
     }
     const db = await _db.dbPromise;

@@ -2,26 +2,8 @@ import sqlite3
 import glob
 import json
 import os
-from google.cloud import storage
 import uuid
 import argparse
-
-storage_client = storage.Client()
-
-
-# NOTE this isnt needed
-def copy_blob (blob_name, destination_blob_name):
-    """Copies a blob from one bucket to another with a new name."""
-    # bucket_name = "your-bucket-name"
-    # blob_name = "your-object-name"
-    # destination_bucket_name = "destination-bucket-name"
-    # destination_blob_name = "destination-object-name"
-    source_bucket = storage_client.bucket(os.environ.get('k9_bucket_name', 'song_barker_sequences'))
-    source_blob = source_bucket.blob(blob_name)
-    destination_bucket = storage_client.bucket(os.environ.get('k9_bucket_name', 'song_barker_sequences'))
-    blob_copy = source_bucket.copy_blob(
-        source_blob, destination_bucket, destination_blob_name
-    )
 
 
 def dict_factory (cursor, row):
@@ -29,7 +11,6 @@ def dict_factory (cursor, row):
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
-
 
 
 db_fp = os.environ.get('k9_database', '../server/barker_database.db')
@@ -49,10 +30,12 @@ def db_insert (table, **kwargs):
             VALUES ({})
         '''.format(table, columns_sql, values_sql)
         cur.execute(raw_insert_sql, kwargs)
-        conn.commit()
-        cur.execute('SELECT * FROM {} WHERE rowid={}'.format(table, cur.lastrowid))
-        # TODO threading concerns?
-        return cur.fetchone()
+        # wait to commit because you may want to delete old stock stuff
+        # before committing
+        #conn.commit()
+        #cur.execute('SELECT * FROM {} WHERE rowid={}'.format(table, cur.lastrowid))
+        ## TODO threading concerns?
+        #return cur.fetchone()
     except Exception as e:
         # TODO log
         print(e)
@@ -75,6 +58,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--user-id', '-u', help='the user id to which these objects will be associated')
     args = parser.parse_args()
+
+    # this lets you update existing users stock objects just by running this script
+    cur.execute('DELETE FROM images WHERE user_id = "{}" AND is_stock = 1'.format(args.user_id))
+    cur.execute('DELETE FROM crops WHERE user_id = "{}" AND is_stock = 1'.format(args.user_id))
 
     bucket_name = os.environ.get('k9_bucket_name', 'song_barker_sequences')
 
@@ -109,3 +96,5 @@ if __name__ == '__main__':
         info['user_id'] = args.user_id
         info['is_stock'] = 1
         db_insert('crops', **info)
+
+    conn.commit()

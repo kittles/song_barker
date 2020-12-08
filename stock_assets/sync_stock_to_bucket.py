@@ -1,3 +1,11 @@
+'''
+this is one of the scripts that should run ever deploy
+it runs through everything in stock_assets/[crops|images] and
+uploads it based on the accompanying info.json
+
+nothing changes for things already in the bucket except they get
+overwritten
+'''
 import os
 import glob
 import json
