@@ -11,4 +11,5 @@ gsutil cp $k9_database "gs://"$k9_bucket_name"-dbbackups/$timestamp"
 
 echo "finished backing up database"
 
-# set cron to run this script once a day or whatever
+# crontab -e and do something like:
+# cd /home/patrick/song_barker && . ./config.sh && sh /home/patrick/song_barker/backup_database.sh
