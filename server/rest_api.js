@@ -38,6 +38,10 @@ function obj_rest_api (def, db) {
             request_method: 'get',
             endpoint: `/all/${def.obj_type}`,
             handler: async (req, res) => {
+                if (def.disable_all) {
+                    res.status(401).send('[rest api error] cannot get all for this type');
+                    return;
+                }
                 // auth
                 if (def.user_owned) {
                     if (!check_authentication(req, res)) {
@@ -95,6 +99,10 @@ function obj_rest_api (def, db) {
             request_method: 'post',
             endpoint: `/${def.obj_type}`,
             handler: async (req, res) => {
+                if (def.immutable) {
+                    res.status(401).send('[rest api error] cannot modify immutable type');
+                    return;
+                }
                 // auth
                 if (def.user_owned) {
                     if (!check_authentication(req, res)) {
@@ -118,6 +126,10 @@ function obj_rest_api (def, db) {
             request_method: 'patch',
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
+                if (def.immutable) {
+                    res.status(401).send('[rest api error] cannot modify immutable type');
+                    return;
+                }
                 // auth
                 if (def.primary_key_is_uuid) {
                     if (!check_uuid(req, res, req.params.primary_key)) {
@@ -154,6 +166,10 @@ function obj_rest_api (def, db) {
             request_method: 'delete',
             endpoint: `/${def.obj_type}/:primary_key`,
             handler: async (req, res) => {
+                if (def.immutable) {
+                    res.status(401).send('[rest api error] cannot modify immutable type');
+                    return;
+                }
                 // auth
                 if (def.primary_key_is_uuid) {
                     if (!check_uuid(req, res, req.params.primary_key)) {
