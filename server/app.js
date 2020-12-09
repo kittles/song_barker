@@ -675,6 +675,19 @@ app.get('/describe', (req, res) => {
 });
 
 
+// when a user agrees to terms
+app.post('/agree-to-terms', async (req, res) => {
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    await db.run('update users set user_agreed_to_terms_v1 = 1 where user_id = ?', req.session.user_id);
+    res.json({
+        success: true,
+    });
+})
+
 //
 // audio processing apis
 //
