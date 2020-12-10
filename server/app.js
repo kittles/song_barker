@@ -24,7 +24,11 @@ var nodemailer = require('nodemailer');
 var validator = require('email-validator');
 var uuidv4 = require('uuid').v4;
 var signed_url = require('./signed_url.js')
-var cloud_access_token = require('../credentials/cloud-access-token.json').access_token;
+//var https = require('https');
+//var cloud_access_token = require('../credentials/cloud-access-token.json').token;
+//var axios = require('axios');
+var cloud_request = require('./cloud_request.js').cloud_request;
+var data_for_name = require('./autoname_crop.js').data_for_name;
 
 
 //
@@ -37,7 +41,7 @@ var port = process.env.PORT || 3000;
 app.use(express.json({
     type: 'application/json',
 }));
-app.set('json spaces', 2);
+app.set('json spaces', 1);
 app.use(morgan('combined')); // logging
 // TODO this is just for local dev, nginx should handle static on server
 app.use(express.static('./public'));
@@ -802,7 +806,6 @@ app.post('/to_crops', async function (req, res) {
 
 // process raw audio into cropped pieces ..._in the cloud_...
 app.post('/cloud/to_crops', async function (req, res) {
-    res.status(501).send('not implemented yet');
     // auth
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
@@ -838,35 +841,76 @@ app.post('/cloud/to_crops', async function (req, res) {
 
     // now that the stuff is all validated, make a request to the cloud endpoint for the actual
     // splitting
-    // NOTE: should probably have the cloud details as part of the config file
-    const https = require('https');
-    const data = JSON.stringify({
+    var crop_data = await cloud_request('to_crops', {
         uuid: req.body.uuid,
-        access_token: cloud_access_token,
+    })
+    /*
+    looks like:
+    {
+      crops: [
+        {
+          uuid: '58c7642b-17af-43f8-a7cd-e8a2d057b20a',
+          bucket_filepath: 'gs://song_barker_sequences/100288f3-dbc2-45fd-b051-c90b5c53d851/cropped/58c7642b-17af-43f8-a7cd-e8a2d057b20a.aac',
+          duration: 1.3520408163265305
+        },
+        ...
+    */
+
+
+    // db stuff
+    // TODO maybe this should be one big transaction
+
+    try {
+        await db.run('insert into raws (uuid, user_id) values (?, ?)',
+            [
+                req.body.uuid, // raw uuid
+                req.session.user_id,
+            ]
+        );
+    } catch (err) {
+        // probably unique constraint error, nbd
+        console.log('error inserting raw row', err);
+    }
+    // TODO this is susceptible to timing issues
+    var name_info = await data_for_name(req.body.image_id, req.session.user_id);
+    //looks like :
+    //{
+    //    base_name: 'some-name',
+    //    count: 4
+    //}
+    for (var i = 0; i < crop_data.crops.length; i++) {
+        // dont respond until everything is in the db?
+        // i dont remember how this
+        await db.run(`insert into crops 
+            (uuid, raw_id, user_id, name, bucket_url, bucket_fp, stream_url, hidden, duration_seconds)
+            values
+            (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                crop_data.crops[i].uuid, // crop uuid
+                req.body.uuid, // raw uuid
+                req.session.user_id,
+                `${name_info.base_name} ${name_info.count + 1 + i}`,
+                `${req.body.uuid}/cropped/${crop_data.crops[i].uuid}.aac`,
+                `gs://${req.body.uuid}/cropped/${crop_data.crops[i].uuid}.aac`,
+                null,
+                0,
+                crop_data.crops[i].duration,
+            ]
+        );
+    }
+
+    // everythings in the db now, so respond to client with new crops
+    // by selecting them out of the db (so they mimic the rest api)
+    var crop_qs = _.join(_.map(crop_data.crops, (crop) => { return '?'; }), ', ');
+    var all_crops_sql = `select * from crops
+        where uuid in (
+            ${crop_qs}
+        );`;
+    var crops = await db.all(all_crops_sql, _.map(crop_data.crops, 'uuid'));
+    _.map(crops, (crop) => {
+        crop.obj_type = 'crop';
     });
-    const options = {
-        hostname: 'the-cloud-server.com',
-        port: 443,
-        path: '/to_crops',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': data.length
-        }
-    };
-    const req = https.request(options, res => {
-        console.log(`statusCode: ${res.statusCode}`)
-        res.on('data', d => {
-            process.stdout.write(d)
-            // TODO the database row entry bookkeeping happens here
-        })
-    });
-    req.on('error', error => {
-        console.error(error);
-        // this should return to the client
-    });
-    req.write(data);
-    req.end();
+    res.json(crops);
 });
 
 

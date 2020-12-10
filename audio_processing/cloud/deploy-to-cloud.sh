@@ -37,7 +37,7 @@ kubectl get service
 
 
 # cleanup
-kubectl delete service ${SERVICE_NAME}
-gcloud container clusters delete ${CLUSTER_NAME}
-gcloud container images delete gcr.io/${PROJECT_ID}/${NAME}  --force-delete-tags --quiet
+#kubectl delete service ${SERVICE_NAME}
+#gcloud container clusters delete ${CLUSTER_NAME}
+#gcloud container images delete gcr.io/${PROJECT_ID}/${NAME}  --force-delete-tags --quiet
 
