@@ -915,6 +915,72 @@ app.post('/cloud/to_crops', async function (req, res) {
 
 
 // sequence audio into a song
+app.post('/cloud/to_sequence', async function (req, res) {
+    res.status(501).send('not implemented yet!');
+
+    // validation
+
+    //// auth
+    //if (!req.session.user_id) {
+    //    res.status(401).send('you must have a valid user_id to access this resource');
+    //    return;
+    //}
+    //var agreed = await terms_agreed(req);
+    //if (!agreed) {
+    //    res.status(401).send('you must have agree to terms to access this resource');
+    //    return;
+    //}
+    //const db = await _db.dbPromise;
+    //// check crops
+    //var is_uuid = _.map(req.body.uuids, (uuid) => {
+    //    return uuid_validate(uuid); // it doesnt work just mapping uuid_validate directly for some reason
+    //});
+    //if (is_uuid.includes(false)) {
+    //    res.status(400).send('malformed crop uuids');
+    //    return;
+    //}
+    //var crops_exist = _.map(req.body.uuids, async (uuid) => {
+    //    var crop_exists = await db.get('select 1 from crops where uuid = ? and user_id = ?', [
+    //        uuid,
+    //        req.session.user_id,
+    //    ]);
+    //    if (!_.get(crop_exists, '1', false)) {
+    //        return false;
+    //    } else {
+    //        return true;
+    //    }
+    //});
+    //if (crops_exist.includes(false)) {
+    //    res.status(400).send('crop object not found');
+    //    return;
+    //}
+    //// check song
+    //var song_exists = await db.get('select 1 from songs where id = ?', req.body.song_id);
+    //if (!_.get(song_exists, '1', false)) {
+    //    res.status(400).send('song not found');
+    //    return;
+    //}
+
+    //// generate sequence
+
+    //var uuids_string = _.join(req.body.uuids, ' ');
+
+
+    //// rows in db and response
+
+    //var output = stdout.split(/\r?\n/);
+    //var line = output.shift();
+    //var sequence_uuid = line.split(' ')[0];
+    //var sequence_url = line.split(' ')[1];
+    //console.log(sequence_uuid, sequence_url);
+    //const db = await _db.dbPromise;
+    //var sequence = await db.get('select * from sequences where uuid = ?', sequence_uuid);
+    //sequence.obj_type = 'sequence';
+    //res.json(sequence);
+});
+
+
+// sequence audio into a song
 app.post('/to_sequence', async function (req, res) {
     // auth
     if (!req.session.user_id) {

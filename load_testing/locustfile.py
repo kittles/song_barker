@@ -28,21 +28,21 @@ class QuickstartUser (HttpUser):
 
     @task
     def to_crops (self):
-        response = self.client.post("/to_crops", json={
+        response = self.client.post("/cloud/to_crops", json={
             "uuid": "100288f3-dbc2-45fd-b051-c90b5c53d851",
             "image_id": "c0c1d023-fd69-448a-9f2d-8752d8c4345d",
         })
 
-    @task
-    def to_sequence (self):
-        response = self.client.post("/to_sequence", json={
-            "uuids": [
-                "031a9d98-6b79-49eb-b73f-d1812f73d3e1",
-                "0f16a36c-0903-4e58-87d3-e262afdeb221",
-                "0f3cf819-36b1-4216-976a-ec0fc136c2c9",
-            ],
-            "song_id": "1", #short happy birthday
-        })
+    #@task
+    #def to_sequence (self):
+    #    response = self.client.post("/to_sequence", json={
+    #        "uuids": [
+    #            "031a9d98-6b79-49eb-b73f-d1812f73d3e1",
+    #            "0f16a36c-0903-4e58-87d3-e262afdeb221",
+    #            "0f3cf819-36b1-4216-976a-ec0fc136c2c9",
+    #        ],
+    #        "song_id": "1", #short happy birthday
+    #    })
 
     def on_start(self):
         response = self.client.post("/manual-login", json={

@@ -1,12 +1,12 @@
 welcome back-
 
-server/app.js:
-    - cloud to_crops endpoint needs to have real vals for
-    the cloud server ip
-    - cloud to_crops also needs to make entries in the db
-
-
 cloud to_sequence implementation
+- port scripts to .cloud-env
+- add to requirements.txt
+- work out signature needed for function
+- write cloud server endpoint
+- build and deploy to cluster
+- write regular server endpoint with db bookkeeping
 
 do a little reading on the details of pods/instances/services/clusters/app and
-the difference between them
+the difference between them, for tuning and whatnot
