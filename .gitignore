@@ -32,6 +32,9 @@ audio_processing/tune_split_params/tune_samples/
 audio_processing/tune_split_params/wav_samples/
 audio_processing/plots
 
+audio_processing/cloud/credentials/*
+audio_processing/cloud/.cloud-env
+
 server/sessions
 
 config.sh

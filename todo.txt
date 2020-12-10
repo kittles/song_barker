@@ -1,8 +1,12 @@
-need a script to run all update scripts when deploying
-X sync stock to bucket
-    maybe can just run every deploy, since it doesnt change
-    anything and just overwrites them in the bucket
-- sync songs to bucket
-- update song info
-- update user stock info
-- update db if needed
+welcome back-
+
+cluster:
+    do the deploy process like in the tutorial to get a sample
+    cluster up and running
+
+rest client test cluster with a few post calls or something
+
+server/app.js:
+    - cloud to_crops endpoint needs to have real vals for
+    the cloud server
+    - cloud to_crops also needs to make entries in the db

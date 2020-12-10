@@ -24,6 +24,7 @@ var nodemailer = require('nodemailer');
 var validator = require('email-validator');
 var uuidv4 = require('uuid').v4;
 var signed_url = require('./signed_url.js')
+var cloud_access_token = require('../credentials/cloud-access-token.json').access_token;
 
 
 //
@@ -797,6 +798,75 @@ app.post('/to_crops', async function (req, res) {
             res.json(crops);
         }
     });
+});
+
+// process raw audio into cropped pieces ..._in the cloud_...
+app.post('/cloud/to_crops', async function (req, res) {
+    res.status(501).send('not implemented yet');
+    // auth
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    var agreed = await terms_agreed(req);
+    if (!agreed) {
+        res.status(401).send('you must have agree to terms to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    // check that raw exists
+    if (!uuid_validate(req.body.uuid)) {
+        res.status(400).send('malformed raw uuid');
+        return;
+    }
+    // NOTE raw object is created in the python script below
+    if (req.body.image_id) {
+        // check that image exists
+        if (!uuid_validate(req.body.image_id)) {
+            res.status(400).send('malformed image uuid');
+            return;
+        }
+        var image_exists = await db.get('select 1 from images where uuid = ? and user_id = ?', [
+            req.body.image_id,
+            req.session.user_id,
+        ]);
+        if (!_.get(image_exists, '1', false)) {
+            res.status(400).send('image object not found');
+            return;
+        }
+    }
+
+    // now that the stuff is all validated, make a request to the cloud endpoint for the actual
+    // splitting
+    // NOTE: should probably have the cloud details as part of the config file
+    const https = require('https');
+    const data = JSON.stringify({
+        uuid: req.body.uuid,
+        access_token: cloud_access_token,
+    });
+    const options = {
+        hostname: 'the-cloud-server.com',
+        port: 443,
+        path: '/to_crops',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': data.length
+        }
+    };
+    const req = https.request(options, res => {
+        console.log(`statusCode: ${res.statusCode}`)
+        res.on('data', d => {
+            process.stdout.write(d)
+            // TODO the database row entry bookkeeping happens here
+        })
+    });
+    req.on('error', error => {
+        console.error(error);
+        // this should return to the client
+    });
+    req.write(data);
+    req.end();
 });
 
 
