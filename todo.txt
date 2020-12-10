@@ -1,12 +1,12 @@
 welcome back-
 
-cluster:
-    do the deploy process like in the tutorial to get a sample
-    cluster up and running
-
-rest client test cluster with a few post calls or something
-
 server/app.js:
     - cloud to_crops endpoint needs to have real vals for
-    the cloud server
+    the cloud server ip
     - cloud to_crops also needs to make entries in the db
+
+
+cloud to_sequence implementation
+
+do a little reading on the details of pods/instances/services/clusters/app and
+the difference between them

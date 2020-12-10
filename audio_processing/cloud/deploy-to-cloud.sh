@@ -29,15 +29,15 @@ kubectl get pods
 
 
 # expose to the internet
-kubectl expose deployment ${APP_NAME} --name=${APP_NAME}-service --type=LoadBalancer --port 80 --target-port 8080
+export SERVICE_NAME=${APP_NAME}-service
+kubectl expose deployment ${APP_NAME} --name=${SERVICE_NAME} --type=LoadBalancer --port 80 --target-port 8080
 
-# get info about it, like the external ip
+# get info about it, like the external ip (which may be pending for a minute or so)
 kubectl get service
 
 
 # cleanup
-#kubectl delete service hello-app-service
-#gcloud container clusters delete hello-cluster
-#gcloud container images delete gcr.io/${PROJECT_ID}/hello-app:v1  --force-delete-tags --quiet
-#gcloud container images delete gcr.io/${PROJECT_ID}/hello-app:v2  --force-delete-tags --quiet
+kubectl delete service ${SERVICE_NAME}
+gcloud container clusters delete ${CLUSTER_NAME}
+gcloud container images delete gcr.io/${PROJECT_ID}/${NAME}  --force-delete-tags --quiet
 
