@@ -844,18 +844,18 @@ app.post('/cloud/to_crops', async function (req, res) {
     var crop_data = await cloud_request('to_crops', {
         uuid: req.body.uuid,
     })
-    /*
-    looks like:
-    {
-      crops: [
-        {
-          uuid: '58c7642b-17af-43f8-a7cd-e8a2d057b20a',
-          bucket_filepath: 'gs://song_barker_sequences/100288f3-dbc2-45fd-b051-c90b5c53d851/cropped/58c7642b-17af-43f8-a7cd-e8a2d057b20a.aac',
-          duration: 1.3520408163265305
-        },
-        ...
-    */
-
+    if (crop_data.stderr != '') {
+        res.status(503).send(`cloud request failed - ${crop_data.stderr.message}`);
+    }
+    // response looks like
+    // {
+    //   crops: [
+    //     {
+    //       uuid: '58c7642b-17af-43f8-a7cd-e8a2d057b20a',
+    //       bucket_filepath: 'gs://song_barker_sequences/100288f3-dbc2-45fd-b051-c90b5c53d851/cropped/58c7642b-17af-43f8-a7cd-e8a2d057b20a.aac',
+    //       duration: 1.3520408163265305
+    //     },
+    //     ...
 
     // db stuff
     // TODO maybe this should be one big transaction
@@ -916,67 +916,97 @@ app.post('/cloud/to_crops', async function (req, res) {
 
 // sequence audio into a song
 app.post('/cloud/to_sequence', async function (req, res) {
-    res.status(501).send('not implemented yet!');
-
     // validation
 
-    //// auth
-    //if (!req.session.user_id) {
-    //    res.status(401).send('you must have a valid user_id to access this resource');
-    //    return;
-    //}
-    //var agreed = await terms_agreed(req);
-    //if (!agreed) {
-    //    res.status(401).send('you must have agree to terms to access this resource');
-    //    return;
-    //}
-    //const db = await _db.dbPromise;
-    //// check crops
-    //var is_uuid = _.map(req.body.uuids, (uuid) => {
-    //    return uuid_validate(uuid); // it doesnt work just mapping uuid_validate directly for some reason
-    //});
-    //if (is_uuid.includes(false)) {
-    //    res.status(400).send('malformed crop uuids');
-    //    return;
-    //}
-    //var crops_exist = _.map(req.body.uuids, async (uuid) => {
-    //    var crop_exists = await db.get('select 1 from crops where uuid = ? and user_id = ?', [
-    //        uuid,
-    //        req.session.user_id,
-    //    ]);
-    //    if (!_.get(crop_exists, '1', false)) {
-    //        return false;
-    //    } else {
-    //        return true;
-    //    }
-    //});
-    //if (crops_exist.includes(false)) {
-    //    res.status(400).send('crop object not found');
-    //    return;
-    //}
-    //// check song
-    //var song_exists = await db.get('select 1 from songs where id = ?', req.body.song_id);
-    //if (!_.get(song_exists, '1', false)) {
-    //    res.status(400).send('song not found');
-    //    return;
-    //}
+    // auth
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    var agreed = await terms_agreed(req);
+    if (!agreed) {
+        res.status(401).send('you must have agree to terms to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    // check crops
+    var is_uuid = _.map(req.body.uuids, (uuid) => {
+        return uuid_validate(uuid); // it doesnt work just mapping uuid_validate directly for some reason
+    });
+    if (is_uuid.includes(false)) {
+        res.status(400).send('malformed crop uuids');
+        return;
+    }
+    var crops_exist = _.map(req.body.uuids, async (uuid) => {
+        var crop_exists = await db.get('select 1 from crops where uuid = ? and user_id = ?', [
+            uuid,
+            req.session.user_id,
+        ]);
+        if (!_.get(crop_exists, '1', false)) {
+            return false;
+        } else {
+            return true;
+        }
+    });
+    if (crops_exist.includes(false)) {
+        res.status(400).send('crop object not found');
+        return;
+    }
+    // check song
+    var song_exists = await db.get('select 1 from songs where id = ?', req.body.song_id);
+    if (!_.get(song_exists, '1', false)) {
+        res.status(400).send('song not found');
+        return;
+    }
 
-    //// generate sequence
+    // generate sequence
+    var song_obj = await db.get('select * from songs where id = ?', req.body.song_id);
+    var crop_objs = _.map(req.body.uuids, async (uuid) => {
+        return await db.get('select * from crops where uuid = ? and user_id = ?', [
+            uuid,
+            req.session.user_id,
+        ]);
+    });
+    var sequence_data = await cloud_request('to_sequence', {
+        song: song_obj,
+        crops: crop_objs,
+    })
+    if (sequence_data.stderr != '') {
+        res.status(503).send(`cloud request failed - ${sequence_data.stderr.message}`);
+    }
+    // response looks like:
+    //     {
+    //         "uuid": "2555fdc7-2ae2-441f-b490-1fd578f78da6",
+    //         "song_id": 1,
+    //         "crop_id": "ab9bcc7f-31cd-49e3-8d36-42857fa348c9 4fddd98c-d2af-42c2-81fc-ae97947d1f25 f1253b68-0da9-4bdf-9536-164d0b981f19",
+    //         "bucket_url": "gs://song_barker_sequences/f763e606-25d2-461e-ad73-a864face28d6/sequences/2555fdc7-2ae2-441f-b490-1fd578f78da6.aac",
+    //         "bucket_fp": "f763e606-25d2-461e-ad73-a864face28d6/sequences/2555fdc7-2ae2-441f-b490-1fd578f78da6.aac",
+    //         "backing_track_fp": "backing_tracks/1/6.aac",
+    //         "backing_track_url": "gs://song_barker_sequences/backing_tracks/1/6.aac",
+    //         "stream_url": null,
+    //         "hidden": 0
+    //     }
+    // NOTE need to add user_id and name before inserting
 
-    //var uuids_string = _.join(req.body.uuids, ' ');
+    // get sequence count for name
+    var sequence_count_sql = `
+        SELECT count(*) FROM sequences
+        WHERE
+            user_id = ?
+        AND
+            name LIKE ?
+        ;
+    `;
+    var sequence_row = await db.get(sequence_count_sql, [
+        req.session.user_id,
+        `%${song_obj.name}%`,
+    ]);
+    var sequence_count = parseInt(sequence_row['count(*)']) || 0;
+    sequence_data['name'] = `${song_obj.name} ${sequence_count + 1}`;
+    sequence_data['user_id'] = req.session.user_id;
 
-
-    //// rows in db and response
-
-    //var output = stdout.split(/\r?\n/);
-    //var line = output.shift();
-    //var sequence_uuid = line.split(' ')[0];
-    //var sequence_url = line.split(' ')[1];
-    //console.log(sequence_uuid, sequence_url);
-    //const db = await _db.dbPromise;
-    //var sequence = await db.get('select * from sequences where uuid = ?', sequence_uuid);
-    //sequence.obj_type = 'sequence';
-    //res.json(sequence);
+    sequence_data.obj_type = 'sequence';
+    res.json(sequence_data);
 });
 
 

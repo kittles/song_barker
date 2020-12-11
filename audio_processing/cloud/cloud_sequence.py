@@ -1,14 +1,15 @@
-import bucket_client as bc
+import json
 import sqlite3
 import mido
 import argparse
 import uuid
 import os
+import tempfile
 from scipy.io import wavfile
 import numpy as np
-import tempfile
 import subprocess as sp
 import numpy as np
+import bucket_client as bc
 import audio_conversion as ac
 from crop_sampler import CropSampler
 from midi_bridge import MidiBridge
@@ -54,17 +55,17 @@ def to_sequence (song, crops, debug=False, output=None):
         #    #sp.call('play {}'.format(wav_fp), shell=True)
         #    return CropSampler(wav_fp, tmp_dir)
 
-        def crop_sampler_from_fp (crop_json):
+        def crop_sampler_from_obj (crop_json):
             # make a local path for the bucket download
             crop_aac = os.path.join(tmp_dir, '{}.aac'.format(crop_json['uuid']))
             # download to that path
-            bc.download_filename_from_bucket(crop_json['bucket_fp'], crop_aac)
+            bc.download_file_from_bucket(crop_json['bucket_fp'], crop_aac)
             # convert to a wav
             wav_fp = ac.aac_to_wav(crop_aac)
             # use wav to create sampler
             return CropSampler(wav_fp, tmp_dir)
 
-        crop_objs = [dbq.crop_sampler_from_json(crop_json) for crop_json in crops]
+        crop_objs = [crop_sampler_from_obj(crop_json) for crop_json in crops]
 
         #if debug:
         #    for co in crop_objs:
@@ -265,29 +266,19 @@ def to_sequence (song, crops, debug=False, output=None):
         sequence_fp_aac = ac.wav_to_aac(sequence_fp)
 
         ## persistence
-        #remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
-        #remote_sequence_url = 'gs://{}/{}'.format(BUCKET_NAME, remote_sequence_fp)
+
         #song_name = dbq.get_song_name(song_id)
-        #if backing_fp:
-        #    backing_url = 'gs://{}/{}'.format(BUCKET_NAME, backing_fp)
-        #else:
-        #    backing_url = None
-        #dbq.db_insert('sequences', **{
-        #    'uuid': str(sequence_uuid),
-        #    'song_id': song_id,
-        #    'crop_id': ' '.join(crops),
-        #    'user_id': user_id,
-        #    'name': '{} {}'.format(song_name, sequence_count + 1),
-        #    'bucket_url': remote_sequence_url,
-        #    'bucket_fp': remote_sequence_fp,
-        #    'backing_track_fp': backing_fp,
-        #    'backing_track_url': backing_url,
-        #    'stream_url': None,
-        #    'hidden': 0,
-        #})
+        if backing_fp:
+            backing_url = 'gs://{}/{}'.format(BUCKET_NAME, backing_fp)
+        else:
+            backing_url = None
 
         # upload sequence to bucket
         if not debug:
+            raw_fk = crops[0]['raw_id']
+            # this has to match whatever the server generates for fp as well...
+            remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
+            remote_sequence_url = 'gs://{}/{}'.format(BUCKET_NAME, remote_sequence_fp)
             bc.upload_file_to_bucket(sequence_fp_aac, remote_sequence_fp)
         else:
             print('WARNING: debug enabled, skipping uploading file to bucket')
@@ -317,25 +308,32 @@ def to_sequence (song, crops, debug=False, output=None):
         #        )
         #        sp.call(cmd, shell=True)
 
+        response_data = {
+            'uuid': str(sequence_uuid),
+            'song_id': song['id'],
+            'crop_id': ' '.join([c['uuid'] for c in crops]),
+            # NOTE these happen server side
+            #'user_id': user_id,
+            #'name': '{} {}'.format(song['name'], sequence_count + 1),
+            'bucket_url': remote_sequence_url,
+            'bucket_fp': remote_sequence_fp,
+            'backing_track_fp': backing_fp,
+            'backing_track_url': backing_url,
+            'stream_url': None,
+            'hidden': 0,
+        }
 
         # return some data for api response
-        print(sequence_uuid, remote_sequence_url)
-        #log(' '.join(crops), 'finished')
-        #TODO return json to server
+        print(json.dumps(response_data))
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--song', '-s', help='the song id', type=str)
+    parser.add_argument('--crops', '-c', help='crops used for each instrument, in track order', type=str)
+    parser.add_argument('--debug', '-d', action='store_true', help='playback audio crops', default=False)
+    args = parser.parse_args()
 
-    raise Exception('not implemented')
-
-    #parser = argparse.ArgumentParser()
-    #parser.add_argument('--song', '-s', help='the song id', type=str, default=1)
-    #parser.add_argument('--crops', '-c', nargs='+', help='crops used for each instrument, in track order')
-    #parser.add_argument('--debug', '-d', action='store_true', help='playback audio crops', default=False)
-    #args = parser.parse_args()
-
-    #if not args.debug:
-    #    warnings.filterwarnings('ignore')
-
-    ## TODO maybe lint args?
-    #to_sequence(args.user_id, args.song_id, args.crops, args.debug, args.output)
+    song_obj = json.loads(args.song)
+    crop_objs = json.loads(args.crops)
+    to_sequence(song_obj, crop_objs)
