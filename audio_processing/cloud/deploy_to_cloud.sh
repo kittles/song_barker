@@ -27,8 +27,8 @@ gcloud compute instances list
 export APP_NAME='k9-karaoke-dev-app'
 
 kubectl create deployment ${APP_NAME} --image=gcr.io/${PROJECT_ID}/${NAME}
-kubectl scale deployment ${APP_NAME} --replicas=3
-kubectl autoscale deployment ${APP_NAME} --cpu-percent=80 --min=1 --max=5
+kubectl scale deployment ${APP_NAME} --replicas=1
+kubectl autoscale deployment ${APP_NAME} --cpu-percent=50 --min=1 --max=5
 
 # list "pods"
 kubectl get pods

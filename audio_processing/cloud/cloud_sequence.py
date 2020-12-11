@@ -1,5 +1,4 @@
 import bucket_client as bc
-import logger
 import sqlite3
 import mido
 import argparse
@@ -9,20 +8,15 @@ from scipy.io import wavfile
 import numpy as np
 import tempfile
 import subprocess as sp
-import warnings
-import parselmouth
-import wave
-import contextlib
 import numpy as np
-from functools import partial
-import db_queries as dbq
 import audio_conversion as ac
 from crop_sampler import CropSampler
-import pyloudnorm as pyln
+from midi_bridge import MidiBridge
+
 
 BUCKET_NAME = os.environ.get('k9_bucket_name', 'song_barker_sequences')
 samplerate = 44100
-log = logger.log_fn(os.path.basename(__file__))
+#log = logger.log_fn(os.path.basename(__file__))
 
 
 # need scripts
@@ -34,32 +28,63 @@ log = logger.log_fn(os.path.basename(__file__))
 # - mido
 
 # needed args
-# - song_id
-# - crop array
-# - song bucket_fp (for midi bridge)
-def to_sequence (user_id, song_id, crops, debug=False, output=None):
-    log(' '.join(crops), 'started')
+# - song (full object)
+# - crop array (full crop objects)
 
-    sequence_count = dbq.get_sequence_count(user_id, song_id)
+def to_sequence (song, crops, debug=False, output=None):
+    #log(' '.join(crops), 'started')
+
+    #sequence_count = dbq.get_sequence_count(user_id, song_id)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
 
         # assuming all crops come from same raw...
-        raw_fk = dbq.get_crop_raw_fk(crops[0])
+        #raw_fk = dbq.get_crop_raw_fk(crops[0])
 
         # instantiate crop objects
-        crop_objs = [dbq.crop_sampler_from_uuid(crop, tmp_dir) for crop in crops]
-        if debug:
-            for co in crop_objs:
-                #co.play_original()
-                print(co)
-                print('crop audio data: min {} max {} dtype {}'.format(co.audio_data.min(), co.audio_data.max(), co.audio_data.dtype))
-                co.play_original()
-            pass
+        # TODO rewrite this to not use dbq
+        #def crop_sampler_from_uuid (uuid, tmp_dir):
+        #    cur.execute('SELECT bucket_fp FROM crops WHERE uuid = ?', [uuid])
+        #    row = cur.fetchone()
+        #    crop_aac = os.path.join(tmp_dir, '{}.aac'.format(uuid))
+        #    bc.download_filename_from_bucket(row['bucket_fp'], crop_aac)
+        #    wav_fp = ac.aac_to_wav(crop_aac)
+        #    #import subprocess as sp
+        #    #sp.call('ffmpeg -i {}'.format(wav_fp), shell=True)
+        #    #sp.call('play {}'.format(wav_fp), shell=True)
+        #    return CropSampler(wav_fp, tmp_dir)
+
+        def crop_sampler_from_fp (crop_json):
+            # make a local path for the bucket download
+            crop_aac = os.path.join(tmp_dir, '{}.aac'.format(crop_json['uuid']))
+            # download to that path
+            bc.download_filename_from_bucket(crop_json['bucket_fp'], crop_aac)
+            # convert to a wav
+            wav_fp = ac.aac_to_wav(crop_aac)
+            # use wav to create sampler
+            return CropSampler(wav_fp, tmp_dir)
+
+        crop_objs = [dbq.crop_sampler_from_json(crop_json) for crop_json in crops]
+
+        #if debug:
+        #    for co in crop_objs:
+        #        #co.play_original()
+        #        print(co)
+        #        print('crop audio data: min {} max {} dtype {}'.format(co.audio_data.min(), co.audio_data.max(), co.audio_data.dtype))
+        #        co.play_original()
+        #    pass
 
         # instatiate the midi object
-        mb = dbq.midi_bridge_from_song_id(song_id, tmp_dir)
-        song = dbq.get_song(song_id)
+        #def midi_bridge_from_song_id (song_id, tmp_dir):
+        #    cur.execute('SELECT name, bucket_fp FROM songs WHERE id = :song_id', {
+        #        'song_id': song_id,
+        #    })
+        #    row = cur.fetchone()
+        #    return MidiBridge(row['bucket_fp'], tmp_dir, True)
+
+        #mb = dbq.midi_bridge_from_song_id(song_id, tmp_dir)
+        mb = MidiBridge(song['bucket_fp'], tmp_dir)
+        #song = dbq.get_song(song_id)
 
         # try to determine the ideal key
         median_pitch = 0 # for relatively pitched tracks
@@ -239,76 +264,78 @@ def to_sequence (user_id, song_id, crops, debug=False, output=None):
             wavfile.write(output.replace('aac', 'wav'), samplerate, sequence)
         sequence_fp_aac = ac.wav_to_aac(sequence_fp)
 
-        # persistence
-        remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
-        remote_sequence_url = 'gs://{}/{}'.format(BUCKET_NAME, remote_sequence_fp)
-        song_name = dbq.get_song_name(song_id)
-        if backing_fp:
-            backing_url = 'gs://{}/{}'.format(BUCKET_NAME, backing_fp)
-        else:
-            backing_url = None
-        dbq.db_insert('sequences', **{
-            'uuid': str(sequence_uuid),
-            'song_id': song_id,
-            'crop_id': ' '.join(crops),
-            'user_id': user_id,
-            'name': '{} {}'.format(song_name, sequence_count + 1),
-            'bucket_url': remote_sequence_url,
-            'bucket_fp': remote_sequence_fp,
-            'backing_track_fp': backing_fp,
-            'backing_track_url': backing_url,
-            'stream_url': None,
-            'hidden': 0,
-        })
+        ## persistence
+        #remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
+        #remote_sequence_url = 'gs://{}/{}'.format(BUCKET_NAME, remote_sequence_fp)
+        #song_name = dbq.get_song_name(song_id)
+        #if backing_fp:
+        #    backing_url = 'gs://{}/{}'.format(BUCKET_NAME, backing_fp)
+        #else:
+        #    backing_url = None
+        #dbq.db_insert('sequences', **{
+        #    'uuid': str(sequence_uuid),
+        #    'song_id': song_id,
+        #    'crop_id': ' '.join(crops),
+        #    'user_id': user_id,
+        #    'name': '{} {}'.format(song_name, sequence_count + 1),
+        #    'bucket_url': remote_sequence_url,
+        #    'bucket_fp': remote_sequence_fp,
+        #    'backing_track_fp': backing_fp,
+        #    'backing_track_url': backing_url,
+        #    'stream_url': None,
+        #    'hidden': 0,
+        #})
+
+        # upload sequence to bucket
         if not debug:
-            bc.upload_filename_to_bucket(sequence_fp_aac, remote_sequence_fp)
+            bc.upload_file_to_bucket(sequence_fp_aac, remote_sequence_fp)
         else:
             print('WARNING: debug enabled, skipping uploading file to bucket')
 
-        if debug:
-            for crop in crop_objs:
-                #print(crop)
-                pass
-            print('looking for backing track at', backing_fp)
-            if backing_fp:
-                local_backing = os.path.join(tmp_dir, 'backing.aac')
-                bc.download_filename_from_bucket(backing_fp, local_backing)
-                cmd = 'ffplay -f lavfi -i "amovie={}[01];amovie={}[02];[01][02]amerge"'.format(
-                    sequence_fp,
-                    local_backing
-                )
-                sp.call(cmd, shell=True)
-            else:
-                #sp.call('play {}'.format(sequence_fp), shell=True)
-                pass
+        #if debug:
+        #    for crop in crop_objs:
+        #        #print(crop)
+        #        pass
+        #    print('looking for backing track at', backing_fp)
+        #    if backing_fp:
+        #        local_backing = os.path.join(tmp_dir, 'backing.aac')
+        #        bc.download_filename_from_bucket(backing_fp, local_backing)
+        #        cmd = 'ffplay -f lavfi -i "amovie={}[01];amovie={}[02];[01][02]amerge"'.format(
+        #            sequence_fp,
+        #            local_backing
+        #        )
+        #        sp.call(cmd, shell=True)
+        #    else:
+        #        #sp.call('play {}'.format(sequence_fp), shell=True)
+        #        pass
 
-            if output:
-                cmd = 'ffmpeg -i {} -i {} -y -filter_complex amix=inputs=2:duration=longest {}'.format(
-                    sequence_fp,
-                    local_backing,
-                    output
-                )
-                sp.call(cmd, shell=True)
+        #    if output:
+        #        cmd = 'ffmpeg -i {} -i {} -y -filter_complex amix=inputs=2:duration=longest {}'.format(
+        #            sequence_fp,
+        #            local_backing,
+        #            output
+        #        )
+        #        sp.call(cmd, shell=True)
 
 
         # return some data for api response
         print(sequence_uuid, remote_sequence_url)
-        log(' '.join(crops), 'finished')
+        #log(' '.join(crops), 'finished')
+        #TODO return json to server
 
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    #parser.add_argument('--midi-file', '-m', help='midi file')
-    parser.add_argument('--user-id', '-u', help='the user id', type=str)
-    parser.add_argument('--song-id', '-s', help='the song id', type=str, default=1)
-    parser.add_argument('--crops', '-c', nargs='+', help='crops used for each instrument, in track order')
-    parser.add_argument('--debug', '-d', action='store_true', help='playback audio crops', default=False)
-    parser.add_argument('--output', '-o', help='output locally', type=str)
-    args = parser.parse_args()
+    raise Exception('not implemented')
 
-    if not args.debug:
-        warnings.filterwarnings('ignore')
+    #parser = argparse.ArgumentParser()
+    #parser.add_argument('--song', '-s', help='the song id', type=str, default=1)
+    #parser.add_argument('--crops', '-c', nargs='+', help='crops used for each instrument, in track order')
+    #parser.add_argument('--debug', '-d', action='store_true', help='playback audio crops', default=False)
+    #args = parser.parse_args()
 
-    # TODO maybe lint args?
-    to_sequence(args.user_id, args.song_id, args.crops, args.debug, args.output)
+    #if not args.debug:
+    #    warnings.filterwarnings('ignore')
+
+    ## TODO maybe lint args?
+    #to_sequence(args.user_id, args.song_id, args.crops, args.debug, args.output)

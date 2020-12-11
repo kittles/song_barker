@@ -33,6 +33,7 @@ RUN npm --version
 # audio processing
 RUN apt-get update && apt-get install -y sox
 RUN apt-get update && apt-get install -y ffmpeg
+RUN apt-get update && apt-get install -y rubberband-cli
 
 WORKDIR /usr/src/app
 COPY package*.json ./
