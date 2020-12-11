@@ -844,8 +844,9 @@ app.post('/cloud/to_crops', async function (req, res) {
     var crop_data = await cloud_request('to_crops', {
         uuid: req.body.uuid,
     })
-    if (crop_data.stderr != '') {
-        res.status(503).send(`cloud request failed - ${crop_data.stderr.message}`);
+    if (_.has(crop_data, 'stderr')) {
+        res.status(503).send(`cloud request failed - ${crop_data.stderr}`);
+        return;
     }
     // response looks like
     // {
@@ -961,18 +962,21 @@ app.post('/cloud/to_sequence', async function (req, res) {
 
     // generate sequence
     var song_obj = await db.get('select * from songs where id = ?', req.body.song_id);
-    var crop_objs = _.map(req.body.uuids, async (uuid) => {
-        return await db.get('select * from crops where uuid = ? and user_id = ?', [
+    var crop_objs = await Promise.all(_.map(req.body.uuids, async (uuid) => {
+        var row = await db.get('select * from crops where uuid = ? and user_id = ?', [
             uuid,
             req.session.user_id,
         ]);
-    });
+        return row;
+    }));
+
     var sequence_data = await cloud_request('to_sequence', {
         song: song_obj,
         crops: crop_objs,
     })
-    if (sequence_data.stderr != '') {
-        res.status(503).send(`cloud request failed - ${sequence_data.stderr.message}`);
+    if (_.has(sequence_data, 'stderr')) {
+        res.status(503).send(`cloud request failed - ${sequence_data.stderr}`);
+        return;
     }
     // response looks like:
     //     {
@@ -1004,6 +1008,27 @@ app.post('/cloud/to_sequence', async function (req, res) {
     var sequence_count = parseInt(sequence_row['count(*)']) || 0;
     sequence_data['name'] = `${song_obj.name} ${sequence_count + 1}`;
     sequence_data['user_id'] = req.session.user_id;
+
+    var insert_sql = `
+        insert into sequences (
+            uuid, song_id, crop_id, bucket_url, bucket_fp, backing_track_fp, backing_track_url, stream_url, hidden, name, user_id
+        ) values (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )`;
+    var insert_result = await db.run(insert_sql, [
+        sequence_data['uuid'],
+        sequence_data['song_id'],
+        sequence_data['crop_id'],
+        sequence_data['bucket_url'],
+        sequence_data['bucket_fp'],
+        sequence_data['backing_track_fp'],
+        sequence_data['backing_track_url'],
+        sequence_data['stream_url'],
+        sequence_data['hidden'],
+        sequence_data['name'],
+        sequence_data['user_id'],
+    ]);
+    console.log(insert_result);
 
     sequence_data.obj_type = 'sequence';
     res.json(sequence_data);

@@ -309,18 +309,20 @@ def to_sequence (song, crops, debug=False, output=None):
         #        sp.call(cmd, shell=True)
 
         response_data = {
-            'uuid': str(sequence_uuid),
-            'song_id': song['id'],
-            'crop_id': ' '.join([c['uuid'] for c in crops]),
-            # NOTE these happen server side
-            #'user_id': user_id,
-            #'name': '{} {}'.format(song['name'], sequence_count + 1),
-            'bucket_url': remote_sequence_url,
-            'bucket_fp': remote_sequence_fp,
-            'backing_track_fp': backing_fp,
-            'backing_track_url': backing_url,
-            'stream_url': None,
-            'hidden': 0,
+            'data': {
+                'uuid': str(sequence_uuid),
+                'song_id': song['id'],
+                'crop_id': ' '.join([c['uuid'] for c in crops]),
+                # NOTE these happen server side
+                #'user_id': user_id,
+                #'name': '{} {}'.format(song['name'], sequence_count + 1),
+                'bucket_url': remote_sequence_url,
+                'bucket_fp': remote_sequence_fp,
+                'backing_track_fp': backing_fp,
+                'backing_track_url': backing_url,
+                'stream_url': None,
+                'hidden': 0,
+            },
         }
 
         # return some data for api response

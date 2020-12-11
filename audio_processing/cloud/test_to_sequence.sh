@@ -71,4 +71,4 @@ curl --header "Content-Type: application/json" \
         }
       ]
     }' \
-  http://localhost:8080/to_sequence
+  http://34.83.134.37/to_sequence
