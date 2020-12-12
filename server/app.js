@@ -891,8 +891,8 @@ app.post('/cloud/to_crops', async function (req, res) {
                 req.body.uuid, // raw uuid
                 req.session.user_id,
                 `${name_info.base_name} ${name_info.count + 1 + i}`,
-                `${req.body.uuid}/cropped/${crop_data.crops[i].uuid}.aac`,
                 `gs://${req.body.uuid}/cropped/${crop_data.crops[i].uuid}.aac`,
+                `${req.body.uuid}/cropped/${crop_data.crops[i].uuid}.aac`,
                 null,
                 0,
                 crop_data.crops[i].duration,
