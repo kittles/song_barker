@@ -940,8 +940,12 @@ app.post('/cloud/to_sequence', async function (req, res) {
     sequence_data['user_id'] = req.session.user_id;
 
     var insert_result = await insert_into_db('sequences', sequence_data);
-    sequence_data.obj_type = 'sequence';
-    res.json(sequence_data);
+
+    
+    var sequence_obj = await db.get('select * from sequences where uuid = ?', sequence_data.uuid);
+    sequence_obj.obj_type = 'sequence';
+
+    res.json(sequence_obj);
 });
 
 
