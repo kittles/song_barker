@@ -52,3 +52,5 @@ audio_processing/test_sequence_output/*
 
 bucket_backup/.cloud-env
 
+load_testing/__pycache__
+

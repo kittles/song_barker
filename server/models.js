@@ -50,6 +50,11 @@ exports.models = [
                     type: 'integer DEFAULT 0',
                     desc: 'when the user agreed to terms',
                 },
+                {
+                    name: 'account_uuid',
+                    type: 'text',
+                    desc: 'used for purchases',
+                },
             ],
         },
     },

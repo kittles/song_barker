@@ -1,4 +1,5 @@
 var _db = require('./database.js');
+var uuidv4 = require('uuid').v4;
 
 
 async function get_user (user_id) {
@@ -10,10 +11,11 @@ exports.get_user = get_user;
 
 async function add_user (user_id, name, email) {
     var db = await _db.dbPromise;
-    return db.run('insert into users (user_id, name, email) values (?, ?, ?)', [
+    return db.run('insert into users (user_id, name, email, account_uuid) values (?, ?, ?, ?)', [
         user_id,
         name,
         email,
+        uuidv4(),
     ]);
 }
 exports.add_user = add_user;

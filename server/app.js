@@ -417,13 +417,14 @@ app.post('/create-account', async (req, res) => {
     var password = await hash_password(req.body.password);
     const db = await _db.dbPromise;
     // create an account that is pending confirmation
-    var result = await db.run('insert into users (user_id, name, email, password, email_confirmation_string, pending_confirmation) values (?, ?, ?, ?, ?, ?)',
+    var result = await db.run('insert into users (user_id, name, email, password, email_confirmation_string, pending_confirmation, account_uuid) values (?, ?, ?, ?, ?, ?, ?)',
         req.body.email,
         'Canine Friend',
         req.body.email,
         password,
         email_confirmation_string,
         1,
+        uuidv4(),
     );
 
     var transporter = nodemailer.createTransport({
