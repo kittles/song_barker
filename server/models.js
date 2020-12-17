@@ -7,6 +7,7 @@ exports.models = [
         user_owned: false,
         immutable: true, // this stops rest api calls that change anything
         disable_all: true,
+        disable_rest: true, // dont make users available via rest
         // TODO: probably just want an allowed_methods array...
         schema: {
             columns: [

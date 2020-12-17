@@ -209,6 +209,7 @@ function obj_rest_api (def, db) {
         var sql = `SELECT 1 from ${def.table_name}\n`;
         sql += `    where ${def.primary_key} = "${pk}";`;
         var row = await db.get(sql);
+        console.log(sql, row);
         return row['1'];
     }
 }
