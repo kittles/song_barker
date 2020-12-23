@@ -895,6 +895,7 @@ app.post('/cloud/to_sequence', async function (req, res) {
 
     // generate sequence
     var song_obj = await db.get('select * from songs where id = ?', req.body.song_id);
+    song_obj.name
     var crop_objs = await Promise.all(_.map(req.body.uuids, async (uuid) => {
         var row = await db.get('select * from crops where uuid = ? and user_id = ?', [
             uuid,
@@ -903,11 +904,20 @@ app.post('/cloud/to_sequence', async function (req, res) {
         return row;
     }));
 
+    // hack to handle apostrophes in 
+    // song names, since you dont need the name
+    // on the cloud
+    function no_name (so) {
+        so.name = '';
+        return so;
+    }
+
     var sequence_data = await cloud_request('to_sequence', {
-        song: song_obj,
+        song: no_name(song_obj),
         crops: crop_objs,
         bucket: process.env.k9_bucket_name,
     })
+    console.log(sequence_data);
     if (_.has(sequence_data, 'stderr')) {
         res.status(503).send(`cloud request failed - ${sequence_data.stderr}`);
         return;
