@@ -743,6 +743,7 @@ app.post('/signed-upload-url', async (req, res) => {
 
 // process raw audio into cropped pieces ..._in the cloud_...
 app.post('/cloud/to_crops', async function (req, res) {
+    console.log('TO CROPS BODY:', req.body);
     // auth
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
@@ -848,6 +849,7 @@ app.post('/cloud/to_crops', async function (req, res) {
 
 // sequence audio into a song
 app.post('/cloud/to_sequence', async function (req, res) {
+    console.log('TO SEQUENCE BODY:', req.body);
     // validation
 
     // auth
