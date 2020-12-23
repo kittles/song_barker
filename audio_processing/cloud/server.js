@@ -27,7 +27,7 @@ app.post('/to_crops', async (req, res) => {
         res.status(401).send('access denied!');
     }
     // TODO need a safer way to interpolate strings
-    var cmd = `python3 cloud_crop.py --uuid "${req.body.uuid}"`;
+    var cmd = `python3 cloud_crop.py --uuid "${req.body.uuid}" --bucket "${req.body.bucket}"`;
     var config = {
         shell: '/bin/bash',
     }
@@ -63,7 +63,8 @@ app.post('/to_sequence', async (req, res) => {
     // TODO need a safer way to interpolate strings
     var cmd = `python3 cloud_sequence.py `;
     cmd += `--song '${JSON.stringify(req.body.song)}' `;
-    cmd += `--crops '${JSON.stringify(req.body.crops)}'`;
+    cmd += `--crops '${JSON.stringify(req.body.crops)}' `;
+    cmd += `--bucket '${req.body.bucket}'`;
     var config = {
         shell: '/bin/bash',
     }

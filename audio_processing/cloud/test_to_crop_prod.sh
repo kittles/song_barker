@@ -9,8 +9,8 @@
 #  --data \
 #    '{
 #      "access_token": "very-secret-access-token-from-hell",
-#      "uuid": "100288f3-dbc2-45fd-b051-c90b5c53d851",
-#      "bucket": "song_barker_sequences"
+#      "uuid": "aca26c15-abd1-4d0a-ab4e-88d5ad803501",
+#      "bucket": "k9karaoke-prod"
 #    }' \
 #  http://localhost:49160/to_crops
 
@@ -23,7 +23,7 @@ curl --header "Content-Type: application/json" \
   --data \
     '{
       "access_token": "very-secret-access-token-from-hell",
-      "uuid": "100288f3-dbc2-45fd-b051-c90b5c53d851",
-      "bucket": "song_barker_sequences"
+      "uuid": "aca26c15-abd1-4d0a-ab4e-88d5ad803501",
+      "bucket": "k9karaoke-prod"
     }' \
   http://34.83.134.37/to_crops

@@ -16,7 +16,7 @@ import pyloudnorm as pyln
 THRESHOLD = 200
 
 
-def crop_raw_audio (raw_uuid, debug=False):
+def crop_raw_audio (raw_uuid, bucket_name, debug=False):
     # raw insert into db happens on the server, not here
     with tempfile.TemporaryDirectory() as tmp_dir:
 
@@ -25,7 +25,7 @@ def crop_raw_audio (raw_uuid, debug=False):
         if debug:
             print('downloading from: ', remote_fp)
         local_fp_aac = os.path.join(tmp_dir, 'raw.aac')
-        bc.download_file_from_bucket(remote_fp, local_fp_aac)
+        bc.download_file_from_bucket(remote_fp, local_fp_aac, bucket_name)
 
         # convert to wav
         # NOTE from ffmpeg docs: The default for muxing into WAV files is pcm_s16le
@@ -327,8 +327,8 @@ def crop_raw_audio (raw_uuid, debug=False):
             # upload to bucket
             bucket_filename = '{}.aac'.format(crop_uuid)
             bucket_fp = os.path.join(raw_uuid, 'cropped', bucket_filename)
-            bucket_url = os.path.join('gs://', bc.BUCKET_NAME, bucket_fp)
-            bc.upload_file_to_bucket(crop_fp_aac, bucket_fp)
+            bucket_url = os.path.join('gs://', bucket_name, bucket_fp)
+            bc.upload_file_to_bucket(crop_fp_aac, bucket_fp, bucket_name)
 
             # store in a list for returning to server
             response_data['data']['crops'].append({
@@ -353,6 +353,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--uuid', '-i', help='raw audio file to be split')
     parser.add_argument('--debug', '-d', help='debug', action='store_true', default=False)
+    parser.add_argument('--bucket', '-b', help='bucket name')
     args = parser.parse_args()
 
-    crop_raw_audio(args.uuid, args.debug)
+    crop_raw_audio(args.uuid, args.bucket, args.debug)
