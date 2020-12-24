@@ -21,6 +21,52 @@ THRESHOLD = 200
 log = logger.log_fn(os.path.basename(__file__))
 
 
+'''
+Notes for moving this to the cloud:
+
+dependencies besides whats in requirements.txt...
+- sox command line utility
+
+reworking db stuff:
+- raw insert needs to be sent back to server as json
+- good crop inserts to json
+- this: for cuuid, cpath in zip(crop_uuids, bucket_crop_paths):
+        print(cuuid, cpath)
+  can be replaced by just reading the response json
+
+how to handle dev / prod bucket?
+- there should be two clusters so changes can be tested
+
+
+* incomming args (in an https? request):
+
+request = {
+    raw_id: "some-uuid",
+    user_id: "some-user-id",
+    image_id: "some-image-uuid",
+}
+
+* something that comes back from cloud should look like this:
+
+response = {
+    raw: {
+        uuid: "raw-uuid",
+        user_id: "user-id",
+    },
+    crops: [
+        {
+            crop_attrib: "yadda"...
+        },
+        ...
+    ],
+    success: true,
+}
+
+/to_crops consumes that
+and inserts things in the db and then response to client
+'''
+
+
 def to_crops (raw_uuid, user_id, image_id, debug=False):
     log(raw_uuid, 'starting...')
 

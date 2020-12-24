@@ -24,6 +24,12 @@ var nodemailer = require('nodemailer');
 var validator = require('email-validator');
 var uuidv4 = require('uuid').v4;
 var signed_url = require('./signed_url.js')
+//var https = require('https');
+//var cloud_access_token = require('../credentials/cloud-access-token.json').token;
+//var axios = require('axios');
+var cloud_request = require('./cloud_request.js').cloud_request;
+var data_for_name = require('./autoname_crop.js').data_for_name;
+var insert_into_db = require('./db_insert.js').insert_into_db;
 
 
 //
@@ -36,7 +42,7 @@ var port = process.env.PORT || 3000;
 app.use(express.json({
     type: 'application/json',
 }));
-app.set('json spaces', 2);
+app.set('json spaces', 1);
 app.use(morgan('combined')); // logging
 // TODO this is just for local dev, nginx should handle static on server
 app.use(express.static('./public'));
@@ -74,7 +80,6 @@ app.get('/card/:uuid', async (req, res) => {
         res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
     }
 
-    // TODO delete
 
     if (!uuid_validate(req.params.uuid)) {
         // TODO should redirect to a user friendly page
@@ -83,9 +88,7 @@ app.get('/card/:uuid', async (req, res) => {
         return;
     }
     const db = await _db.dbPromise;
-    console.log(process.env.k9_database);
     var check = await db.get('select * from users limit 1');
-    console.log(check);
     var card = await db.get('select * from greeting_cards where uuid = ?', req.params.uuid);
     if (_.isUndefined(card)) {
         //res.status(404).send('card does not exist');
@@ -115,7 +118,7 @@ app.get('/card/:uuid', async (req, res) => {
         show_error_page();
         return;
     }
-    fs.readFile('public/puppet/puppet.html', 'utf-8', function (error, source) { //TODO just using sketch to test...
+    fs.readFile('public/puppet/puppet.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
         var html = template({
             uuid: req.params.uuid,
@@ -139,8 +142,8 @@ app.get('/card/:uuid', async (req, res) => {
 
 
 // TODO remove this
-app.get('/', (req, res) => {
-    res.send(`sessionID: ${req.sessionID}, user_id: ${req.session.user_id}`);
+app.get('/health-check', (req, res) => {
+    res.send('beep-beep-beep');
 });
 
 
@@ -199,9 +202,10 @@ app.post('/openid-token/:platform', async (req, res) => {
             add_stock_objects_to_user(payload.email)
         }
         req.session.openid_platform = 'google';
-        return res.json({ success: true, err: null, payload: payload });
+        var user_obj = await user_sess.get_user_no_password(payload.email);
+        return res.json({ success: true, error: null, user: user_obj });
     } catch (err) {
-        return res.json({ success: false, err: err, payload: null });
+        return res.json({ success: false, error: err, user: null });
     }
 });
 
@@ -280,10 +284,11 @@ app.post('/facebook-token', async (req, res) => {
             req.session.user_id = payload.email;
         }
         req.session.openid_platform = 'facebook';
-        return res.json({ success: true, err: null, payload: payload });
+        var user_obj = await user_sess.get_user_no_password(payload.email);
+        return res.json({ success: true, error: null, user: user_obj });
     } catch (err) {
         console.log(err);
-        return res.json({ success: false, err: err, payload: null });
+        return res.json({ success: false, error: err, user: null });
     }
 });
 
@@ -319,20 +324,20 @@ app.post('/manual-login', async (req, res) => {
     if (_.get(user_obj, 'pending_confirmation') === 1) {
         res.json({
             success: false,
-            error: 'uncofirmed account',
+            error: 'unconfirmed account',
         });
         return;
     }
     var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
 
+    var user_obj = await user_sess.get_user_no_password(req.body.email);
     if (accept_password) {
         req.session.user_id = req.body.email;
         req.session.openid_platform = 'manual';
         res.json({
             success: true,
-            payload: {
-                email: req.body.email,
-            },
+            error: null,
+            user: user_obj,
         });
     } else {
         res.json({
@@ -389,13 +394,12 @@ app.post('/create-account', async (req, res) => {
         }
         var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
         if (accept_password) {
+            var user_obj = await user_sess.get_user_no_password(req.body.email);
             req.session.user_id = req.body.email;
             req.session.openid_platform = 'manual';
             res.json({
                 success: true,
-                payload: {
-                    email: req.body.email,
-                },
+                user: user_obj,
                 account_already_exists: true, // this is useful if a user tries to click sign in and hits sign up by accident
             });
             return;
@@ -412,14 +416,15 @@ app.post('/create-account', async (req, res) => {
     var password = await hash_password(req.body.password);
     const db = await _db.dbPromise;
     // create an account that is pending confirmation
-    var result = await db.run('insert into users (user_id, name, email, password, email_confirmation_string, pending_confirmation) values (?, ?, ?, ?, ?, ?)',
-        req.body.email,
-        'Canine Friend',
-        req.body.email,
-        password,
-        email_confirmation_string,
-        1,
-    );
+    var result = await insert_into_db('users', {
+        'user_id': req.body.email,
+        'name': 'Canine Friend',
+        'email': req.body.email,
+        'password': password,
+        'email_confirmation_string': email_confirmation_string,
+        'pending_confirmation': 1,
+        'account_uuid': uuidv4(),
+    });
 
     var transporter = nodemailer.createTransport({
         host: email_config.GMAIL_SERVICE_HOST,
@@ -448,11 +453,10 @@ app.post('/create-account', async (req, res) => {
         });
     });
 
+    var user_obj = await user_sess.get_user_no_password(req.body.email);
     res.json({
         success: true,
-        payload: {
-            email: req.body.email,
-        },
+        user: user_obj,
         account_already_exists: false,
     });
 });
@@ -515,9 +519,10 @@ app.post('/change-password', async (req, res) => {
             password,
             user_obj.user_id
         );
+        var user_obj = await user_sess.get_user_no_password(req.session.user_id);
         res.json({
             success: true,
-            // some other shit
+            user: user_obj,
         });
     } else {
         res.json({
@@ -566,8 +571,10 @@ app.post('/temp-password', async (req, res) => {
         text: `please use this temporary password to log in to your account: ${temp_password}`,
     });
 
+    var user_obj = await user_sess.get_user_no_password(req.body.user_id);
     res.json({
         success: true,
+        user: user_obj,
     });
 });
 
@@ -602,6 +609,8 @@ async function hash_password (password) {
 app.get('/is-logged-in', async (req, res) => {
     var state = {
         logged_in: false,
+        user_obj: null,
+        user_id: false,
     };
     if (!_.get(req.session, 'user_id', false)) {
         state.user_id = false;
@@ -612,6 +621,7 @@ app.get('/is-logged-in', async (req, res) => {
     if (_.get(is_user, '1', false)) {
         state.logged_in = true;
         state.user_id = req.session.user_id;
+        state.user_obj = await user_sess.get_user_no_password(req.session.user_id);
     }
     res.json(state);
 });
@@ -661,9 +671,14 @@ app.post('/delete-account', async function (req, res) {
     const db = await _db.dbPromise;
 
     _.each(models, (def) => {
-        _.each(rest_api.obj_rest_api(def, db), (route_def) => {
-            app[route_def.request_method](route_def.endpoint, route_def.handler);
-        });
+        if (def.disable_rest) {
+            // do not include this object in the rest api
+            // pass
+        } else {
+            _.each(rest_api.obj_rest_api(def, db), (route_def) => {
+                app[route_def.request_method](route_def.endpoint, route_def.handler);
+            });
+        }
     });
 })();
 
@@ -674,6 +689,19 @@ app.get('/describe', (req, res) => {
     res.json(models);
 });
 
+
+// when a user agrees to terms
+app.post('/agree-to-terms', async (req, res) => {
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    await db.run('update users set user_agreed_to_terms_v1 = 1 where user_id = ?', req.session.user_id);
+    res.json({
+        success: true,
+    });
+})
 
 //
 // audio processing apis
@@ -713,8 +741,9 @@ app.post('/signed-upload-url', async (req, res) => {
 
 
 
-// process raw audio into cropped pieces
-app.post('/to_crops', async function (req, res) {
+// process raw audio into cropped pieces ..._in the cloud_...
+app.post('/cloud/to_crops', async function (req, res) {
+    console.log('TO CROPS BODY:', req.body);
     // auth
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
@@ -747,48 +776,82 @@ app.post('/to_crops', async function (req, res) {
             return;
         }
     }
-    // TODO image_id == undefined works, but only because db has no images with user_id == 'undefined'
-    // kind of a hack...
 
-    exec(`
-        cd ../audio_processing &&
-        source .env/bin/activate &&
-        export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-        python to_crops.py -i ${req.body.uuid} -u ${req.session.user_id} -m ${req.body.image_id}
-    `, {
-        shell: '/bin/bash',
-    }, async (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            res.json({
-                error: 'there was an error creating the crops',
-            });
-        } else {
-            var output = stdout.split(/\r?\n/); // split by line and strip
-            output.pop(); // ditch empty line
-            var crop_uuids = _.map(output, (line) => {
-                return line.split(' ')[0];
-            });
-            // TODO make this like rest api response
-            // TODO brittle
-            const db = await _db.dbPromise;
-            var crop_qs = _.join(_.map(crop_uuids, (uuid) => { return '?'; }), ', ');
-            var all_crops_sql = `select * from crops
-                where uuid in (
-                    ${crop_qs}
-                );`;
-            var crops = await db.all(all_crops_sql, crop_uuids);
-            _.map(crops, (crop) => {
-                crop.obj_type = 'crop';
-            });
-            res.json(crops);
-        }
+    // now that the stuff is all validated, make a request to the cloud endpoint for the actual
+    // splitting
+    var crop_data = await cloud_request('to_crops', {
+        uuid: req.body.uuid,
+        bucket: process.env.k9_bucket_name,
+    })
+    if (_.has(crop_data, 'stderr')) {
+        res.status(503).send(`cloud request failed - ${crop_data.stderr}`);
+        return;
+    }
+    // response looks like
+    // {
+    //   crops: [
+    //     {
+    //       uuid: '58c7642b-17af-43f8-a7cd-e8a2d057b20a',
+    //       bucket_filepath: 'gs://song_barker_sequences/100288f3-dbc2-45fd-b051-c90b5c53d851/cropped/58c7642b-17af-43f8-a7cd-e8a2d057b20a.aac',
+    //       duration: 1.3520408163265305
+    //     },
+    //     ...
+
+    // db stuff
+    // TODO maybe this should be one big transaction
+
+    try {
+        await insert_into_db('raws', {
+            uuid: req.body.uuid,
+            user_id: req.session.user_id,
+        });
+    } catch (err) {
+        // probably unique constraint error, nbd
+        console.log('error inserting raw row', err);
+    }
+    // TODO this is susceptible to timing issues
+    var name_info = await data_for_name(req.body.image_id, req.session.user_id);
+    //looks like :
+    //{
+    //    base_name: 'some-name',
+    //    count: 4
+    //}
+    for (var i = 0; i < crop_data.crops.length; i++) {
+        // dont respond until everything is in the db?
+        // i dont remember how this
+        await insert_into_db('crops', {
+            uuid: crop_data.crops[i].uuid,
+            raw_id: req.body.uuid,
+            user_id: req.session.user_id,
+            name: `${name_info.base_name} ${name_info.count + 1 + i}`,
+            bucket_url: `gs://${req.body.uuid}/cropped/${crop_data.crops[i].uuid}.aac`,
+            bucket_fp: `${req.body.uuid}/cropped/${crop_data.crops[i].uuid}.aac`,
+            stream_url: null,
+            hidden: 0,
+            duration_seconds: crop_data.crops[i].duration,
+        });
+    }
+
+    // everythings in the db now, so respond to client with new crops
+    // by selecting them out of the db (so they mimic the rest api)
+    var crop_qs = _.join(_.map(crop_data.crops, (crop) => { return '?'; }), ', ');
+    var all_crops_sql = `select * from crops
+        where uuid in (
+            ${crop_qs}
+        );`;
+    var crops = await db.all(all_crops_sql, _.map(crop_data.crops, 'uuid'));
+    _.map(crops, (crop) => {
+        crop.obj_type = 'crop';
     });
+    res.json(crops);
 });
 
 
 // sequence audio into a song
-app.post('/to_sequence', async function (req, res) {
+app.post('/cloud/to_sequence', async function (req, res) {
+    console.log('TO SEQUENCE BODY:', req.body);
+    // validation
+
     // auth
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
@@ -831,34 +894,71 @@ app.post('/to_sequence', async function (req, res) {
     }
 
     // generate sequence
-    var uuids_string = _.join(req.body.uuids, ' ');
-    var cmd_for_logging = `python to_sequence.py -c ${uuids_string} -u "${req.session.user_id}" -s "${req.body.song_id}"`;
-    console.log('CALLING to_sequence.py: ', cmd_for_logging);
-    exec(`
-        cd ../audio_processing &&
-        source .env/bin/activate &&
-        export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-        python to_sequence.py -c ${uuids_string} -u "${req.session.user_id}" -s "${req.body.song_id}"
-    `, {
-        shell: '/bin/bash',
-    }, async (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            res.json({
-                error: 'there was an error',
-            });
-        } else {
-            var output = stdout.split(/\r?\n/);
-            var line = output.shift();
-            var sequence_uuid = line.split(' ')[0];
-            var sequence_url = line.split(' ')[1];
-            console.log(sequence_uuid, sequence_url);
-            const db = await _db.dbPromise;
-            var sequence = await db.get('select * from sequences where uuid = ?', sequence_uuid);
-            sequence.obj_type = 'sequence';
-            res.json(sequence);
-        }
-    });
+    var song_obj = await db.get('select * from songs where id = ?', req.body.song_id);
+    song_obj.name
+    var crop_objs = await Promise.all(_.map(req.body.uuids, async (uuid) => {
+        var row = await db.get('select * from crops where uuid = ? and user_id = ?', [
+            uuid,
+            req.session.user_id,
+        ]);
+        return row;
+    }));
+
+    // hack to handle apostrophes in 
+    // song names, since you dont need the name
+    // on the cloud
+    function no_name (so) {
+        so.name = '';
+        return so;
+    }
+
+    var sequence_data = await cloud_request('to_sequence', {
+        song: no_name(song_obj),
+        crops: crop_objs,
+        bucket: process.env.k9_bucket_name,
+    })
+    console.log(sequence_data);
+    if (_.has(sequence_data, 'stderr')) {
+        res.status(503).send(`cloud request failed - ${sequence_data.stderr}`);
+        return;
+    }
+    // response looks like:
+    //     {
+    //         "uuid": "2555fdc7-2ae2-441f-b490-1fd578f78da6",
+    //         "song_id": 1,
+    //         "crop_id": "ab9bcc7f-31cd-49e3-8d36-42857fa348c9 4fddd98c-d2af-42c2-81fc-ae97947d1f25 f1253b68-0da9-4bdf-9536-164d0b981f19",
+    //         "bucket_url": "gs://song_barker_sequences/f763e606-25d2-461e-ad73-a864face28d6/sequences/2555fdc7-2ae2-441f-b490-1fd578f78da6.aac",
+    //         "bucket_fp": "f763e606-25d2-461e-ad73-a864face28d6/sequences/2555fdc7-2ae2-441f-b490-1fd578f78da6.aac",
+    //         "backing_track_fp": "backing_tracks/1/6.aac",
+    //         "backing_track_url": "gs://song_barker_sequences/backing_tracks/1/6.aac",
+    //         "stream_url": null,
+    //         "hidden": 0
+    //     }
+    // NOTE need to add user_id and name before inserting
+
+    // get sequence count for name
+    var sequence_count_sql = `
+        SELECT count(*) FROM sequences
+        WHERE
+            user_id = ?
+        AND
+            name LIKE ?
+        ;
+    `;
+    var sequence_row = await db.get(sequence_count_sql, [
+        req.session.user_id,
+        `%${song_obj.name}%`,
+    ]);
+    var sequence_count = parseInt(sequence_row['count(*)']) || 0;
+    sequence_data['name'] = `${song_obj.name} ${sequence_count + 1}`;
+    sequence_data['user_id'] = req.session.user_id;
+
+    var insert_result = await insert_into_db('sequences', sequence_data);
+
+    var sequence_obj = await db.get('select * from sequences where uuid = ?', sequence_data.uuid);
+    sequence_obj.obj_type = 'sequence';
+
+    res.json(sequence_obj);
 });
 
 

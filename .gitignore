@@ -34,6 +34,11 @@ audio_processing/tune_split_params/tune_samples/
 audio_processing/tune_split_params/wav_samples/
 audio_processing/plots
 
+audio_processing/cloud/credentials/*
+audio_processing/cloud/.cloud-env
+audio_processing/cloud/node_modules
+audio_processing/cloud/__pycache__
+
 server/sessions
 
 config.sh
@@ -48,4 +53,6 @@ audio_processing/test_sequence_output
 audio_processing/test_sequence_output/*
 
 bucket_backup/.cloud-env
+
+load_testing/__pycache__
 
