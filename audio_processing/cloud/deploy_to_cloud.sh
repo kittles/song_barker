@@ -19,7 +19,7 @@ docker push gcr.io/${PROJECT_ID}/${NAME}
 export CLUSTER_NAME='k9-karaoke-dev-cluster'
 gcloud config set project $PROJECT_ID
 gcloud config set compute/zone us-west1-a
-gcloud container clusters create ${CLUSTER_NAME}
+gcloud container clusters create ${CLUSTER_NAME} --preemptible
 gcloud compute instances list
 
 

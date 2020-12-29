@@ -1,0 +1,6 @@
+merge song updates
+servers take bucket param
+cloud enpoints take bucket param
+rebuild image
+deploy / create new cluster with preemptible vms
+shut down old instance

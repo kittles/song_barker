@@ -71,12 +71,12 @@ class MidiBridge (object):
     '''
     takes midi files and prepares them for use with sequencing
     '''
-    def __init__ (self, midi_fp, tmp_dir, is_remote=True):
+    def __init__ (self, midi_fp, tmp_dir, bucket_name, is_remote=True):
         # download the midi file and load into memory
         self.midi_fp = midi_fp
         if is_remote:
             song_local_fp = os.path.join(tmp_dir, 'song.mid')
-            bc.download_file_from_bucket(midi_fp, song_local_fp)
+            bc.download_file_from_bucket(midi_fp, song_local_fp, bucket_name)
             self.midi_file = mido.MidiFile(filename=song_local_fp)
         else:
             self.midi_file = mido.MidiFile(filename=midi_fp)

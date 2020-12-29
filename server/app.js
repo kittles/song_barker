@@ -743,6 +743,7 @@ app.post('/signed-upload-url', async (req, res) => {
 
 // process raw audio into cropped pieces ..._in the cloud_...
 app.post('/cloud/to_crops', async function (req, res) {
+    console.log('TO CROPS BODY:', req.body);
     // auth
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
@@ -780,6 +781,7 @@ app.post('/cloud/to_crops', async function (req, res) {
     // splitting
     var crop_data = await cloud_request('to_crops', {
         uuid: req.body.uuid,
+        bucket: process.env.k9_bucket_name,
     })
     if (_.has(crop_data, 'stderr')) {
         res.status(503).send(`cloud request failed - ${crop_data.stderr}`);
@@ -800,8 +802,8 @@ app.post('/cloud/to_crops', async function (req, res) {
 
     try {
         await insert_into_db('raws', {
-            'uuid': req.body.uuid,
-            'user_id': req.session.user_id,
+            uuid: req.body.uuid,
+            user_id: req.session.user_id,
         });
     } catch (err) {
         // probably unique constraint error, nbd
@@ -847,6 +849,7 @@ app.post('/cloud/to_crops', async function (req, res) {
 
 // sequence audio into a song
 app.post('/cloud/to_sequence', async function (req, res) {
+    console.log('TO SEQUENCE BODY:', req.body);
     // validation
 
     // auth
@@ -892,6 +895,7 @@ app.post('/cloud/to_sequence', async function (req, res) {
 
     // generate sequence
     var song_obj = await db.get('select * from songs where id = ?', req.body.song_id);
+    song_obj.name
     var crop_objs = await Promise.all(_.map(req.body.uuids, async (uuid) => {
         var row = await db.get('select * from crops where uuid = ? and user_id = ?', [
             uuid,
@@ -900,10 +904,20 @@ app.post('/cloud/to_sequence', async function (req, res) {
         return row;
     }));
 
+    // hack to handle apostrophes in 
+    // song names, since you dont need the name
+    // on the cloud
+    function no_name (so) {
+        so.name = '';
+        return so;
+    }
+
     var sequence_data = await cloud_request('to_sequence', {
-        song: song_obj,
+        song: no_name(song_obj),
         crops: crop_objs,
+        bucket: process.env.k9_bucket_name,
     })
+    console.log(sequence_data);
     if (_.has(sequence_data, 'stderr')) {
         res.status(503).send(`cloud request failed - ${sequence_data.stderr}`);
         return;
@@ -941,164 +955,10 @@ app.post('/cloud/to_sequence', async function (req, res) {
 
     var insert_result = await insert_into_db('sequences', sequence_data);
 
-    
     var sequence_obj = await db.get('select * from sequences where uuid = ?', sequence_data.uuid);
     sequence_obj.obj_type = 'sequence';
 
     res.json(sequence_obj);
-});
-
-
-// TODO these should die
-
-// process raw audio into cropped pieces
-app.post('/to_crops', async function (req, res) {
-    // TODO remove this and use cloud enpoint only
-    // auth
-    if (!req.session.user_id) {
-        res.status(401).send('you must have a valid user_id to access this resource');
-        return;
-    }
-    var agreed = await terms_agreed(req);
-    if (!agreed) {
-        res.status(401).send('you must have agree to terms to access this resource');
-        return;
-    }
-    const db = await _db.dbPromise;
-    // check that raw exists
-    if (!uuid_validate(req.body.uuid)) {
-        res.status(400).send('malformed raw uuid');
-        return;
-    }
-    // NOTE raw object is created in the python script below
-    if (req.body.image_id) {
-        // check that image exists
-        if (!uuid_validate(req.body.image_id)) {
-            res.status(400).send('malformed image uuid');
-            return;
-        }
-        var image_exists = await db.get('select 1 from images where uuid = ? and user_id = ?', [
-            req.body.image_id,
-            req.session.user_id,
-        ]);
-        if (!_.get(image_exists, '1', false)) {
-            res.status(400).send('image object not found');
-            return;
-        }
-    }
-    // TODO image_id == undefined works, but only because db has no images with user_id == 'undefined'
-    // kind of a hack...
-
-    exec(`
-        cd ../audio_processing &&
-        source .env/bin/activate &&
-        export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-        python to_crops.py -i ${req.body.uuid} -u ${req.session.user_id} -m ${req.body.image_id}
-    `, {
-        shell: '/bin/bash',
-    }, async (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            res.json({
-                error: 'there was an error creating the crops',
-            });
-        } else {
-            var output = stdout.split(/\r?\n/); // split by line and strip
-            output.pop(); // ditch empty line
-            var crop_uuids = _.map(output, (line) => {
-                return line.split(' ')[0];
-            });
-            // TODO make this like rest api response
-            // TODO brittle
-            const db = await _db.dbPromise;
-            var crop_qs = _.join(_.map(crop_uuids, (uuid) => { return '?'; }), ', ');
-            var all_crops_sql = `select * from crops
-                where uuid in (
-                    ${crop_qs}
-                );`;
-            var crops = await db.all(all_crops_sql, crop_uuids);
-            _.map(crops, (crop) => {
-                crop.obj_type = 'crop';
-            });
-            res.json(crops);
-        }
-    });
-});
-
-
-// sequence audio into a song
-app.post('/to_sequence', async function (req, res) {
-    // TODO remove this and use cloud enpoint only
-    // auth
-    if (!req.session.user_id) {
-        res.status(401).send('you must have a valid user_id to access this resource');
-        return;
-    }
-    var agreed = await terms_agreed(req);
-    if (!agreed) {
-        res.status(401).send('you must have agree to terms to access this resource');
-        return;
-    }
-    const db = await _db.dbPromise;
-    // check crops
-    var is_uuid = _.map(req.body.uuids, (uuid) => {
-        return uuid_validate(uuid); // it doesnt work just mapping uuid_validate directly for some reason
-    });
-    if (is_uuid.includes(false)) {
-        res.status(400).send('malformed crop uuids');
-        return;
-    }
-    var crops_exist = _.map(req.body.uuids, async (uuid) => {
-        var crop_exists = await db.get('select 1 from crops where uuid = ? and user_id = ?', [
-            uuid,
-            req.session.user_id,
-        ]);
-        if (!_.get(crop_exists, '1', false)) {
-            return false;
-        } else {
-            return true;
-        }
-    });
-    if (crops_exist.includes(false)) {
-        res.status(400).send('crop object not found');
-        return;
-    }
-    // check song
-    var song_exists = await db.get('select 1 from songs where id = ?', req.body.song_id);
-    if (!_.get(song_exists, '1', false)) {
-        res.status(400).send('song not found');
-        return;
-    }
-
-    // generate sequence
-    var uuids_string = _.join(req.body.uuids, ' ');
-    var cmd_for_logging = `python to_sequence.py -c ${uuids_string} -u "${req.session.user_id}" -s "${req.body.song_id}"`;
-    console.log('CALLING to_sequence.py: ', cmd_for_logging);
-    exec(`
-        cd ../audio_processing &&
-        source .env/bin/activate &&
-        export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json" &&
-        python to_sequence.py -c ${uuids_string} -u "${req.session.user_id}" -s "${req.body.song_id}"
-    `, {
-        shell: '/bin/bash',
-    }, async (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            res.json({
-                error: 'there was an error',
-            });
-        } else {
-            var output = stdout.split(/\r?\n/);
-            var line = output.shift();
-            var sequence_uuid = line.split(' ')[0];
-            var sequence_url = line.split(' ')[1];
-            console.log(sequence_uuid, sequence_url);
-            const db = await _db.dbPromise;
-            var sequence = await db.get('select * from sequences where uuid = ?', sequence_uuid);
-            sequence.obj_type = 'sequence';
-            res.json(sequence);
-        }
-    });
 });
 
 

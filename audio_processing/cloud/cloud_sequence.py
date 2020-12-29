@@ -15,7 +15,6 @@ from crop_sampler import CropSampler
 from midi_bridge import MidiBridge
 
 
-BUCKET_NAME = os.environ.get('k9_bucket_name', 'song_barker_sequences')
 samplerate = 44100
 #log = logger.log_fn(os.path.basename(__file__))
 
@@ -32,7 +31,7 @@ samplerate = 44100
 # - song (full object)
 # - crop array (full crop objects)
 
-def to_sequence (song, crops, debug=False, output=None):
+def to_sequence (song, crops, bucket_name, debug=False, output=None):
     #log(' '.join(crops), 'started')
 
     #sequence_count = dbq.get_sequence_count(user_id, song_id)
@@ -59,7 +58,7 @@ def to_sequence (song, crops, debug=False, output=None):
             # make a local path for the bucket download
             crop_aac = os.path.join(tmp_dir, '{}.aac'.format(crop_json['uuid']))
             # download to that path
-            bc.download_file_from_bucket(crop_json['bucket_fp'], crop_aac)
+            bc.download_file_from_bucket(crop_json['bucket_fp'], crop_aac, bucket_name)
             # convert to a wav
             wav_fp = ac.aac_to_wav(crop_aac)
             # use wav to create sampler
@@ -84,7 +83,7 @@ def to_sequence (song, crops, debug=False, output=None):
         #    return MidiBridge(row['bucket_fp'], tmp_dir, True)
 
         #mb = dbq.midi_bridge_from_song_id(song_id, tmp_dir)
-        mb = MidiBridge(song['bucket_fp'], tmp_dir)
+        mb = MidiBridge(song['bucket_fp'], tmp_dir, bucket_name)
         #song = dbq.get_song(song_id)
 
         # try to determine the ideal key
@@ -269,7 +268,7 @@ def to_sequence (song, crops, debug=False, output=None):
 
         #song_name = dbq.get_song_name(song_id)
         if backing_fp:
-            backing_url = 'gs://{}/{}'.format(BUCKET_NAME, backing_fp)
+            backing_url = 'gs://{}/{}'.format(bucket_name, backing_fp)
         else:
             backing_url = None
 
@@ -278,8 +277,8 @@ def to_sequence (song, crops, debug=False, output=None):
             raw_fk = crops[0]['raw_id']
             # this has to match whatever the server generates for fp as well...
             remote_sequence_fp = '{}/sequences/{}.aac'.format(raw_fk, sequence_uuid)
-            remote_sequence_url = 'gs://{}/{}'.format(BUCKET_NAME, remote_sequence_fp)
-            bc.upload_file_to_bucket(sequence_fp_aac, remote_sequence_fp)
+            remote_sequence_url = 'gs://{}/{}'.format(bucket_name, remote_sequence_fp)
+            bc.upload_file_to_bucket(sequence_fp_aac, remote_sequence_fp, bucket_name)
         else:
             print('WARNING: debug enabled, skipping uploading file to bucket')
 
@@ -334,8 +333,9 @@ if __name__ == '__main__':
     parser.add_argument('--song', '-s', help='the song id', type=str)
     parser.add_argument('--crops', '-c', help='crops used for each instrument, in track order', type=str)
     parser.add_argument('--debug', '-d', action='store_true', help='playback audio crops', default=False)
+    parser.add_argument('--bucket', '-b', help='bucket name')
     args = parser.parse_args()
 
     song_obj = json.loads(args.song)
     crop_objs = json.loads(args.crops)
-    to_sequence(song_obj, crop_objs)
+    to_sequence(song_obj, crop_objs, args.bucket)
