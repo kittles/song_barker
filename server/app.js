@@ -66,8 +66,25 @@ app.use(
 //
 // greeting cards
 //
+// TODO implement these
+app.post('/to_card_key', async (req, res) => {
+    // generate the card key object, used for retrieving cards
+    // from short urls
+    //req.body.recipient;
+    //req.body.card_uuid;
+    // generate a key_id
+    // put them in the db
+    // return the key, or maybe the url
+}
+app.get('/c/:card_key', async (req, res) => {
+    // copy the steps for /card, with the additional step of
+    // retrieving the card id and message from the db
+}
 
 
+//
+// long url form card sharing
+//
 app.get('/card/:uuid', async (req, res) => {
     // uuid gets a greeting_card object
     // greeting card is used to get necessary info to make a page
