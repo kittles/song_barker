@@ -23,6 +23,7 @@ var generator = require('generate-password');
 var nodemailer = require('nodemailer');
 var validator = require('email-validator');
 var uuidv4 = require('uuid').v4;
+var generate_short_uuid = require('short-uuid').generate;
 var signed_url = require('./signed_url.js')
 //var https = require('https');
 //var cloud_access_token = require('../credentials/cloud-access-token.json').token;
@@ -68,18 +69,163 @@ app.use(
 //
 // TODO implement these
 app.post('/to_card_key', async (req, res) => {
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    if (!uuid_validate(req.body.card_uuid)) {
+        res.status(400).send('malformed card uuid');
+        return;
+    }
     // generate the card key object, used for retrieving cards
     // from short urls
-    //req.body.recipient;
-    //req.body.card_uuid;
-    // generate a key_id
-    // put them in the db
-    // return the key, or maybe the url
-}
+    var key_uuid = generate_short_uuid();
+    var key_data = {
+        key_id: key_uuid,
+        recipient_name: req.body.recipient,
+        card_uuid: req.body.card_uuid,
+    };
+    var insert_result = await insert_into_db('card_key', key_data);
+    // TODO make sure it succeeded
+    key_data['obj_type'] = 'card_key';
+    key_data['url'] = `https://${process.env.k9_domain_name}/c/${key_uuid}`;
+    res.json(key_data);
+});
+
+
+
+// TODO refactor these three endpoints
+
+
 app.get('/c/:card_key', async (req, res) => {
     // copy the steps for /card, with the additional step of
     // retrieving the card id and message from the db
-}
+    function show_error_page () {
+        res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
+    }
+
+    const db = await _db.dbPromise;
+    var card_key = await db.get('select * from card_key where key_id = ?', req.params.card_key);
+    if (_.isUndefined(card_key)) {
+        //res.status(404).send('card does not exist');
+        show_error_page();
+        return;
+    }
+    var card = await db.get('select * from greeting_cards where uuid = ?', card_key.card_uuid);
+    if (_.isUndefined(card)) {
+        //res.status(404).send('card does not exist');
+        show_error_page();
+        return;
+    }
+    // get face coordinates
+    var image = await db.get('select * from images where uuid = ?', card.image_id);
+    if (_.isUndefined(image)) {
+        //res.status(400).send('unable to find image for card');
+        show_error_page();
+        return;
+    }
+    // get decoration image bucket fp
+    var decoration_image = await db.get('select * from decoration_images where uuid = ?', card.decoration_image_id);
+    if (_.isUndefined(decoration_image)) {
+        //res.status(400).send('unable to find decoration image for card');
+        //return;
+        decoration_image = {
+            bucket_fp: null,
+        };
+    }
+    // card audio bucket fp
+    var card_audio = await db.get('select * from card_audios where uuid = ?', card.card_audio_id);
+    if (_.isUndefined(card_audio)) {
+        //res.status(400).send('unable to find card audio');
+        show_error_page();
+        return;
+    }
+    fs.readFile('public/puppet/puppet.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+        var html = template({
+            uuid: req.params.card_key,
+            // asset bucket fps
+            card_audio_bucket_fp: card_audio.bucket_fp,
+            image_bucket_fp: image.bucket_fp,
+            decoration_image_bucket_fp: decoration_image.bucket_fp,
+            // animation
+            image_coordinates_json: image.coordinates_json,
+            animation_json: card.animation_json,
+            // card text
+            name: card.name,
+            recipient_name: card_key.recipient_name, // NOTE this is actually used with short urls
+            mouth_color: image.mouth_color,
+            domain_name: process.env.k9_domain_name,
+            bucket_name: process.env.k9_bucket_name,
+            has_envelope: card.has_envelope,
+        });
+        res.send(html);
+    });
+});
+
+
+//
+// landing page
+//
+app.get('/', async (req, res) => {
+    function show_error_page () {
+        res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
+    }
+
+    var uuid = '9f8ee9b2-dba6-4023-9791-0940324f6ff9';
+    const db = await _db.dbPromise;
+    var card = await db.get('select * from greeting_cards where uuid = ?', uuid);
+    if (_.isUndefined(card)) {
+        //res.status(404).send('card does not exist');
+        show_error_page();
+        return;
+    }
+    // get face coordinates
+    var image = await db.get('select * from images where uuid = ?', card.image_id);
+    if (_.isUndefined(image)) {
+        //res.status(400).send('unable to find image for card');
+        show_error_page();
+        return;
+    }
+    // get decoration image bucket fp
+    var decoration_image = await db.get('select * from decoration_images where uuid = ?', card.decoration_image_id);
+    if (_.isUndefined(decoration_image)) {
+        //res.status(400).send('unable to find decoration image for card');
+        //return;
+        decoration_image = {
+            bucket_fp: null,
+        };
+    }
+    // card audio bucket fp
+    var card_audio = await db.get('select * from card_audios where uuid = ?', card.card_audio_id);
+    if (_.isUndefined(card_audio)) {
+        //res.status(400).send('unable to find card audio');
+        show_error_page();
+        return;
+    }
+    fs.readFile('public/puppet/puppet.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+        var html = template({
+            uuid: uuid,
+            // asset bucket fps
+            card_audio_bucket_fp: card_audio.bucket_fp,
+            image_bucket_fp: image.bucket_fp,
+            decoration_image_bucket_fp: decoration_image.bucket_fp,
+            // animation
+            image_coordinates_json: image.coordinates_json,
+            animation_json: card.animation_json,
+            // card text
+            name: card.name,
+            recipient_name: card.recipient_name,
+            mouth_color: image.mouth_color,
+            domain_name: process.env.k9_domain_name,
+            bucket_name: process.env.k9_bucket_name,
+            has_envelope: card.has_envelope,
+        });
+        res.send(html);
+    });
+});
 
 
 //
@@ -152,6 +298,7 @@ app.get('/card/:uuid', async (req, res) => {
             mouth_color: image.mouth_color,
             domain_name: process.env.k9_domain_name,
             bucket_name: process.env.k9_bucket_name,
+            has_envelope: card.has_envelope,
         });
         res.send(html);
     });

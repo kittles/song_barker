@@ -204,6 +204,11 @@ function get_url_param (name) {
 $('document').ready(() => {
     if (card) {
         prepare_card();
+        //if (card.has_envelope) {
+        //    prepare_card();
+        //} else {
+        //    prepare_card_no_envelope();
+        //}
     } else {
         if (get_url_param('debug')) {
             init_debug();
@@ -216,10 +221,19 @@ $('document').ready(() => {
 
 async function prepare_card () {
     // add the recipient name to the card flap
-    var recipient_name = get_url_param('recipient_name') || 'You';
+    var recipient_name = get_url_param('recipient_name');
+    if (recipient_name == null) {
+        // probably a short uuid
+        recipient_name = card.recipient_name;
+    }
     $('#flap').text(`To: ${recipient_name}`);
 
-    present_envelope();
+    console.log('CARD OBJ', card);
+    if (card.has_envelope) {
+        present_envelope();
+    } else {
+        skip_envelope();
+    }
 
     function switch_class (el, old_class, new_class) {
         el.addClass(new_class);
@@ -383,6 +397,38 @@ async function prepare_card () {
         $('.envelope-piece').click(() => {
             cancel_jiggle(open_flap);
         });
+    }
+
+
+    function skip_envelope () {
+        $('#message').addClass('above');
+        $('#message').addClass('top-ease-in');
+        $('#message').show();
+        $('#message').removeClass('above');
+        $('#message').addClass('middle');
+        setTimeout(async function () {
+            await zoom_message(); // wait till the message is full size before adding decoration image
+            create_decoration_image();
+            await prepare_puppet();
+            await create_overlay_buttons();
+            handle_mode();
+            prepare_audio();
+            // fade out loading spinner
+            $('.loading-spinner').fadeOut(250);
+            setTimeout(() => {
+                $('#message-cover').fadeOut(250);
+                setTimeout(() => {
+                    // TODO this should be in a layout fn
+                    //$('#mobile-bottom-controls').fadeIn(500);
+                    //$('#k9-logo').fadeIn(500);
+                    $('body').css({
+                        'overflow-y': 'scroll',
+                    });
+                    ready_to_display = true;
+                    display_ui();
+                }, 500);
+            }, 250);
+        }, flap_open_ms + envelope_move_ms);
     }
 
 

@@ -591,6 +591,11 @@ exports.models = [
                     type: 'text',
                     desc: 'the foreign key to the song',
                 },
+                {
+                    name: 'has_envelope',
+                    type: 'integer default 1',
+                    desc: 'whether the card should be presented with an envelope',
+                },
             ],
         },
     },

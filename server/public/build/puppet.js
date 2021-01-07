@@ -302,7 +302,11 @@ function get_url_param(name) {
 
 $('document').ready(function () {
   if (card) {
-    prepare_card();
+    prepare_card(); //if (card.has_envelope) {
+    //    prepare_card();
+    //} else {
+    //    prepare_card_no_envelope();
+    //}
   } else {
     if (get_url_param('debug')) {
       init_debug();
@@ -322,25 +326,25 @@ function prepare_card() {
 
 
 function _prepare_card() {
-  _prepare_card = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
-    var recipient_name, switch_class, envelope_top, envelope_middle, envelope_below, envelope_tilt_right, envelope_tilt_left, envelope_no_tilt, is_jiggling, envelope_jiggle, jiggle_interval, cancel_jiggle, wide_mode, flap_open_ms, envelope_move_ms, message_zoom_ms, ready_to_display, open_flap, message_width, message_height, zoom_message, _zoom_message, present_envelope, img_for_dimensions, card_has_frame, decoration_image_url, check_decoration_image, _check_decoration_image, create_decoration_image, create_overlay_buttons, _create_overlay_buttons, overlay_two_buttons, overlay_one_button, overlay_right_button, ui_to_show, ui_to_hide, handle_mode, display_ui, prepare_audio, prepare_puppet, _prepare_puppet;
+  _prepare_card = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
+    var recipient_name, switch_class, envelope_top, envelope_middle, envelope_below, envelope_tilt_right, envelope_tilt_left, envelope_no_tilt, is_jiggling, envelope_jiggle, jiggle_interval, cancel_jiggle, wide_mode, flap_open_ms, envelope_move_ms, message_zoom_ms, ready_to_display, open_flap, message_width, message_height, zoom_message, _zoom_message, present_envelope, skip_envelope, img_for_dimensions, card_has_frame, decoration_image_url, check_decoration_image, _check_decoration_image, create_decoration_image, create_overlay_buttons, _create_overlay_buttons, overlay_two_buttons, overlay_one_button, overlay_right_button, ui_to_show, ui_to_hide, handle_mode, display_ui, prepare_audio, prepare_puppet, _prepare_puppet;
 
-    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+    return regeneratorRuntime.wrap(function _callee9$(_context9) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context9.prev = _context9.next) {
           case 0:
             _prepare_puppet = function _prepare_puppet3() {
-              _prepare_puppet = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
-                return regeneratorRuntime.wrap(function _callee7$(_context7) {
+              _prepare_puppet = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
+                return regeneratorRuntime.wrap(function _callee8$(_context8) {
                   while (1) {
-                    switch (_context7.prev = _context7.next) {
+                    switch (_context8.prev = _context8.next) {
                       case 0:
-                        return _context7.abrupt("return", new Promise( /*#__PURE__*/function () {
-                          var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(r) {
+                        return _context8.abrupt("return", new Promise( /*#__PURE__*/function () {
+                          var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(r) {
                             var viewport_aspect, image_url, fts, frame_margin, random_gesture;
-                            return regeneratorRuntime.wrap(function _callee6$(_context6) {
+                            return regeneratorRuntime.wrap(function _callee7$(_context7) {
                               while (1) {
-                                switch (_context6.prev = _context6.next) {
+                                switch (_context7.prev = _context7.next) {
                                   case 0:
                                     random_gesture = function _random_gesture() {
                                       var blinks = [[left_blink_quick, right_blink_quick], [left_blink_medium, right_blink_medium]];
@@ -397,15 +401,15 @@ function _prepare_card() {
                                       features[k] = new THREE.Vector2(v[0], v[1]);
                                     });
 
-                                    _context6.next = 8;
+                                    _context7.next = 8;
                                     return load_shader_files();
 
                                   case 8:
-                                    _context6.next = 10;
+                                    _context7.next = 10;
                                     return load_texture(noise_url);
 
                                   case 10:
-                                    animation_noise_texture = _context6.sent;
+                                    animation_noise_texture = _context7.sent;
                                     scene = new THREE.Scene();
                                     renderer = new THREE.WebGLRenderer(); //renderer.autoClear = false;
 
@@ -428,11 +432,11 @@ function _prepare_card() {
                                     });
                                     face_mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, segments, segments), face_mesh_material);
                                     face_mesh.renderOrder = 1;
-                                    _context6.next = 25;
+                                    _context7.next = 25;
                                     return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
                                   case 25:
-                                    mouth_gltf = _context6.sent;
+                                    mouth_gltf = _context7.sent;
                                     mouth_mesh = mouth_gltf.scene.children[0].children[0];
                                     mouth_mesh.material = new THREE.ShaderMaterial({
                                       uniforms: mouth_shader.uniforms,
@@ -479,11 +483,11 @@ function _prepare_card() {
                                     } // set the pet image on the mesh and on the shader
 
 
-                                    _context6.next = 39;
+                                    _context7.next = 39;
                                     return load_texture(image_url);
 
                                   case 39:
-                                    pet_image_texture = _context6.sent;
+                                    pet_image_texture = _context7.sent;
                                     pet_material.map = pet_image_texture;
                                     face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
 
@@ -509,23 +513,23 @@ function _prepare_card() {
 
                                   case 54:
                                   case "end":
-                                    return _context6.stop();
+                                    return _context7.stop();
                                 }
                               }
-                            }, _callee6);
+                            }, _callee7);
                           }));
 
                           return function (_x16) {
-                            return _ref3.apply(this, arguments);
+                            return _ref4.apply(this, arguments);
                           };
                         }()));
 
                       case 1:
                       case "end":
-                        return _context7.stop();
+                        return _context8.stop();
                     }
                   }
-                }, _callee7);
+                }, _callee8);
               }));
               return _prepare_puppet.apply(this, arguments);
             };
@@ -740,11 +744,11 @@ function _prepare_card() {
             };
 
             _create_overlay_buttons = function _create_overlay_butto2() {
-              _create_overlay_buttons = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+              _create_overlay_buttons = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
                 var html_frag;
-                return regeneratorRuntime.wrap(function _callee5$(_context5) {
+                return regeneratorRuntime.wrap(function _callee6$(_context6) {
                   while (1) {
-                    switch (_context5.prev = _context5.next) {
+                    switch (_context6.prev = _context6.next) {
                       case 0:
                         html_frag = "\n            <div id=\"overlay-background\" style=\"display: none;\">\n                <div id=\"big-play-button-overlay\" class=\"overlay-button overlay-left\">\n                    <img id=\"big-play-button\" src=\"/puppet/k9-icons/play-no-border-white.png\">\n                </div>\n                <div id=\"big-alt-button-overlay\" class=\"overlay-button overlay-right\">\n                    <img id=\"big-alt-button\" src=\"/puppet/k9-icons/replay-no-border-white.png\">\n                </div>\n            </div>\n        ";
                         $('#message').append(html_frag);
@@ -765,10 +769,10 @@ function _prepare_card() {
 
                       case 5:
                       case "end":
-                        return _context5.stop();
+                        return _context6.stop();
                     }
                   }
-                }, _callee5);
+                }, _callee6);
               }));
               return _create_overlay_buttons.apply(this, arguments);
             };
@@ -789,12 +793,12 @@ function _prepare_card() {
             };
 
             _check_decoration_image = function _check_decoration_ima2() {
-              _check_decoration_image = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
-                return regeneratorRuntime.wrap(function _callee4$(_context4) {
+              _check_decoration_image = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+                return regeneratorRuntime.wrap(function _callee5$(_context5) {
                   while (1) {
-                    switch (_context4.prev = _context4.next) {
+                    switch (_context5.prev = _context5.next) {
                       case 0:
-                        return _context4.abrupt("return", new Promise(function (r) {
+                        return _context5.abrupt("return", new Promise(function (r) {
                           // load the decoration image to get its natural dimensions
                           img_for_dimensions.onload = function () {
                             r(card_has_frame());
@@ -815,10 +819,10 @@ function _prepare_card() {
 
                       case 1:
                       case "end":
-                        return _context4.stop();
+                        return _context5.stop();
                     }
                   }
-                }, _callee4);
+                }, _callee5);
               }));
               return _check_decoration_image.apply(this, arguments);
             };
@@ -835,6 +839,58 @@ function _prepare_card() {
               return img_for_dimensions.width === 656;
             };
 
+            skip_envelope = function _skip_envelope() {
+              $('#message').addClass('above');
+              $('#message').addClass('top-ease-in');
+              $('#message').show();
+              $('#message').removeClass('above');
+              $('#message').addClass('middle');
+              setTimeout( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        _context2.next = 2;
+                        return zoom_message();
+
+                      case 2:
+                        // wait till the message is full size before adding decoration image
+                        create_decoration_image();
+                        _context2.next = 5;
+                        return prepare_puppet();
+
+                      case 5:
+                        _context2.next = 7;
+                        return create_overlay_buttons();
+
+                      case 7:
+                        handle_mode();
+                        prepare_audio(); // fade out loading spinner
+
+                        $('.loading-spinner').fadeOut(250);
+                        setTimeout(function () {
+                          $('#message-cover').fadeOut(250);
+                          setTimeout(function () {
+                            // TODO this should be in a layout fn
+                            //$('#mobile-bottom-controls').fadeIn(500);
+                            //$('#k9-logo').fadeIn(500);
+                            $('body').css({
+                              'overflow-y': 'scroll'
+                            });
+                            ready_to_display = true;
+                            display_ui();
+                          }, 500);
+                        }, 250);
+
+                      case 11:
+                      case "end":
+                        return _context2.stop();
+                    }
+                  }
+                }, _callee2);
+              })), flap_open_ms + envelope_move_ms);
+            };
+
             present_envelope = function _present_envelope() {
               // slide envelope into frame
               envelope_middle(); // start the envelope jiggling
@@ -846,23 +902,23 @@ function _prepare_card() {
             };
 
             _zoom_message = function _zoom_message3() {
-              _zoom_message = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+              _zoom_message = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+                return regeneratorRuntime.wrap(function _callee4$(_context4) {
                   while (1) {
-                    switch (_context3.prev = _context3.next) {
+                    switch (_context4.prev = _context4.next) {
                       case 0:
-                        return _context3.abrupt("return", new Promise( /*#__PURE__*/function () {
-                          var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(r) {
+                        return _context4.abrupt("return", new Promise( /*#__PURE__*/function () {
+                          var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(r) {
                             var has_frame;
-                            return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                            return regeneratorRuntime.wrap(function _callee3$(_context3) {
                               while (1) {
-                                switch (_context2.prev = _context2.next) {
+                                switch (_context3.prev = _context3.next) {
                                   case 0:
-                                    _context2.next = 2;
+                                    _context3.next = 2;
                                     return check_decoration_image();
 
                                   case 2:
-                                    has_frame = _context2.sent;
+                                    has_frame = _context3.sent;
                                     log(has_frame);
                                     $('#message').css({
                                       transition: 'height 1s ease-in-out, width 1s ease-in-out',
@@ -888,23 +944,23 @@ function _prepare_card() {
 
                                   case 7:
                                   case "end":
-                                    return _context2.stop();
+                                    return _context3.stop();
                                 }
                               }
-                            }, _callee2);
+                            }, _callee3);
                           }));
 
                           return function (_x15) {
-                            return _ref2.apply(this, arguments);
+                            return _ref3.apply(this, arguments);
                           };
                         }()));
 
                       case 1:
                       case "end":
-                        return _context3.stop();
+                        return _context4.stop();
                     }
                   }
-                }, _callee3);
+                }, _callee4);
               }));
               return _zoom_message.apply(this, arguments);
             };
@@ -1047,9 +1103,22 @@ function _prepare_card() {
             };
 
             // add the recipient name to the card flap
-            recipient_name = get_url_param('recipient_name') || 'You';
+            recipient_name = get_url_param('recipient_name');
+
+            if (recipient_name == null) {
+              // probably a short uuid
+              recipient_name = card.recipient_name;
+            }
+
             $('#flap').text("To: ".concat(recipient_name));
-            present_envelope();
+            console.log('CARD OBJ', card);
+
+            if (card.has_envelope) {
+              present_envelope();
+            } else {
+              skip_envelope();
+            }
+
             is_jiggling = false;
             // these come from the css transitions
             flap_open_ms = 750;
@@ -1072,12 +1141,12 @@ function _prepare_card() {
               }
             }, 125)); // greeting card prep
 
-          case 43:
+          case 46:
           case "end":
-            return _context8.stop();
+            return _context9.stop();
         }
       }
-    }, _callee8);
+    }, _callee9);
   }));
   return _prepare_card.apply(this, arguments);
 }
@@ -1089,11 +1158,11 @@ function init() {
 
 
 function _init() {
-  _init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
+  _init = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
     var viewport_aspect;
-    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+    return regeneratorRuntime.wrap(function _callee10$(_context10) {
       while (1) {
-        switch (_context9.prev = _context9.next) {
+        switch (_context10.prev = _context10.next) {
           case 0:
             start_time = performance.now();
             log('puppet.js initializing');
@@ -1136,15 +1205,15 @@ function _init() {
             // shader code
 
 
-            _context9.next = 17;
+            _context10.next = 17;
             return load_shader_files();
 
           case 17:
-            _context9.next = 19;
+            _context10.next = 19;
             return load_texture(noise_url);
 
           case 19:
-            animation_noise_texture = _context9.sent;
+            animation_noise_texture = _context10.sent;
             //
             // create the threejs geometry and materials for the scene
             //
@@ -1182,11 +1251,11 @@ function _init() {
             face_mesh.renderOrder = 1; // mouth sprite - this is a group in threejs lingo,
             // the actual mouth mesh lives in mouth_mesh, a child of the group
 
-            _context9.next = 31;
+            _context10.next = 31;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
           case 31:
-            mouth_gltf = _context9.sent;
+            mouth_gltf = _context10.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
               uniforms: mouth_shader.uniforms,
@@ -1241,10 +1310,10 @@ function _init() {
 
           case 46:
           case "end":
-            return _context9.stop();
+            return _context10.stop();
         }
       }
-    }, _callee9);
+    }, _callee10);
   }));
   return _init.apply(this, arguments);
 }
@@ -1257,11 +1326,11 @@ function init_debug() {
 
 
 function _init_debug() {
-  _init_debug = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
+  _init_debug = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11() {
     var viewport_aspect;
-    return regeneratorRuntime.wrap(function _callee10$(_context10) {
+    return regeneratorRuntime.wrap(function _callee11$(_context11) {
       while (1) {
-        switch (_context10.prev = _context10.next) {
+        switch (_context11.prev = _context11.next) {
           case 0:
             start_time = performance.now();
             log('puppet.js DEBUG initializing');
@@ -1289,15 +1358,15 @@ function _init_debug() {
             // shader code
 
 
-            _context10.next = 11;
+            _context11.next = 11;
             return load_shader_files();
 
           case 11:
-            _context10.next = 13;
+            _context11.next = 13;
             return load_texture(noise_url);
 
           case 13:
-            animation_noise_texture = _context10.sent;
+            animation_noise_texture = _context11.sent;
             //
             // create the threejs geometry and materials for the scene
             //
@@ -1335,11 +1404,11 @@ function _init_debug() {
             face_mesh.renderOrder = 1; // mouth sprite - this is a group in threejs lingo,
             // the actual mouth mesh lives in mouth_mesh, a child of the group
 
-            _context10.next = 25;
+            _context11.next = 25;
             return load_mouth_mesh(scene, 'MouthStickerDog1_out/MouthStickerDog1.gltf');
 
           case 25:
-            mouth_gltf = _context10.sent;
+            mouth_gltf = _context11.sent;
             mouth_mesh = mouth_gltf.scene.children[0].children[0];
             mouth_mesh.material = new THREE.ShaderMaterial({
               uniforms: mouth_shader.uniforms,
@@ -1389,10 +1458,10 @@ function _init_debug() {
 
           case 39:
           case "end":
-            return _context10.stop();
+            return _context11.stop();
         }
       }
-    }, _callee10);
+    }, _callee11);
   }));
   return _init_debug.apply(this, arguments);
 }
@@ -1405,41 +1474,41 @@ function create_puppet(_x) {
 
 
 function _create_puppet() {
-  _create_puppet = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(img_url) {
-    return regeneratorRuntime.wrap(function _callee11$(_context11) {
+  _create_puppet = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(img_url) {
+    return regeneratorRuntime.wrap(function _callee12$(_context12) {
       while (1) {
-        switch (_context11.prev = _context11.next) {
+        switch (_context12.prev = _context12.next) {
           case 0:
             start_time = performance.now();
-            _context11.next = 3;
+            _context12.next = 3;
             return fade_spinner(200, 0);
 
           case 3:
             stop_all_animations();
-            _context11.next = 6;
+            _context12.next = 6;
             return fade_container(500, 0);
 
           case 6:
             cancelAnimationFrame(animation_frame);
 
             if (!(img_url === undefined)) {
-              _context11.next = 13;
+              _context12.next = 13;
               break;
             }
 
-            _context11.next = 10;
+            _context12.next = 10;
             return to_b64('dog3.jpg');
 
           case 10:
-            _context11.t0 = _context11.sent;
-            _context11.next = 14;
+            _context12.t0 = _context12.sent;
+            _context12.next = 14;
             break;
 
           case 13:
-            _context11.t0 = img_url;
+            _context12.t0 = img_url;
 
           case 14:
-            img_url = _context11.t0;
+            img_url = _context12.t0;
 
             // need to do this so old three objects can be garbage collected
             if (pet_image_texture) {
@@ -1447,11 +1516,11 @@ function _create_puppet() {
             } // set the pet image on the mesh and on the shader
 
 
-            _context11.next = 18;
+            _context12.next = 18;
             return load_texture(img_url);
 
           case 18:
-            pet_image_texture = _context11.sent;
+            pet_image_texture = _context12.sent;
             pet_material.map = pet_image_texture;
             face_animation_shader.uniforms.petImage.value = pet_image_texture; // TODO which of these is actually necessary
 
@@ -1468,7 +1537,7 @@ function _create_puppet() {
             animate();
             head_sway(head_sway_amplitude, head_sway_speed);
             fade_spinner(500, 0);
-            _context11.next = 34;
+            _context12.next = 34;
             return $(container).fadeTo(500, 1);
 
           case 34:
@@ -1476,10 +1545,10 @@ function _create_puppet() {
 
           case 35:
           case "end":
-            return _context11.stop();
+            return _context12.stop();
         }
       }
-    }, _callee11);
+    }, _callee12);
   }));
   return _create_puppet.apply(this, arguments);
 }
@@ -2086,32 +2155,32 @@ function load_mouth_mesh(_x2, _x3) {
 }
 
 function _load_mouth_mesh() {
-  _load_mouth_mesh = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(scene, model_path) {
-    return regeneratorRuntime.wrap(function _callee12$(_context12) {
+  _load_mouth_mesh = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(scene, model_path) {
+    return regeneratorRuntime.wrap(function _callee13$(_context13) {
       while (1) {
-        switch (_context12.prev = _context12.next) {
+        switch (_context13.prev = _context13.next) {
           case 0:
             if (!mouth_gltf) {
-              _context12.next = 4;
+              _context13.next = 4;
               break;
             }
 
-            return _context12.abrupt("return", mouth_gltf);
+            return _context13.abrupt("return", mouth_gltf);
 
           case 4:
-            _context12.next = 6;
+            _context13.next = 6;
             return load_gltf(to_static(model_path));
 
           case 6:
-            mouth_gltf = _context12.sent;
-            return _context12.abrupt("return", mouth_gltf);
+            mouth_gltf = _context13.sent;
+            return _context13.abrupt("return", mouth_gltf);
 
           case 8:
           case "end":
-            return _context12.stop();
+            return _context13.stop();
         }
       }
-    }, _callee12);
+    }, _callee13);
   }));
   return _load_mouth_mesh.apply(this, arguments);
 }
@@ -2121,21 +2190,21 @@ function load_texture(_x4) {
 }
 
 function _load_texture() {
-  _load_texture = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(img_src) {
-    return regeneratorRuntime.wrap(function _callee13$(_context13) {
+  _load_texture = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(img_src) {
+    return regeneratorRuntime.wrap(function _callee14$(_context14) {
       while (1) {
-        switch (_context13.prev = _context13.next) {
+        switch (_context14.prev = _context14.next) {
           case 0:
-            return _context13.abrupt("return", new Promise(function (resolve) {
+            return _context14.abrupt("return", new Promise(function (resolve) {
               new THREE.TextureLoader().load(img_src, resolve);
             }));
 
           case 1:
           case "end":
-            return _context13.stop();
+            return _context14.stop();
         }
       }
-    }, _callee13);
+    }, _callee14);
   }));
   return _load_texture.apply(this, arguments);
 }
@@ -2145,12 +2214,12 @@ function load_image(_x5) {
 }
 
 function _load_image() {
-  _load_image = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(img_src) {
-    return regeneratorRuntime.wrap(function _callee14$(_context14) {
+  _load_image = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(img_src) {
+    return regeneratorRuntime.wrap(function _callee15$(_context15) {
       while (1) {
-        switch (_context14.prev = _context14.next) {
+        switch (_context15.prev = _context15.next) {
           case 0:
-            return _context14.abrupt("return", new Promise(function (resolve) {
+            return _context15.abrupt("return", new Promise(function (resolve) {
               var i = new Image();
 
               i.onload = function () {
@@ -2162,10 +2231,10 @@ function _load_image() {
 
           case 1:
           case "end":
-            return _context14.stop();
+            return _context15.stop();
         }
       }
-    }, _callee14);
+    }, _callee15);
   }));
   return _load_image.apply(this, arguments);
 }
@@ -2177,12 +2246,12 @@ function load_gltf(_x6) {
 }
 
 function _load_gltf() {
-  _load_gltf = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(model_path) {
-    return regeneratorRuntime.wrap(function _callee15$(_context15) {
+  _load_gltf = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(model_path) {
+    return regeneratorRuntime.wrap(function _callee16$(_context16) {
       while (1) {
-        switch (_context15.prev = _context15.next) {
+        switch (_context16.prev = _context16.next) {
           case 0:
-            return _context15.abrupt("return", new Promise(function (resolve) {
+            return _context16.abrupt("return", new Promise(function (resolve) {
               if (_.get(gltf_memo, model_path, false)) {
                 log("using cached gltf file: ".concat(to_static(model_path)));
                 resolve(gltf_memo[model_path]);
@@ -2204,10 +2273,10 @@ function _load_gltf() {
 
           case 1:
           case "end":
-            return _context15.stop();
+            return _context16.stop();
         }
       }
-    }, _callee15);
+    }, _callee16);
   }));
   return _load_gltf.apply(this, arguments);
 }
@@ -2217,30 +2286,30 @@ function load_hlsl_text(_x7) {
 }
 
 function _load_hlsl_text() {
-  _load_hlsl_text = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(url) {
+  _load_hlsl_text = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(url) {
     var response, text;
-    return regeneratorRuntime.wrap(function _callee16$(_context16) {
+    return regeneratorRuntime.wrap(function _callee17$(_context17) {
       while (1) {
-        switch (_context16.prev = _context16.next) {
+        switch (_context17.prev = _context17.next) {
           case 0:
-            _context16.next = 2;
+            _context17.next = 2;
             return fetch(to_static(url));
 
           case 2:
-            response = _context16.sent;
-            _context16.next = 5;
+            response = _context17.sent;
+            _context17.next = 5;
             return response.text();
 
           case 5:
-            text = _context16.sent;
-            return _context16.abrupt("return", text);
+            text = _context17.sent;
+            return _context17.abrupt("return", text);
 
           case 7:
           case "end":
-            return _context16.stop();
+            return _context17.stop();
         }
       }
-    }, _callee16);
+    }, _callee17);
   }));
   return _load_hlsl_text.apply(this, arguments);
 }
@@ -2250,67 +2319,67 @@ function load_shader_files() {
 }
 
 function _load_shader_files() {
-  _load_shader_files = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17() {
-    return regeneratorRuntime.wrap(function _callee17$(_context17) {
+  _load_shader_files = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee18() {
+    return regeneratorRuntime.wrap(function _callee18$(_context18) {
       while (1) {
-        switch (_context17.prev = _context17.next) {
+        switch (_context18.prev = _context18.next) {
           case 0:
             if (!(face_animation_shader.fragmentShader == null)) {
-              _context17.next = 4;
+              _context18.next = 4;
               break;
             }
 
-            _context17.next = 3;
+            _context18.next = 3;
             return load_hlsl_text('face_fragment_shader.hlsl');
 
           case 3:
-            face_animation_shader.fragmentShader = _context17.sent;
+            face_animation_shader.fragmentShader = _context18.sent;
 
           case 4:
             if (!(face_animation_shader.vertexShader == null)) {
-              _context17.next = 8;
+              _context18.next = 8;
               break;
             }
 
-            _context17.next = 7;
+            _context18.next = 7;
             return load_hlsl_text('face_vertex_shader.hlsl');
 
           case 7:
-            face_animation_shader.vertexShader = _context17.sent;
+            face_animation_shader.vertexShader = _context18.sent;
 
           case 8:
             if (!(mouth_shader.fragmentShader == null)) {
-              _context17.next = 12;
+              _context18.next = 12;
               break;
             }
 
-            _context17.next = 11;
+            _context18.next = 11;
             return load_hlsl_text('mouth_fragment_shader.hlsl');
 
           case 11:
-            mouth_shader.fragmentShader = _context17.sent;
+            mouth_shader.fragmentShader = _context18.sent;
 
           case 12:
             if (!(mouth_shader.vertexShader == null)) {
-              _context17.next = 16;
+              _context18.next = 16;
               break;
             }
 
-            _context17.next = 15;
+            _context18.next = 15;
             return load_hlsl_text('mouth_vertex_shader.hlsl');
 
           case 15:
-            mouth_shader.vertexShader = _context17.sent;
+            mouth_shader.vertexShader = _context18.sent;
 
           case 16:
             log('finished loaded shader files');
 
           case 17:
           case "end":
-            return _context17.stop();
+            return _context18.stop();
         }
       }
-    }, _callee17);
+    }, _callee18);
   }));
   return _load_shader_files.apply(this, arguments);
 }
@@ -2323,28 +2392,28 @@ function to_b64(_x8) {
 
 
 function _to_b() {
-  _to_b = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee18(img_src) {
+  _to_b = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee19(img_src) {
     var img;
-    return regeneratorRuntime.wrap(function _callee18$(_context18) {
+    return regeneratorRuntime.wrap(function _callee19$(_context19) {
       while (1) {
-        switch (_context18.prev = _context18.next) {
+        switch (_context19.prev = _context19.next) {
           case 0:
-            _context18.next = 2;
+            _context19.next = 2;
             return load_image(img_src);
 
           case 2:
-            img = _context18.sent;
+            img = _context19.sent;
             image_canvas.width = img.width;
             image_canvas.height = img.height;
             image_ctx.drawImage(img, 0, 0);
-            return _context18.abrupt("return", image_canvas.toDataURL());
+            return _context19.abrupt("return", image_canvas.toDataURL());
 
           case 7:
           case "end":
-            return _context18.stop();
+            return _context19.stop();
         }
       }
-    }, _callee18);
+    }, _callee19);
   }));
   return _to_b.apply(this, arguments);
 }
@@ -2354,21 +2423,21 @@ function fade_spinner(_x9, _x10) {
 }
 
 function _fade_spinner() {
-  _fade_spinner = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee19(duration, opacity) {
-    return regeneratorRuntime.wrap(function _callee19$(_context19) {
+  _fade_spinner = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee20(duration, opacity) {
+    return regeneratorRuntime.wrap(function _callee20$(_context20) {
       while (1) {
-        switch (_context19.prev = _context19.next) {
+        switch (_context20.prev = _context20.next) {
           case 0:
-            return _context19.abrupt("return", new Promise(function (resolve) {
+            return _context20.abrupt("return", new Promise(function (resolve) {
               $(loading_spinner).fadeTo(duration, opacity, resolve);
             }));
 
           case 1:
           case "end":
-            return _context19.stop();
+            return _context20.stop();
         }
       }
-    }, _callee19);
+    }, _callee20);
   }));
   return _fade_spinner.apply(this, arguments);
 }
@@ -2381,21 +2450,21 @@ function fade_container(_x11, _x12) {
 
 
 function _fade_container() {
-  _fade_container = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee20(duration, opacity) {
-    return regeneratorRuntime.wrap(function _callee20$(_context20) {
+  _fade_container = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee21(duration, opacity) {
+    return regeneratorRuntime.wrap(function _callee21$(_context21) {
       while (1) {
-        switch (_context20.prev = _context20.next) {
+        switch (_context21.prev = _context21.next) {
           case 0:
-            return _context20.abrupt("return", new Promise(function (resolve) {
+            return _context21.abrupt("return", new Promise(function (resolve) {
               $(container).fadeTo(duration, opacity, resolve);
             }));
 
           case 1:
           case "end":
-            return _context20.stop();
+            return _context21.stop();
         }
       }
-    }, _callee20);
+    }, _callee21);
   }));
   return _fade_container.apply(this, arguments);
 }
@@ -2504,16 +2573,16 @@ function test(_x13) {
 
 
 function _test() {
-  _test = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee21(img_url) {
-    return regeneratorRuntime.wrap(function _callee21$(_context21) {
+  _test = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee22(img_url) {
+    return regeneratorRuntime.wrap(function _callee22$(_context22) {
       while (1) {
-        switch (_context21.prev = _context21.next) {
+        switch (_context22.prev = _context22.next) {
           case 0:
             // eslint-disable-line no-unused-vars
             _.map(anims, clearInterval);
 
             img_url = img_url === undefined ? 'dog3.jpg' : img_url;
-            _context21.next = 4;
+            _context22.next = 4;
             return create_puppet(img_url);
 
           case 4:
@@ -2534,10 +2603,10 @@ function _test() {
 
           case 15:
           case "end":
-            return _context21.stop();
+            return _context22.stop();
         }
       }
-    }, _callee21);
+    }, _callee22);
   }));
   return _test.apply(this, arguments);
 }
@@ -2547,16 +2616,16 @@ function find_features(_x14) {
 }
 
 function _find_features() {
-  _find_features = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee22(img_url) {
-    return regeneratorRuntime.wrap(function _callee22$(_context22) {
+  _find_features = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee23(img_url) {
+    return regeneratorRuntime.wrap(function _callee23$(_context23) {
       while (1) {
-        switch (_context22.prev = _context22.next) {
+        switch (_context23.prev = _context23.next) {
           case 0:
             // eslint-disable-line no-unused-vars
             _.map(anims, clearInterval);
 
             img_url = img_url === undefined ? 'dog3.jpg' : img_url;
-            _context22.next = 4;
+            _context23.next = 4;
             return create_puppet(img_url);
 
           case 4:
@@ -2564,10 +2633,10 @@ function _find_features() {
 
           case 5:
           case "end":
-            return _context22.stop();
+            return _context23.stop();
         }
       }
-    }, _callee22);
+    }, _callee23);
   }));
   return _find_features.apply(this, arguments);
 }

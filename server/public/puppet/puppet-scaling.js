@@ -9,6 +9,8 @@ $(document).ready(() => {
         return document.body.offsetWidth / document.body.offsetHeight;
     }
     function set_container_scale () {
+        // B-)  welcome to the hack zone B-)
+        // there is nothing coherent here, just an accumulation of bandaids
         var content_height = wide_mode() ? 1005 : 1158.84;
         var viewport_height = Math.min(window.innerHeight, initial_viewport_height);
         var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
@@ -44,9 +46,10 @@ $(document).ready(() => {
         } else {
             // aspect ratio determines the top offset
             var top_adjust = (aspect_ratio() - 0.60) * 250;
-            //if (aspect_ratio() > 0.72) {
-            //    top_adjust += 60 * scale;
-            //}
+            if (aspect_ratio() > 0.60) {
+                var adjust = (0.5 - (1.1 - aspect_ratio())) / 0.5;
+                top_adjust += (60 * scale) - (adjust * 80);
+            }
             //console.log('top adjust', top_adjust);
             $('#container').css({
                 position: 'relative',
