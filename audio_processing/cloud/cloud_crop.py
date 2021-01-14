@@ -37,6 +37,10 @@ def crop_raw_audio (raw_uuid, bucket_name, debug=False):
             print('raw file sample rate', samplerate, 'data shape', data.shape)
             print('data min', min(data), 'max', max(data))
 
+
+        # TODO replace this splitting logic
+        # with something modular
+
         # split with sox
         # the parameters here are fairly arcane, see https://digitalcardboard.com/blog/2009/08/25/the-sox-of-silence/
         # its really two groups:
