@@ -27,7 +27,7 @@ app.post('/to_crops', async (req, res) => {
         res.status(401).send('access denied!');
     }
     // TODO need a safer way to interpolate strings
-    var cmd = `python3 cloud_crop.py --uuid "${req.body.uuid}" --bucket "${req.body.bucket}"`;
+    var cmd = `python3 cloud_crop_v2.py --uuid "${req.body.uuid}" --bucket "${req.body.bucket}"`;
     var config = {
         shell: '/bin/bash',
     }
