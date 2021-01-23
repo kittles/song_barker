@@ -1,3 +1,4 @@
+*.pyc
 .DS_Store
 *.[swo|swp]
 server/node_modules

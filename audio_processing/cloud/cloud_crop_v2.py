@@ -8,6 +8,7 @@ return options:
     1. timestamps of crops
     2. actual crop arrays
 '''
+import sys
 import glob
 import json
 import uuid
@@ -148,17 +149,12 @@ def crop_to_aac (crop_bounds, data, samplerate, temp_dir, debug=False):
     # NOTE data should be float64
     # add a bit of extra at the beginning to handle the -.023 seconds
     # lost from aac reencoding
-    crop_bounds[0] -= int(samplerate * 0.023)
+    extra_sample_count = int(samplerate * 0.0231)
+    extra_samples = np.zeros(extra_sample_count, dtype=np.float64)
+    data = np.concatenate((extra_samples, data, extra_samples))
+    crop_bounds[0] += extra_sample_count
+    crop_bounds[1] += extra_sample_count
     duration = (crop_bounds[1] - crop_bounds[0]) / samplerate
-    # make sure crops outside data region dont fail
-    if crop_bounds[0] < 0:
-        _data = np.zeros(crop_bounds[1], dtype=np.float64)
-        _data[-len(data):] = data
-        data = _data
-    if crop_bounds[1] > len(data):
-        _data = np.zeros(crop_bounds[1], dtype=np.float64)
-        _data[0:len(data)] = data
-        data = _data
     # ramp in and out
     crop = pyln.normalize.peak(data[crop_bounds[0]:crop_bounds[1]], -1.0)
     fades = np.ones(len(crop), dtype=np.float64)
@@ -184,6 +180,12 @@ def cloud_endpoint (raw_uuid, bucket_name, debug=False):
     '''
     # download the file
     with tempfile.TemporaryDirectory() as tmp_dir:
+        ## mac symlinks the provided temp path
+        ## to where it actually is, which is in private/
+        #if sys.platform == 'darwin':
+        #    print(os.realpath(tmp_dir), tmp_dir)
+        #    tmp_dir = os.path.join('private', tmp_dir)
+        #    print(os.realpath(tmp_dir), tmp_dir)
         remote_fp = os.path.join(raw_uuid, 'raw.aac')
         if debug:
             print('downloading from: ', remote_fp)
