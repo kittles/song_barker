@@ -85,6 +85,7 @@ app.post('/to_card_key', async (req, res) => {
         key_id: key_uuid,
         recipient_name: req.body.recipient,
         card_uuid: req.body.card_uuid,
+        has_envelope: req.body.has_envelope,
     };
     var insert_result = await insert_into_db('card_key', key_data);
     // TODO make sure it succeeded
@@ -158,7 +159,7 @@ app.get('/c/:card_key', async (req, res) => {
             mouth_color: image.mouth_color,
             domain_name: process.env.k9_domain_name,
             bucket_name: process.env.k9_bucket_name,
-            has_envelope: card.has_envelope,
+            has_envelope: card_key.has_envelope,
         });
         res.send(html);
     });
@@ -221,93 +222,10 @@ app.get('/', async (req, res) => {
             mouth_color: image.mouth_color,
             domain_name: process.env.k9_domain_name,
             bucket_name: process.env.k9_bucket_name,
-            has_envelope: card.has_envelope,
+            has_envelope: false,
         });
         res.send(html);
     });
-});
-
-
-//
-// long url form card sharing
-//
-app.get('/card/:uuid', async (req, res) => {
-    // uuid gets a greeting_card object
-    // greeting card is used to get necessary info to make a page
-    // with template vars filled in for all the animations etc
-    // page has to do a couple things:
-    // 1. wait until everything is loaded before allowing playback
-    // 2. control playback (keep in sync etc), allow repeats and pause
-    // 3. links to download app etc
-    function show_error_page () {
-        res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
-    }
-
-
-    if (!uuid_validate(req.params.uuid)) {
-        // TODO should redirect to a user friendly page
-        //res.status(400).send('malformed raw uuid');
-        show_error_page();
-        return;
-    }
-    const db = await _db.dbPromise;
-    var check = await db.get('select * from users limit 1');
-    var card = await db.get('select * from greeting_cards where uuid = ?', req.params.uuid);
-    if (_.isUndefined(card)) {
-        //res.status(404).send('card does not exist');
-        show_error_page();
-        return;
-    }
-    // get face coordinates
-    var image = await db.get('select * from images where uuid = ?', card.image_id);
-    if (_.isUndefined(image)) {
-        //res.status(400).send('unable to find image for card');
-        show_error_page();
-        return;
-    }
-    // get decoration image bucket fp
-    var decoration_image = await db.get('select * from decoration_images where uuid = ?', card.decoration_image_id);
-    if (_.isUndefined(decoration_image)) {
-        //res.status(400).send('unable to find decoration image for card');
-        //return;
-        decoration_image = {
-            bucket_fp: null,
-        };
-    }
-    // card audio bucket fp
-    var card_audio = await db.get('select * from card_audios where uuid = ?', card.card_audio_id);
-    if (_.isUndefined(card_audio)) {
-        //res.status(400).send('unable to find card audio');
-        show_error_page();
-        return;
-    }
-    fs.readFile('public/puppet/puppet.html', 'utf-8', function (error, source) {
-        var template = handlebars.compile(source);
-        var html = template({
-            uuid: req.params.uuid,
-            // asset bucket fps
-            card_audio_bucket_fp: card_audio.bucket_fp,
-            image_bucket_fp: image.bucket_fp,
-            decoration_image_bucket_fp: decoration_image.bucket_fp,
-            // animation
-            image_coordinates_json: image.coordinates_json,
-            animation_json: card.animation_json,
-            // card text
-            name: card.name,
-            recipient_name: card.recipient_name,
-            mouth_color: image.mouth_color,
-            domain_name: process.env.k9_domain_name,
-            bucket_name: process.env.k9_bucket_name,
-            has_envelope: card.has_envelope,
-        });
-        res.send(html);
-    });
-});
-
-
-// TODO remove this
-app.get('/health-check', (req, res) => {
-    res.send('beep-beep-beep');
 });
 
 

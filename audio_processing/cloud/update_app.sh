@@ -8,7 +8,7 @@ fi
 
 export PROJECT_ID='songbarker'
 export NAME='k9-karaoke-cloud'
-export VERSION='v6'
+export VERSION='v8'
 export APP_NAME='k9-karaoke-dev-app'
 export CONTAINER_NAME=gcr.io/${PROJECT_ID}/${NAME}:${VERSION}
 
