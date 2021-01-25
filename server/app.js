@@ -1043,6 +1043,10 @@ app.post('/cloud/to_sequence', async function (req, res) {
     res.json(sequence_obj);
 });
 
+// any other url
+app.get('*', async (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
+});
 
 //// for local dev with app
 //var fs = require('fs');
