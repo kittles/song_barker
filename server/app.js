@@ -747,23 +747,6 @@ app.post('/delete-account', async function (req, res) {
 //    res.sendFile(path.join(__dirname, 'public/puppet_002/puppet.html'));
 //});
 
-// rest api
-(async () => {
-    // await _db.initialize_db(models);
-    const db = await _db.dbPromise;
-
-    _.each(models, (def) => {
-        if (def.disable_rest) {
-            // do not include this object in the rest api
-            // pass
-        } else {
-            _.each(rest_api.obj_rest_api(def, db), (route_def) => {
-                app[route_def.request_method](route_def.endpoint, route_def.handler);
-            });
-        }
-    });
-})();
-
 
 // model descriptions
 // TODO remove
@@ -1043,10 +1026,28 @@ app.post('/cloud/to_sequence', async function (req, res) {
     res.json(sequence_obj);
 });
 
-// any other url
-app.get('*', async (req, res) => {
-    res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
-});
+
+// rest api
+(async () => {
+    // await _db.initialize_db(models);
+    const db = await _db.dbPromise;
+
+    _.each(models, (def) => {
+        if (def.disable_rest) {
+            // do not include this object in the rest api
+            // pass
+        } else {
+            _.each(rest_api.obj_rest_api(def, db), (route_def) => {
+                app[route_def.request_method](route_def.endpoint, route_def.handler);
+            });
+        }
+    });
+
+    // any other url
+    app.get('*', async (req, res) => {
+        res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
+    });
+})();
 
 //// for local dev with app
 //var fs = require('fs');
