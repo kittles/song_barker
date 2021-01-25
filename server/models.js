@@ -591,6 +591,45 @@ exports.models = [
                     type: 'text',
                     desc: 'the foreign key to the song',
                 },
+                {
+                    name: 'has_envelope',
+                    type: 'integer default 1',
+                    desc: 'whether the card should be presented with an envelope',
+                },
+            ],
+        },
+    },
+    {
+        table_name: 'card_key',
+        obj_type: 'card_key',
+        primary_key: 'key_id',
+        primary_key_is_uuid: false,
+        order_by: 'created',
+        user_owned: true,
+        immutable: false,
+        disable_all: false,
+        schema: {
+            columns: [
+                {
+                    name: 'key_id',
+                    type: 'text primary key',
+                    desc: 'probably the url (minus the domain) for the card',
+                },
+                {
+                    name: 'recipient_name',
+                    type: 'text',
+                    desc: 'the name that shows up on the envelope',
+                },
+                {
+                    name: 'card_uuid',
+                    type: 'text',
+                    desc: 'uuid for the greeting_card object',
+                },
+                {
+                    name: 'has_envelope',
+                    type: 'integer default 1',
+                    desc: 'whether the card should be presented with an envelope',
+                },
             ],
         },
     },

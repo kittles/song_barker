@@ -1,3 +1,4 @@
+*.pyc
 .DS_Store
 *.[swo|swp]
 server/node_modules
@@ -38,6 +39,7 @@ audio_processing/cloud/credentials/*
 audio_processing/cloud/.cloud-env
 audio_processing/cloud/node_modules
 audio_processing/cloud/__pycache__
+audio_processing/cloud/split_samples
 
 server/sessions
 
