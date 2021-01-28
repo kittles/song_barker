@@ -807,7 +807,7 @@ function _prepare_card() {
                           img_for_dimensions.onerror = _.noop;
 
                           if (card.decoration_image_bucket_fp) {
-                            decoration_image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.decoration_image_bucket_fp);
+                            decoration_image_url = "https://storage.googleapis.com/".concat(card.bucket_name, "/").concat(card.decoration_image_bucket_fp);
                           } else {
                             // transparent 1x1 png
                             decoration_image_url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';

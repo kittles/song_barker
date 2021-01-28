@@ -455,7 +455,7 @@ async function prepare_card () {
             img_for_dimensions.onerror = _.noop;
 
             if (card.decoration_image_bucket_fp) {
-                decoration_image_url = `https://storage.googleapis.com/song_barker_sequences/${card.decoration_image_bucket_fp}`;
+                decoration_image_url = `https://storage.googleapis.com/${card.bucket_name}/${card.decoration_image_bucket_fp}`;
             } else {
                 // transparent 1x1 png
                 decoration_image_url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
