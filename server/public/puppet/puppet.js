@@ -607,7 +607,7 @@ async function prepare_card () {
         var mobile_volume_on_img = '/puppet/k9-icons/volume-on-no-border-blue.png';
         var mobile_volume_off_img = '/puppet/k9-icons/volume-off-no-border-blue.png';
 
-        audio_url = `https://storage.googleapis.com/song_barker_sequences/${card.card_audio_bucket_fp}`;
+        audio_url = `https://storage.googleapis.com/${card.bucket_name}/${card.card_audio_bucket_fp}`;
         // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
         $('body').append(`<audio crossorigin="anonymous" src="${audio_url}" type="audio/mp4"></audio>`);
         audio_el = document.querySelector('audio');
@@ -743,7 +743,7 @@ async function prepare_card () {
     async function prepare_puppet () {
         return new Promise(async (r) => {
             var viewport_aspect = 1;
-            var image_url = `https://storage.googleapis.com/song_barker_sequences/${card.image_bucket_fp}`;
+            var image_url = `https://storage.googleapis.com/${card.bucket_name}/${card.image_bucket_fp}`;
             var fts = card.image_coordinates_json;
             features = {
                 leftEyePosition: fts.leftEye,
