@@ -383,7 +383,7 @@ function _prepare_card() {
                                     };
 
                                     viewport_aspect = 1;
-                                    image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.image_bucket_fp);
+                                    image_url = "https://storage.googleapis.com/".concat(card.bucket_name, "/").concat(card.image_bucket_fp);
                                     fts = card.image_coordinates_json;
                                     features = {
                                       leftEyePosition: fts.leftEye,
@@ -570,7 +570,7 @@ function _prepare_card() {
               var mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
               var mobile_volume_on_img = '/puppet/k9-icons/volume-on-no-border-blue.png';
               var mobile_volume_off_img = '/puppet/k9-icons/volume-off-no-border-blue.png';
-              audio_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
+              audio_url = "https://storage.googleapis.com/".concat(card.bucket_name, "/").concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
 
               $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
               audio_el = document.querySelector('audio');
