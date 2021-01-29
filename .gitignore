@@ -18,6 +18,7 @@ server/barker_database.db
 server/k9-database-prod.db
 server/barker_database.db.bak
 server/public/node_modules
+server/public/puppet-standalone
 server/public/sequence.aac
 server/public/sequence.wav
 
