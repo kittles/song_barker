@@ -208,6 +208,15 @@ var mouth_shader = {
       type: 'v3',
       value: new THREE.Vector3()
     },
+    // asis addition
+    lipsColor: {
+      type: 'v3',
+      value: new THREE.Vector3()
+    },
+    lipsThickness: {
+      type: 'f',
+      value: 0.0
+    },
     // Head Sway
     head_displacement: {
       type: 'v2',
@@ -383,7 +392,7 @@ function _prepare_card() {
                                     };
 
                                     viewport_aspect = 1;
-                                    image_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.image_bucket_fp);
+                                    image_url = "https://storage.googleapis.com/".concat(card.bucket_name, "/").concat(card.image_bucket_fp);
                                     fts = card.image_coordinates_json;
                                     features = {
                                       leftEyePosition: fts.leftEye,
@@ -503,7 +512,11 @@ function _prepare_card() {
                                     } // use features to determine locations of stuff
 
 
-                                    sync_objects_to_features();
+                                    sync_objects_to_features(); // asis lips addition
+
+                                    lips_color(0.1, 0.1, 0.1);
+                                    lips_thickness(0.1); //
+
                                     update_shaders();
                                     direct_render();
                                     animate();
@@ -511,7 +524,7 @@ function _prepare_card() {
                                     random_gesture();
                                     r();
 
-                                  case 54:
+                                  case 56:
                                   case "end":
                                     return _context7.stop();
                                 }
@@ -570,7 +583,7 @@ function _prepare_card() {
               var mobile_replay_img = '/puppet/k9-icons/replay-blue.png';
               var mobile_volume_on_img = '/puppet/k9-icons/volume-on-no-border-blue.png';
               var mobile_volume_off_img = '/puppet/k9-icons/volume-off-no-border-blue.png';
-              audio_url = "https://storage.googleapis.com/song_barker_sequences/".concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
+              audio_url = "https://storage.googleapis.com/".concat(card.bucket_name, "/").concat(card.card_audio_bucket_fp); // TODO handle card audios that are actually sequences, by looking in a different part of the bucket
 
               $('body').append("<audio crossorigin=\"anonymous\" src=\"".concat(audio_url, "\" type=\"audio/mp4\"></audio>"));
               audio_el = document.querySelector('audio');
@@ -1687,6 +1700,18 @@ function mouth_open(val) {
 
 function mouth_color(fr, fg, fb) {
   mouth_shader.uniforms.mouthColor.value = new THREE.Vector3(fr, fg, fb);
+  update_shaders();
+  direct_render();
+}
+
+function lips_color(fr, fg, fb) {
+  mouth_shader.uniforms.lipsColor.value = new THREE.Vector3(fr, fg, fb);
+  update_shaders();
+  direct_render();
+}
+
+function lips_thickness(val) {
+  mouth_shader.uniforms.lipsThickness.value = val;
   update_shaders();
   direct_render();
 }
