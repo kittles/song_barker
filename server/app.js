@@ -272,7 +272,7 @@ async function manual_to_openid_confirmation (user) {
             user.user_id,
         );
         // subprocess to add stock objects
-        add_stock_objects_to_user(user.user_id)
+        add_stock_objects_to_user(user.user_id);
     }
 }
 
@@ -291,6 +291,9 @@ app.post('/openid-token/:platform', async (req, res) => {
         if (user) {
             // attach the user_id to the session
             req.session.user_id = payload.email;
+            // if the account was created with manual sign in, but they never confirmed
+            // this will handle that. if they did, this does nothing
+            manual_to_openid_confirmation(user);
         } else {
             // create a new user object
             await user_sess.add_user(payload.email, payload.name, payload.email);
@@ -372,6 +375,9 @@ app.post('/facebook-token', async (req, res) => {
             console.log('user exists');
             // attach the user_id to the session
             req.session.user_id = payload.email;
+            // if the account was created with manual sign in, but they never confirmed
+            // this will handle that. if they did, this does nothing
+            manual_to_openid_confirmation(user);
         } else {
             // create a new user object
             console.log('create new user');
