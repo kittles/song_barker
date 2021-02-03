@@ -260,6 +260,22 @@ function add_stock_objects_to_user (user_id) {
 }
 
 
+async function manual_to_openid_confirmation (user) {
+    // used by fb and google handlers below to
+    // handle the case where a user signs up manually,
+    // doesnt confirm their email,
+    // then logs in with open id that has the same email
+    // as their manual signup
+    // TODO put this in the two open id endpoints below and test
+    if (user.pending_confirmation) {
+        var update_query = await db.run('update users set pending_confirmation = 0 where user_id = ?',
+            user.user_id,
+        );
+        // subprocess to add stock objects
+        add_stock_objects_to_user(user.user_id)
+    }
+}
+
 app.post('/openid-token/:platform', async (req, res) => {
     try {
         var payload;
@@ -647,7 +663,7 @@ app.post('/temp-password', async (req, res) => {
     });
 
     await transporter.sendMail({
-        from: '"seattle city sellahs" <seattlecitysellers@gmail.com>', // sender address
+        from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
         to: user_obj.email,
         subject: 'K9 Karaoke account recovery ✔', // Subject line
         text: `please use this temporary password to log in to your account: ${temp_password}`,
@@ -749,10 +765,11 @@ app.post('/delete-account', async function (req, res) {
 
 
 // model descriptions
-// TODO remove
-app.get('/describe', (req, res) => {
-    res.json(models);
-});
+if (process.env.k9_dev) {
+    app.get('/describe', (req, res) => {
+        res.json(models);
+    });
+}
 
 
 // when a user agrees to terms
