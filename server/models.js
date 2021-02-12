@@ -264,7 +264,17 @@ exports.models = [
                 {
                     name: 'mouth_color',
                     type: 'text',
-                    desc: 'a string representation of the mouth color',
+                    desc: 'a string representation of the mouth color, floats from 0-1 like [r, g, b]',
+                },
+                {
+                    name: 'lip_color',
+                    type: 'text',
+                    desc: 'a string representation of the lip color, floats from 0-1 like [r, g, b]',
+                },
+                {
+                    name: 'lip_thickness',
+                    type: 'real',
+                    desc: 'a float from 0 to 1 representing the lip thickness. use 0 to turn lips off',
                 },
             ],
         },

@@ -853,8 +853,16 @@ async function prepare_card () {
             // use features to determine locations of stuff
             sync_objects_to_features();
             // asis lips addition
-            lips_color(0.1, 0.1, 0.1);
-            lips_thickness(0.1);
+            if (card.lip_color) {
+                lips_color(...JSON.parse(card.lip_color));
+            } else {
+                lips_color(0.1, 0.1, 0.1);
+            }
+            if (card.lip_thickness) {
+                lips_thickness(parseFloat(card.lip_thickness))
+            } else {
+                lips_thickness(0.1);
+            }
             //
             update_shaders();
             direct_render();
@@ -1424,13 +1432,13 @@ function mouth_color (fr, fg, fb) {
 }
 
 
-function lips_color(fr, fg, fb) {
+function lips_color (fr, fg, fb) {
     mouth_shader.uniforms.lipsColor.value = new THREE.Vector3(fr, fg, fb);
     update_shaders();
     direct_render();
 }
 
-function lips_thickness(val) {
+function lips_thickness (val) {
     mouth_shader.uniforms.lipsThickness.value = val;
     update_shaders();
     direct_render();

@@ -514,8 +514,18 @@ function _prepare_card() {
 
                                     sync_objects_to_features(); // asis lips addition
 
-                                    lips_color(0.1, 0.1, 0.1);
-                                    lips_thickness(0.1); //
+                                    if (card.lip_color) {
+                                      lips_color.apply(void 0, _toConsumableArray(JSON.parse(card.lip_color)));
+                                    } else {
+                                      lips_color(0.1, 0.1, 0.1);
+                                    }
+
+                                    if (card.lip_thickness) {
+                                      lips_thickness(parseFloat(card.lip_thickness));
+                                    } else {
+                                      lips_thickness(0.1);
+                                    } //
+
 
                                     update_shaders();
                                     direct_render();

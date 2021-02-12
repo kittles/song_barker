@@ -157,6 +157,8 @@ app.get('/c/:card_key', async (req, res) => {
             name: card.name,
             recipient_name: card_key.recipient_name, // NOTE this is actually used with short urls
             mouth_color: image.mouth_color,
+            lip_color: image.lip_color,
+            lip_thickness: image.lip_thickness,
             domain_name: process.env.k9_domain_name,
             bucket_name: process.env.k9_bucket_name,
             has_envelope: card_key.has_envelope,
