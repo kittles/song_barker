@@ -278,6 +278,8 @@ def cloud_endpoint (raw_uuid, bucket_name, debug=False):
                 medium_crops.append(mc)
 
         # ensure a long
+        # TODO should use some kind of ranking of all candidates to
+        # choose a desirable long crop
         if not long_crops:
             if debug:
                 print(' ! generating long crop')
@@ -290,6 +292,21 @@ def cloud_endpoint (raw_uuid, bucket_name, debug=False):
                 lc[1] = lc[0] + int(samplerate * 1.3)
             if lc:
                 long_crops.append(lc)
+
+        # make sure there is no sound left behind
+        # so any place there is a threshold crossing
+        # that has not already been put into a crop,
+        # make sure there is a crop added for it
+        #
+        # strategy: for each onset and decay pair,
+        # see if its long enough to care about.
+        # if it is, then see if its in a crop already
+        # if not, mark it for making a crop.
+        # once a list of those has been generated,
+        # use some kind of adjacency metric to decide
+        # if some of them should be merged together into
+        # a longer sound
+        supplementary_crops = [] # TODO make sure this gets concated with other stuff in all_crops
 
         # make them fp, duration dicts, with the side effect
         # of actually creating the file as well
