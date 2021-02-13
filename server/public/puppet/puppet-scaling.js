@@ -20,9 +20,26 @@ $(document).ready(() => {
 
         if (wide_mode()) {
             scale = vh / content_height;
+            $('#k9-logo').css({
+                'transform': 'translate(-50%, -100%)',
+            });
         } else {
             scale = vw / 700;
             scale = Math.min(scale, 1);
+
+            // deal with the logo at the top
+            // again, just trial and error garbage
+            // 580px to wide mode cutoff problematic
+            var view_ratio = vw / vh;
+            if (view_ratio > 0.725) {
+                $('#k9-logo').css({
+                    'transform': 'translate(-50%, -74%) scale(0.65)',
+                });
+            } else {
+                $('#k9-logo').css({
+                    'transform': 'translate(-50%, -100%)',
+                });
+            }
         }
 
         //console.log('scale:', scale, 'vw:', vw, 'vw / scale:', vw / scale);
@@ -57,6 +74,7 @@ $(document).ready(() => {
             });
         }
         //console.log(aspect_ratio());
+
     }
     set_container_scale();
     $(window).on('resize', _.debounce(set_container_scale, 125));
