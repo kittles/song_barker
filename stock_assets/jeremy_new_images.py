@@ -13,7 +13,7 @@ import os
 from google.cloud import storage
 
 storage_client = storage.Client()
-reader = csv.DictReader(open('./jeremy_stock_dog_image_updates.csv'))
+reader = csv.DictReader(open('./jeremy_dogs.csv'))
 
 
 def download_filename_from_bucket (remote_fp, fp):
@@ -24,14 +24,16 @@ def download_filename_from_bucket (remote_fp, fp):
     bucket = storage_client.bucket(os.environ.get('k9_bucket_name', 'song_barker_sequences'))
     blob = bucket.blob(remote_fp)
     blob.download_to_filename(fp)
-    print('downloaded', remote_fp)
+    #print('downloaded', remote_fp)
 
 
 if __name__ == '__main__':
+    c = 0
     for row in reader:
 
         # skip unwanted rows
         if int(row['is_stock']) or int(row['hidden']):
+            print('STOCK OR HIDDEN - skipping row', row['name'])
             continue
 
         name = row['name']
@@ -42,12 +44,15 @@ if __name__ == '__main__':
         try:
             mouth_color = list(eval(row['mouth_color']))
         except:
+            print('WARNING: no mouth color for ', name)
             mouth_color = None
 
         try:
             coordinates_json = json.loads(row['coordinates_json'])
         except:
             coordinates_json = None
+            print('WARNING (SKIPPING): no coordinates_json for ', name)
+            continue
 
         out_dict = {
             'name': name,
@@ -61,9 +66,21 @@ if __name__ == '__main__':
         jpg_fp = os.path.join(out_fp, '{}.jpg'.format(name))
         remote_jpg_fp = row['bucket_fp']
 
-        print('--- \n')
-        print('output fp: {}'.format(out_fp))
-        print('generating stock dog image with following data (info.json)')
-        print(json.dumps(out_dict, indent=4))
-        print('downloading jpg from {} to {}'.format(remote_jpg_fp, jpg_fp))
+        ##print('--- \n')
 
+        ## make the dir for the info and image
+        try:
+            os.mkdir(out_fp)
+        except:
+            print('DIR ALREADY EXISTS, OVERWRITING: {}'.format(out_fp))
+        #print('output fp: {}'.format(out_fp))
+
+        ## make the info.json file
+        ##print('generating stock dog image with following data (info.json)')
+        ##print(json.dumps(out_dict, indent=4))
+        with open(info_fp, 'w') as fh:
+            fh.write(json.dumps(out_dict, indent=4))
+
+        ## download the dog image
+        ##print('downloading jpg from {} to {}'.format(remote_jpg_fp, jpg_fp))
+        download_filename_from_bucket(remote_jpg_fp, jpg_fp)
