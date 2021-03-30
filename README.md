@@ -13,7 +13,7 @@ list the other files that have information on specific topics. the structure her
 K-9 Karaoke (formerly song / sound barker) is made of up of some fairly discrete pieces:
 
 - mobile app
-- public facing web server, aka the back end
+- public facing web server, aka the back end (this includes web front end code)
 - scalable kubernetes cluster for high cpu tasks
 
 the project has steadilly grown in scope over the year, and you will probably
@@ -114,7 +114,9 @@ as how to run the docker container that the cluster uses. this is probably the f
 do.
 - `models.md` is a discussion of the objects (db tables) that the app uses. they correspond to the logical
 abstractions in the code as well, for the most part.
-
+- `deployment.md` is a more detailed outline of deploying builds to the development and production servers.
+for the related but distinct topics of song synchronization, and stock object synchronization, see
+`songs.md` and `stock_objects.md`.
 
 
 

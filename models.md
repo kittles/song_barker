@@ -24,8 +24,8 @@ i havent gone to too much trouble to challenge this assumption, but it might be 
 - the `user_id` attribute is generally used to determine ownership and permissions for an object.
 - the `*_url` and `*_fp` are redundant, it was a bad decision to include both.
 - the `desc` attribute on each column def is just there for reference. the whole schema
-- is served by the webserver at `localhost:3000/describe` as a handy reference. originally intended
-- in lieu of better REST documentation.
+is served by the webserver at `localhost:3000/describe` as a handy reference. originally intended
+in lieu of better REST documentation.
 - i cannot remember if i was careless enough to write a sql expression that depends on the order
 rather than column name, but just in case id recommend against reordering the columns in the schema.
 instead just add new ones at the bottom of the array.
@@ -34,9 +34,8 @@ instead just add new ones at the bottom of the array.
 ## Objects
 
 ### user
-the user object is hopefully self explanitory. ive included a "desc" attribute for each
-of the column definitions in the schema that may be helpful as well. the primary purpose
-of having a user object at all is to track purchases and enable a single account accross
+the user object is hopefully self explanitory.
+the primary purpose of having a user object at all is to track purchases and enable a single account accross
 multiple devices.
 
 ### raw

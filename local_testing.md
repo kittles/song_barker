@@ -1,4 +1,4 @@
-# overview
+# local testing
 ill try to outline the process of running the back end, as well as a
 docker image that would be in the cluster here. i develop on ubuntu,
 and found it was mostly frictionless to use os x, but i figure its good
@@ -12,14 +12,14 @@ this is the thing with the rest apis, the puppet animation stuff, the database e
 run `git clone https://github.com/kittles/song_barker.git`
 
 install the system-wide dependencies:
-`
+```
 sudo apt-get install python-dev
 sudo apt-get install python3-dev
 sudo apt install rubberband
 sudo apt install sox
 sudo apt install nodejs
 sudo apt install virtualenv
-`
+```
 i also recommend installing the sqlite3 cli for mucking around with the db.
 im pretty sure you will need gsutil as well.
 here is a page for installing that: https://cloud.google.com/storage/docs/gsutil_install
@@ -27,12 +27,12 @@ here is a page for installing that: https://cloud.google.com/storage/docs/gsutil
 once you've downloaded the repo, you'll need to set up a python3
 virtual environment to install the python dependencies. here is a
 sample command for doing so, from the project root:
-`
+```
 cd audio_processing
 virtualenv -p python3 .env
 source .env/bin/activate
 pip install -r requirements.txt
-`
+```
 this will create a python virtualenv in the `/audio_processing` dir, and
 install the requirements as specified in the requirements.txt there. note that
 the config (discussed further down) expects a python env called `.env`.
@@ -41,15 +41,15 @@ for the server's dependencies, go to `/server` and run `npm install`.
 this should grab all the js dependencies.
 
 ## credentials
-the `/credentials` file is empty on the repo because its meant to store sensitive info
+the `/credentials` dir is empty on the repo because its meant to store sensitive info
 that doesnt belong in version control. i can give you the necessary files through other
 means. but, its probably handy to document what *should* be there:
 
-- bucket-credentials.json (this lets the server talk to the bucket)
-- cloud-access-token.json (this is a *HIGHLY SECURE* token that the server uses when
+- `bucket-credentials.json` (this lets the server talk to the bucket)
+- `cloud-access-token.json` (this is a *HIGHLY SECURE* token that the server uses when
 talking to the cluster)
-- email.json (this holds the credentials for the account used to send signup emails and the like)
-- facebook_app_access_token.json (for facebook openid)
+- `email.json` (this holds the credentials for the account used to send signup emails and the like)
+- `facebook_app_access_token.json` (for facebook openid)
 
 ## environment variables
 there are a number of environment varibles that need to be set in the current shell context
@@ -87,13 +87,16 @@ page anything you run into)
 here are my guesses if something isnt working:
 - you are missing something in `/credentials`
 - you havent installed the python or more likely the node requirements
-- there is no database file:w
+- there is no database file
 
 # the cluster
+this is the thing in `/audio_processing/cloud`.
 this is a little more cumbersome to test with, but a little easier to get going initially. you can
 of course run the python scripts on their own, and they should be designed to be fairly modular in that
-way. just make sure you create a `./cloud-env` virtual environment and install the requirements.
-but often youll need to test the actual docker image before deploying it to the cluster.
+way. just make sure you create a `./cloud-env` virtual environment and install the requirements, and 
+activate that environment when testing, with `source .cloud-env/bin/activate` (on linux).
+
+but often youll need to test the actual docker container before deploying it to the cluster.
 i honestly never remember docker command flags and format so i just wrote a bunch of short
 shell scripts. you should really only consider them a reference, they are in various states of
 working / usefulness. in any case, i would `./build_container.sh`
