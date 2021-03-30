@@ -1,4 +1,15 @@
 # overview
+
+## contents
+this readme is just a brief overview of the project, at the end i will
+list the other files that have information on specific topics. the structure here is
+- basic overview
+- slightly more detailed description of major components
+- brief info on deployments
+- list of more specific guides
+
+
+## basics
 K-9 Karaoke (formerly song / sound barker) is made of up of some fairly discrete pieces:
 
 - mobile app
@@ -51,8 +62,9 @@ the endpoints and such from this.
 the audio processing, which was initially developed to be run on the same machine
 as the server, has become too cpu intensive to handle all but a handful of users
 concurrently. you'll see a somewhat strange dir structure, with an
-`/audio_processing` dir with audio processing scripts in it, and a
-`/audio_processing/cloud` dir with another set of similar looking scripts (they are not the same)
+`/audio_processing` dir with audio processing scripts in it (which are not used now), and a
+`/audio_processing/cloud` dir with another set of similar looking scripts (they are not the same, and
+they ARE used)
 
 ### static assets / puppet
 the bulk of the web front end (the web page where users go to see shared cards)
@@ -65,7 +77,7 @@ the client app (through a webview), which may partially explain why its kind of 
 ## cluster
 the cluster is for doing two things- processing a raw audio file into cropped regions,
 and turning a set of crops into a sequence (a set of barks into a musical song). its
-a docker image deployed on kubernetes. inside the image, there is a express server that
+a docker container deployed on kubernetes. inside the container, there is a express server that
 exposes two endpoints public endpoints (for the two tasks). what happens is a client
 makes a request to process a raw audio file, say, and the back end receives this request.
 it then makes a request to the cluster at the appropriate endpoint. the cluster does
@@ -74,7 +86,7 @@ the back end then responds to the client. passing along whatever info is useful.
 the audio processing logic is mostly in python,
 happening in subprocesses kicked off by the express server.
 
-# deployments
+## deployments
 there is a dev server at `https://thedogbarksthesong.ml`
 there is a prod server at `https://k-9karaoke.com`
 they are both deployed on digital ocean. the servers are ubuntu 18.04
@@ -94,10 +106,14 @@ process for the cluster is basically to build a new docker image, push that to g
 tell kubernetes to update the cluster with that new image. sometimes easier said than done, but ive
 found googles docs helpful.
 
-ill go into more detail on each of these in a distinct section.
 
-- local_testing.md is a walk through of getting the back end server, running on your local computer, as well
-as how to run and test the docker container that the cluster uses
+## more specific guides
+
+- `local_testing.md` is a walk through of getting the back end server running on your local computer, as well
+as how to run the docker container that the cluster uses. this is probably the first thing you'll want to
+do.
+- `models.md` is a discussion of the objects (db tables) that the app uses. they correspond to the logical
+abstractions in the code as well, for the most part.
 
 
 
