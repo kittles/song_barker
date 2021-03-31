@@ -1,5 +1,8 @@
 '''
-generate 5 bars of a click track at 143 bpm
+this was used to debug timing issues between the rendered sequence and a backing
+track, i think
+
+generates 5 bars of a click track at 143 bpm
 '''
 import os
 from scipy.io import wavfile

@@ -1,6 +1,8 @@
 '''
-expects a directory name in the songs dir
-will read the info.json and do the bucket uploading and db insertion
+run this when you need to update the songs in the bucket and db
+
+for each song in the songs dir
+    will read the info.json and do the bucket uploading and db insertion
 '''
 import argparse
 import os

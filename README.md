@@ -116,7 +116,7 @@ do.
 abstractions in the code as well, for the most part.
 - `deployment.md` is a more detailed outline of deploying builds to the development and production servers.
 for the related but distinct topics of song synchronization, and stock object synchronization, see
-`songs.md` and `stock_objects.md`.
+`songs.md` and `stock_assets.md`.
 
 
 

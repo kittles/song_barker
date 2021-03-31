@@ -1,3 +1,6 @@
+'''
+some convenience functions to convert audio formats using ffmpeg
+'''
 import subprocess as sp
 import warnings
 import os

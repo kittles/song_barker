@@ -1,3 +1,6 @@
+'''
+used for debugging midi vs audio timing issues
+'''
 import os
 from midi_bridge import MidiBridge
 from scipy.io import wavfile
