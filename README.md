@@ -30,11 +30,6 @@ a discussion of how crops and a midi file are used to generate a sequence
 - [peripheral tooling](#peripheral-tooling)
 list of stuff to monitor server etc, backups and other housekeeping
 
-# cloud endpoint details
-# how crops are made
-# how sequences are made
-# peripheral tooling
-
 
 # overview
 this codebase consists of several components:
@@ -107,8 +102,8 @@ the container is uploaded to google cloud services and cluster-ized with kuberne
 ## REST api
 the first category of endpoints are basically CRUD operations. they are automatically
 generated based on the contents of `/server/models.js`, which is roughly a schema of
-the database as well as some rules about object permissions. for each object, some subset of
-the following are made available:
+the database as well as some rules about object permissions (see [models](#models) for more info).
+for each object, some subset of the following are made available:
 - GET `/get/<object_type>/<pk>`: return json representing the object
 - GET `/all/<object_type>`: return an array of all objects belonging to the requester
 - POST `/<object_type>`: send a json object here to create it in the db
@@ -116,7 +111,8 @@ the following are made available:
 - DELETE `/<object_type>/<pk>`: delete the object (this may not actually delete it, just set it to hidden)
 
 ## accounts
-the second category of endpoints are for user account creation
+the second category of endpoints are for user account creation.
+see [authorization guide](#authorization-guide) for more info on how this flow works.
 
 - POST `/openid-token/<platform>`: send openid token here to log in. i think this is
 only used for google tokens, because there is a seperate `/facebook-token` endpoint, but i can't
@@ -460,12 +456,12 @@ though you probably wont be writing midi tracks yourself, here are some guidelin
 
 be sure to set the midi file to the correct bpm (it defaults to 120 often, but you should always set it explicitly)
 if you are editing in a daw with the audio track as a reference, make sure the midi events will
-be happening at the correct time (daw specific, but possible that the "midi region" or track length etc could offset the midi timing)
-this might include making the midi region start at the same place as the audio track
-use midi tracks (not channels) to differentiate between sounds- the back end will assign one sound per track
-prefix the track name with `nopitch_` if you want the back end not to alter the pitch of the sound its using for that track
-prefix the track name with `relativepitch_` if you want the back end to shift the pitch of the sound based on the midi track, without transposing the sound to the midi pitch first
-quantizng midi event durations will save the server from having to recompute stuff, so do that as much as you can
+be happening at the correct time (daw specific, but possible that the "midi region" or track length etc could offset the midi timing).
+this might include making the midi region start at the same place as the audio track.
+use midi tracks (not channels) to differentiate between sounds- the back end will assign one sound per track.
+prefix the track name with `nopitch_` if you want the back end not to alter the pitch of the sound its using for that track.
+prefix the track name with `relativepitch_` if you want the back end to shift the pitch of the sound based on the midi track, without transposing the sound to the midi pitch first.
+quantizng midi event durations will save the server from having to recompute stuff, so do that as much as you can.
 
 ## syncing songs
 to update song backing tracks or add new songs, run `audio_processing/sync_songs_with_db_and_bucket.py`.
@@ -509,15 +505,13 @@ for actual details.
 the cluster is a kubernetes cluster on google cloud services.
 its accessible via http at `http://34.83.134.37`
 the whole thing is dockerized, so you can consult the Dockefile
-to get a sense of what the actual server architecture is.
-the `local_testing.md` discusses deploying as well (see "the cluster" section), but succinctly,
-you update the version number `/audio_processing/cloud/update_app.sh`
+to get a sense of what the actual server architecture is (see "the cluster" section), but succinctly,
+use `./build_container.sh` to build a new container, then
+you update the version number in `/audio_processing/cloud/update_app.sh`
 and then run that script. it will push the new docker image, and
 then tell the cluster to use that.
 
-use `./build_container.sh` to build a new container.
-i have an outline of how to deploy this new container in `update_app.sh` but you will need
-to manually update the version number. im not very familiar with cluster orchestration or the google
+im not very familiar with cluster orchestration or the google
 infrastructure, and id guess that there are simpler ways of doing this. in any case, you can
 watch the output until you see the cluster has new containers.
 
@@ -719,3 +713,16 @@ and public api for reading.
 
 ## further reading
 google docs on signed urls: https://cloud.google.com/storage/docs/access-control/signed-urls
+
+# cloud endpoint details
+TODO
+# how crops are made
+TODO
+# how sequences are made
+TODO
+# peripheral tooling
+TODO
+google analytics
+pm2 monitor web interface
+automatic db backups NOTE cron is not working
+automatic bucket backups NOTE should delete older than x days
