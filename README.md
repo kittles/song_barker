@@ -1,3 +1,10 @@
+# table of contents
+(overview)[#overview]
+(back end endpoints)[#back-end-endpoints]
+(local testing back end)[#local-testing-back-end]
+(local testing cluster)[#local-testing-cluster]
+
+
 # overview
 this codebase consists of several components:
 
@@ -151,7 +158,7 @@ expects body params `uuids` (an array) and `song_id`
 - GET `/describe`: shows the contents of `/server/models.js`.
 this was just an adhoc way of documenting the object models, its only on dev
 
-# local testing / "installation" of the back end
+# local testing back end
 ill try to outline the process of running the back end. i develop on ubuntu,
 and found it was mostly frictionless to use os x, but i figure its good
 to be aware in case there are some subtle os specific issues that crop up.
@@ -240,7 +247,7 @@ here are my guesses if something isnt working:
 - you havent installed the python or more likely the node requirements
 - there is no database file
 
-# local testing / "installation" of the cluster
+# local testing cluster
 
 ## testing individual scripts
 you can run the python scripts in `/audio_processing/cloud` on their own, and they should be designed to be fairly modular in that
@@ -255,22 +262,6 @@ working / usefulness. in any case, i would `./build_container.sh`
 and then `./run_container.sh`. there are a few `test_to_*` scripts there that are just cURLs to the local or remote container.
 make sure you comment or uncomment the appropriate cURL before running them. also, they depend on stuff being in the bucket, so
 make sure a file with the corresponding uuid is in fact actually in the bucket.
-
-# TODO remove
-so you can run a test script or two and confirm that the new container is working. from there, youll
-need to deploy the thing to the cluster. i have an outline of this in `update_app.sh` but you will need
-to manually update the version number. im not very familiar with cluster orchestration or the google
-infrastructure, and id guess that there are simpler ways of doing this. in any case, you can
-watch the output until you see the cluster has new containers, and then hit them up with the same
-`test_to_*` scripts, making sure they are actually hitting the cluster endpoint.
-
-i often find it handy to open up a shell in the container, which can be done with `./container_shell.sh`
-
-
-
-
-
-
 
 
 

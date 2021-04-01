@@ -17,6 +17,7 @@ sudo apt-get install python-dev
 sudo apt-get install python3-dev
 sudo apt install rubberband
 sudo apt install sox
+sudo apt install ffmpeg
 sudo apt install nodejs
 sudo apt install virtualenv
 ```
@@ -45,8 +46,8 @@ the `/credentials` dir is empty on the repo because its meant to store sensitive
 that doesnt belong in version control. i can give you the necessary files through other
 means. but, its probably handy to document what *should* be there:
 
-- `bucket-credentials.json` (this lets the server talk to the bucket)
-- `cloud-access-token.json` (this is a *HIGHLY SECURE* token that the server uses when
+- `bucket-credentials.json` (this lets a server talk to the bucket)
+- `cloud-access-token.json` (this is a *HIGHLY SECURE* token that the back end uses when
 talking to the cluster)
 - `email.json` (this holds the credentials for the account used to send signup emails and the like)
 - `facebook_app_access_token.json` (for facebook openid)
