@@ -1,8 +1,8 @@
 # table of contents
-(overview)[#overview]
-(back end endpoints)[#back-end-endpoints]
-(local testing back end)[#local-testing-back-end]
-(local testing cluster)[#local-testing-cluster]
+- [overview](#overview)
+- [back end endpoints](#back-end-endpoints)
+- [local testing back end](#local-testing-back-end)
+- [local testing cluster](#local-testing-cluster)
 
 
 # overview
