@@ -1,4 +1,4 @@
-# Songs
+# songs
 the `songs/` dir holds the information and audio for the backing tracks that go with the user
 generated sequences.
 
