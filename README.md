@@ -29,6 +29,12 @@ a discussion of the basic process for extracting crops from raw audio files
 a discussion of how crops and a midi file are used to generate a sequence
 - [peripheral tooling](#peripheral-tooling)
 list of stuff to monitor server etc, backups and other housekeeping
+- [puppet](#puppet)
+all about the puppet, and the page that shows the cards
+- [database migrations](#database-migrations)
+how to update the database when you want to change model attributes
+- [next steps](#next-steps)
+things that need to be done, improved, fixed etc
 
 
 # overview
@@ -714,6 +720,8 @@ and public api for reading.
 ## further reading
 google docs on signed urls: https://cloud.google.com/storage/docs/access-control/signed-urls
 
+# database migrations
+TODO
 # cloud endpoint details
 TODO
 # how crops are made
@@ -726,3 +734,5 @@ google analytics
 pm2 monitor web interface
 automatic db backups NOTE cron is not working
 automatic bucket backups NOTE should delete older than x days
+# puppet
+TODO
