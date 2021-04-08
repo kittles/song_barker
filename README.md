@@ -721,13 +721,56 @@ and public api for reading.
 google docs on signed urls: https://cloud.google.com/storage/docs/access-control/signed-urls
 
 # database migrations
-TODO
+often, a new column, or table is needed. you can specify the new column or table in models.js
+and then run `/server/update_db.sh`, which will add any new columns and tables to the database.
+note that this *wont* delete tables and columns that you've removed from models.js.
+
 # cloud endpoint details
-TODO
+the cloud endpoints are as follows, as defined in `/audio_processing/cloud/server.js`:
+- GET `/am-i-alive-i-hope-so`: should return the text string "*gasping for air*".
+this is just a slightly morbid way of making sure the server is up.
+- POST `/to_crops`: this splits a raw file into crops. in the request body, there
+must be the correct `access_token` parameter, otherwise the server will reject the request.
+this is a rudimentary measure to stop non-backend server requests to this endpoint. this
+endpoint also expects a uuid and bucket parameter. assuming all goes to plan, it will
+create a set of crops and upload them to the bucket, then return a json string to the
+back end server.
+- POST `/to_sequence`: this generates a sequence. in the request body, there
+must be the correct `access_token` parameter, otherwise the server will reject the request.
+this endpoint also expects song, crops and bucket parameters. assuming all goes to plan, it will
+create a sequence and upload it to the bucket. it then returns a json string to the
+back end server.
+
 # how crops are made
-TODO
+this a summary of the cropping "algorithm", found at `/audio_processing/cloud/cloud_crop_v2.py`.
+
+the basic goal of the cropper is to extract regions of audio that work well as musical events
+for sequencing. this generally means sounds with a clear onset, single peak, and complete decay.
+however, jeremy has also requested that there is always a medium and long length crop produced as well.
+weve taken to categorizing crops as short, medium, or long, based on the duration of the crop.
+additionally, there should be no sound in the raw audio that does not make it in to some crop.
+
+to summarize, the cropping result should satisfy the following:
+- at least one short crop that is "single peaked"
+- at least one medium crop
+- at least one long crop
+- all sounds from the raw audio file make it into *some* crop
+
+heres my strategy for doing this:
+- do some preprocessing of the data to kind of simplify things
+- identify where the sound perceived loudness crosses a threshold, keeping
+track of which are "onsets" (sound getting louder) and "decays" (the opposite)
+- using those crossings, and a specified min and max duration, find
+all groupings of an onset and subsequent decay that fit within that duration window
+- in the case of short crops, omit crops that do not have a clear auditory peak ("single peaked")
+- if there are more than one of long or medium crops, just use the first one.
+- after having generated these regions for short, medium and long crops, look to see
+if any sound in the raw has not made it into these regions- if so, find an onset and decay event
+that contain this missing region and add it to the list of regions.
+
+
 # how sequences are made
-TODO
+
 # peripheral tooling
 TODO
 google analytics
