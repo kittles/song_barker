@@ -770,12 +770,81 @@ that contain this missing region and add it to the list of regions.
 
 
 # how sequences are made
+a midi file is used to generate the sequence of crops. midi_bridge.py
+and crop_sampler.py in `/audio_processing/cloud/` do the majority
+of the work. the crop sampler takes a crop, and essentailly
+prepares it for use as a psuedo midi patch. it identifies what it considers
+to be the onset, which will be the point that lines up with the timing
+of the midi events. it also identifies the pitch of the sample, if there
+is one that is discernable. the midi bridge takes a midi file and
+generates a data structure that can be used with crop samplers to
+generate the actual sequence audio file. that happens in `/audio_processing/cloud/cloud_sequence.py`.
+there are some quirks as far as pitch mapping though- the names of
+the midi file's tracks determine whether a track will actually
+get mapped to the pitches of its midi files, or if it will just use the 
+rhythm of the midi events. there is a default option,
+which will map the crop to the exact pitches in the midi track (
+though i think it may ignore octaves to avoid distorting the audio
+too much). a second option, triggered by a track named with the prefix
+`nopitch_`, will generate a track that does not map the pitches to 
+the output, just the rhythm. a third option, set by
+prefixing a track name with `relativepitch_`, will move the pitches
+of the resulting track intervalically identical to the midi track,
+but ignoring the key. this lets a crop sound as natural as possible,
+but sacrifices any kind of harmony most of the time.
+
+the key of the backing track is chosen to minimize the amount of
+pitch shifting needed. most songs have only one pitched track. there
+is a bit of tortured logic throughout these files, because the design
+evolved considerably as the project went on. so there are mostly likely
+some duplicative, or otherwise unnecessarily complex functions. its also
+kind of gnarly inherently, so it is what it is.
 
 # peripheral tooling
-TODO
-google analytics
-pm2 monitor web interface
-automatic db backups NOTE cron is not working
-automatic bucket backups NOTE should delete older than x days
+i have some basic monitoring tooling set up.
+
+- google analytics on the shared card web page.
+- pm2 monitor web interface: run `pm2` on the server
+to see live logs of the node process running the server
+- automatic db backups. these are cron jobs set to backup the sqlite database to the google bucket.
+NOTE the cron is not working on one or both of the servers at the moment. i probably just misconfigured something.
+- automatic bucket backups. these are google lambda functions, visible on the google cloud console.
+they copy the entire contents of the dev / prod bucket to a folder with a date. i recommend implementing
+another lambda function that will delete the directories older than 14 or so days. it would also
+be wise to test using one of these backups to recover. delete the dev database, then copy the backup to
+the server, and then see what kind of synchronization issues youll need to address. thats my suggestion anyway.
+
 # puppet
-TODO
+the puppet / front end animation stuff does a couple things.
+- provides the client app with a webview-usable puppet that can
+be animated by sending javascript commands to the webview
+- shows cards that have been shared. this includes the envelope presentation
+sequence, then subsequent card playback.
+
+the overall structure of the puppet is a three.js scene with a plane
+that is textured with the puppet image. there are a couple fragment
+and vertex shaders that expose uniforms that allow the javascript to
+displace the image in the manners we currently have. there is a
+RAF render loop running, and animation is handled by ticking through
+interpolated positions, within that loop, roughly speaking.
+
+during the playback of a card, audio is syncronized with the mouth motion by
+buffering mouth positions into the ticker (which sets the value of various puppet uniforms,
+thereby setting the displacement etc of dog features), and every so often checking the audio
+playback playhead to make sure the current mouth position is in sync. mouth positions are
+one long array of floats that correspond to how open the mouth should be, 60 of them per second i think.
+
+the sepecifics of the card (like pet image, audio url etc) are inserted by the server when rendering
+the html, then picked up by puppet.js during the initialization of the page. the css and layout
+hackery is not very good, i will be the first to admit. the goal is to fit the whole puppet message on
+the screen, vertically and horizontally centered, as large as possible. and also fit the logo at the top.
+the design of the page is actually somewhat ambiguous and has never really been pinned down, ive mostly
+just tried to fix whatever is obviously wrong. there is an added complexity that the card can have a frame
+that changes the dimensions of the whole card. but i will summarize the envelope sequence here:
+
+- an envelope html is made and style, then animated into frame with css transitions
+- when the user clicks, it opens, does some z-index trickery and slides down revealing a card
+- the card transitions to the appropriate scale and the playback ui fades in.
+
+there are a number of layers that are overlapping- the three.js scene, an overlay image, the ui playback
+controls when the card is paused, and a loading spinner when first opening the card.
