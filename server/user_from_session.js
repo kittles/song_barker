@@ -5,7 +5,9 @@ var uuidv4 = require('uuid').v4;
 async function get_user (user_id) {
     var db = await _db.dbPromise;
     user_obj = await db.get('select * from users where user_id = ?', user_id);
-    user_obj.obj_type = 'user';
+    if(user_obj) {
+        user_obj.obj_type = 'user';
+    }
     return user_obj;
 }
 exports.get_user = get_user;
@@ -13,7 +15,9 @@ exports.get_user = get_user;
 
 async function get_user_no_password (user_id) {
     var user_obj = await get_user(user_id);
-    delete user_obj.password;
+    if(user_obj) {
+        delete user_obj.password;
+    }
     return user_obj;
 }
 exports.get_user_no_password = get_user_no_password;

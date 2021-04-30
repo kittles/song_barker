@@ -23,7 +23,7 @@ google-cloud-storage==1.25.0
 google-pasta==0.1.8
 google-resumable-media==0.5.0
 googleapis-common-protos==1.51.0
-grpcio==1.27.1
+grpcio>=1.27.1
 h5py==2.10.0
 hmmlearn==0.2.2
 httplib2==0.17.0
@@ -36,13 +36,13 @@ joblib==0.14.1
 Keras-Applications==1.0.8
 Keras-Preprocessing==1.1.0
 kiwisolver==1.1.0
-llvmlite==0.31.0
+llvmlite>=0.31.0
 Markdown==3.2
 matplotlib==3.1.2
 mido==1.2.9
 numba==0.48.0
 numpy==1.18.1
-opencv-python==4.2.0.32
+opencv-python>=4.2.0.32
 opt-einsum==3.1.0
 parso==0.6.1
 pexpect==4.8.0

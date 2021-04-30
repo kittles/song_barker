@@ -646,42 +646,44 @@ app.post('/temp-password', async (req, res) => {
             success: false,
             error: 'no user found',
         });
-        return;
     }
-    // generate temp password
-    var temp_password = generator.generate({
-        length: 10,
-        numbers: true
-    });
-    var temp_hash_password = await hash_password(temp_password);
-    const db = await _db.dbPromise;
-    var result = await db.run('update users set password = ? where user_id = ?',
-        temp_hash_password,
-        user_obj.user_id
-    );
+    else {
+        // generate temp password
+        var temp_password = generator.generate({
+            length: 10,
+            numbers: true
+        });
+        var temp_hash_password = await hash_password(temp_password);
+        const db = await _db.dbPromise;
+        var result = await db.run('update users set password = ? where user_id = ?',
+            temp_hash_password,
+            user_obj.user_id
+        );
 
-    var transporter = nodemailer.createTransport({
-        host: email_config.GMAIL_SERVICE_HOST,
-        port: email_config.GMAIL_SERVICE_PORT,
-        secure: email_config.GMAIL_SERVICE_SECURE,
-        auth: {
-            user: email_config.GMAIL_USER_NAME,
-            pass: email_config.GMAIL_USER_PASSWORD,
-        },
-    });
+        var transporter = nodemailer.createTransport({
+            host: email_config.GMAIL_SERVICE_HOST,
+            port: email_config.GMAIL_SERVICE_PORT,
+            secure: email_config.GMAIL_SERVICE_SECURE,
+            auth: {
+                user: email_config.GMAIL_USER_NAME,
+                pass: email_config.GMAIL_USER_PASSWORD,
+            },
+        });
 
-    await transporter.sendMail({
-        from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
-        to: user_obj.email,
-        subject: 'K9 Karaoke account recovery ✔', // Subject line
-        text: `please use this temporary password to log in to your account: ${temp_password}`,
-    });
+        await transporter.sendMail({
+            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+            to: user_obj.email,
+            subject: 'K9 Karaoke account recovery ✔', // Subject line
+            text: `please use this temporary password to log in to your account: ${temp_password}`,
+        });
 
-    var user_obj = await user_sess.get_user_no_password(req.body.user_id);
-    res.json({
-        success: true,
-        user: user_obj,
-    });
+        var user_obj = await user_sess.get_user_no_password(req.body.user_id);
+        res.json({
+            success: true,
+            user: user_obj,
+        });
+        
+    }
 });
 
 
