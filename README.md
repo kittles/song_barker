@@ -721,18 +721,130 @@ and public api for reading.
 google docs on signed urls: https://cloud.google.com/storage/docs/access-control/signed-urls
 
 # database migrations
-TODO
+often, a new column, or table is needed. you can specify the new column or table in models.js
+and then run `/server/update_db.sh`, which will add any new columns and tables to the database.
+note that this *wont* delete tables and columns that you've removed from models.js.
+
 # cloud endpoint details
-TODO
+the cloud endpoints are as follows, as defined in `/audio_processing/cloud/server.js`:
+- GET `/am-i-alive-i-hope-so`: should return the text string "*gasping for air*".
+this is just a slightly morbid way of making sure the server is up.
+- POST `/to_crops`: this splits a raw file into crops. in the request body, there
+must be the correct `access_token` parameter, otherwise the server will reject the request.
+this is a rudimentary measure to stop non-backend server requests to this endpoint. this
+endpoint also expects a uuid and bucket parameter. assuming all goes to plan, it will
+create a set of crops and upload them to the bucket, then return a json string to the
+back end server.
+- POST `/to_sequence`: this generates a sequence. in the request body, there
+must be the correct `access_token` parameter, otherwise the server will reject the request.
+this endpoint also expects song, crops and bucket parameters. assuming all goes to plan, it will
+create a sequence and upload it to the bucket. it then returns a json string to the
+back end server.
+
 # how crops are made
-TODO
+this a summary of the cropping "algorithm", found at `/audio_processing/cloud/cloud_crop_v2.py`.
+
+the basic goal of the cropper is to extract regions of audio that work well as musical events
+for sequencing. this generally means sounds with a clear onset, single peak, and complete decay.
+however, jeremy has also requested that there is always a medium and long length crop produced as well.
+weve taken to categorizing crops as short, medium, or long, based on the duration of the crop.
+additionally, there should be no sound in the raw audio that does not make it in to some crop.
+
+to summarize, the cropping result should satisfy the following:
+- at least one short crop that is "single peaked"
+- at least one medium crop
+- at least one long crop
+- all sounds from the raw audio file make it into *some* crop
+
+heres my strategy for doing this:
+- do some preprocessing of the data to kind of simplify things
+- identify where the sound perceived loudness crosses a threshold, keeping
+track of which are "onsets" (sound getting louder) and "decays" (the opposite)
+- using those crossings, and a specified min and max duration, find
+all groupings of an onset and subsequent decay that fit within that duration window
+- in the case of short crops, omit crops that do not have a clear auditory peak ("single peaked")
+- if there are more than one of long or medium crops, just use the first one.
+- after having generated these regions for short, medium and long crops, look to see
+if any sound in the raw has not made it into these regions- if so, find an onset and decay event
+that contain this missing region and add it to the list of regions.
+
+
 # how sequences are made
-TODO
+a midi file is used to generate the sequence of crops. midi_bridge.py
+and crop_sampler.py in `/audio_processing/cloud/` do the majority
+of the work. the crop sampler takes a crop, and essentailly
+prepares it for use as a psuedo midi patch. it identifies what it considers
+to be the onset, which will be the point that lines up with the timing
+of the midi events. it also identifies the pitch of the sample, if there
+is one that is discernable. the midi bridge takes a midi file and
+generates a data structure that can be used with crop samplers to
+generate the actual sequence audio file. that happens in `/audio_processing/cloud/cloud_sequence.py`.
+there are some quirks as far as pitch mapping though- the names of
+the midi file's tracks determine whether a track will actually
+get mapped to the pitches of its midi files, or if it will just use the 
+rhythm of the midi events. there is a default option,
+which will map the crop to the exact pitches in the midi track (
+though i think it may ignore octaves to avoid distorting the audio
+too much). a second option, triggered by a track named with the prefix
+`nopitch_`, will generate a track that does not map the pitches to 
+the output, just the rhythm. a third option, set by
+prefixing a track name with `relativepitch_`, will move the pitches
+of the resulting track intervalically identical to the midi track,
+but ignoring the key. this lets a crop sound as natural as possible,
+but sacrifices any kind of harmony most of the time.
+
+the key of the backing track is chosen to minimize the amount of
+pitch shifting needed. most songs have only one pitched track. there
+is a bit of tortured logic throughout these files, because the design
+evolved considerably as the project went on. so there are mostly likely
+some duplicative, or otherwise unnecessarily complex functions. its also
+kind of gnarly inherently, so it is what it is.
+
 # peripheral tooling
-TODO
-google analytics
-pm2 monitor web interface
-automatic db backups NOTE cron is not working
-automatic bucket backups NOTE should delete older than x days
+i have some basic monitoring tooling set up.
+
+- google analytics on the shared card web page.
+- pm2 monitor web interface: run `pm2` on the server
+to see live logs of the node process running the server
+- automatic db backups. these are cron jobs set to backup the sqlite database to the google bucket.
+NOTE the cron is not working on one or both of the servers at the moment. i probably just misconfigured something.
+- automatic bucket backups. these are google lambda functions, visible on the google cloud console.
+they copy the entire contents of the dev / prod bucket to a folder with a date. i recommend implementing
+another lambda function that will delete the directories older than 14 or so days. it would also
+be wise to test using one of these backups to recover. delete the dev database, then copy the backup to
+the server, and then see what kind of synchronization issues youll need to address. thats my suggestion anyway.
+
 # puppet
-TODO
+the puppet / front end animation stuff does a couple things.
+- provides the client app with a webview-usable puppet that can
+be animated by sending javascript commands to the webview
+- shows cards that have been shared. this includes the envelope presentation
+sequence, then subsequent card playback.
+
+the overall structure of the puppet is a three.js scene with a plane
+that is textured with the puppet image. there are a couple fragment
+and vertex shaders that expose uniforms that allow the javascript to
+displace the image in the manners we currently have. there is a
+RAF render loop running, and animation is handled by ticking through
+interpolated positions, within that loop, roughly speaking.
+
+during the playback of a card, audio is syncronized with the mouth motion by
+buffering mouth positions into the ticker (which sets the value of various puppet uniforms,
+thereby setting the displacement etc of dog features), and every so often checking the audio
+playback playhead to make sure the current mouth position is in sync. mouth positions are
+one long array of floats that correspond to how open the mouth should be, 60 of them per second i think.
+
+the sepecifics of the card (like pet image, audio url etc) are inserted by the server when rendering
+the html, then picked up by puppet.js during the initialization of the page. the css and layout
+hackery is not very good, i will be the first to admit. the goal is to fit the whole puppet message on
+the screen, vertically and horizontally centered, as large as possible. and also fit the logo at the top.
+the design of the page is actually somewhat ambiguous and has never really been pinned down, ive mostly
+just tried to fix whatever is obviously wrong. there is an added complexity that the card can have a frame
+that changes the dimensions of the whole card. but i will summarize the envelope sequence here:
+
+- an envelope html is made and style, then animated into frame with css transitions
+- when the user clicks, it opens, does some z-index trickery and slides down revealing a card
+- the card transitions to the appropriate scale and the playback ui fades in.
+
+there are a number of layers that are overlapping- the three.js scene, an overlay image, the ui playback
+controls when the card is paused, and a loading spinner when first opening the card.
