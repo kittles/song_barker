@@ -595,7 +595,11 @@ app.get('/confirm/:uuid', async (req, res) => {
 
 
 app.post('/change-password', async (req, res) => {
+    console.log("change-password:");
+    console.log("old password = " + req.body.old_password );
+    console.log("new password = " + req.body.new_password );
     if (!req.body.old_password) {
+        console.log("change-password: missing old password");
         res.json({
             success: false,
             error: 'missing old password',
@@ -603,6 +607,7 @@ app.post('/change-password', async (req, res) => {
         return;
     }
     if (!req.body.new_password) {
+        console.log("change-password: missing new password");
         res.json({
             success: false,
             error: 'missing new password',
@@ -611,6 +616,7 @@ app.post('/change-password', async (req, res) => {
     }
     var user_obj = await user_sess.get_user(req.session.user_id);
     if (!user_obj) {
+        console.log("change-password: no such user")
         res.json({
             success: false,
             error: 'no user found',
@@ -619,6 +625,7 @@ app.post('/change-password', async (req, res) => {
     }
     var accept_password = await bcrypt.compare(req.body.old_password, user_obj.password);
     if (accept_password) {
+        console.log("change-password: password change accepted");
         var password = await hash_password(req.body.new_password);
         const db = await _db.dbPromise;
         var result = await db.run('update users set password = ? where user_id = ?',
@@ -631,6 +638,7 @@ app.post('/change-password', async (req, res) => {
             user: user_obj,
         });
     } else {
+        console.log("change-password: incorrect password");
         res.json({
             success: false,
             error: 'incorrect password',
@@ -646,44 +654,44 @@ app.post('/temp-password', async (req, res) => {
             success: false,
             error: 'no user found',
         });
+        return;
     }
-    else {
-        // generate temp password
-        var temp_password = generator.generate({
-            length: 10,
-            numbers: true
-        });
-        var temp_hash_password = await hash_password(temp_password);
-        const db = await _db.dbPromise;
-        var result = await db.run('update users set password = ? where user_id = ?',
-            temp_hash_password,
-            user_obj.user_id
-        );
+    // generate temp password
+    var temp_password = generator.generate({
+        length: 10,
+        numbers: true
+    });
+    var temp_hash_password = await hash_password(temp_password);
+    const db = await _db.dbPromise;
+    var result = await db.run('update users set password = ? where user_id = ?',
+        temp_hash_password,
+        user_obj.user_id
+    );
 
-        var transporter = nodemailer.createTransport({
-            host: email_config.GMAIL_SERVICE_HOST,
-            port: email_config.GMAIL_SERVICE_PORT,
-            secure: email_config.GMAIL_SERVICE_SECURE,
-            auth: {
-                user: email_config.GMAIL_USER_NAME,
-                pass: email_config.GMAIL_USER_PASSWORD,
-            },
-        });
+    var transporter = nodemailer.createTransport({
+        host: email_config.GMAIL_SERVICE_HOST,
+        port: email_config.GMAIL_SERVICE_PORT,
+        secure: email_config.GMAIL_SERVICE_SECURE,
+        auth: {
+            user: email_config.GMAIL_USER_NAME,
+            pass: email_config.GMAIL_USER_PASSWORD,
+        },
+    });
 
-        await transporter.sendMail({
-            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
-            to: user_obj.email,
-            subject: 'K9 Karaoke account recovery ✔', // Subject line
-            text: `please use this temporary password to log in to your account: ${temp_password}`,
-        });
+    var url_host = req.headers.host;
 
-        var user_obj = await user_sess.get_user_no_password(req.body.user_id);
-        res.json({
-            success: true,
-            user: user_obj,
-        });
-        
-    }
+    await transporter.sendMail({
+        from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+        to: user_obj.email,
+        subject: 'K9 Karaoke account recovery ✔', // Subject line
+        text: `Click on link to reset password: ${url_host}/${temp_password}`,
+    });
+
+    var user_obj = await user_sess.get_user_no_password(req.body.user_id);
+    res.json({
+        success: true,
+        user: user_obj,
+    });
 });
 
 
@@ -1077,12 +1085,12 @@ app.post('/cloud/to_sequence', async function (req, res) {
 })();
 
 //// for local dev with app
-//var fs = require('fs');
-//var https = require('https');
-//var privateKey  = fs.readFileSync('../credentials/server.key', 'utf8');
-//var certificate = fs.readFileSync('../credentials/server.crt', 'utf8');
-//var credentials = {key: privateKey, cert: certificate};
-//var httpsServer = https.createServer(credentials, app);
-//httpsServer.listen(8443);
+// var fs = require('fs');
+// var https = require('https');
+// var privateKey  = fs.readFileSync('../credentials/server.key', 'utf8');
+// var certificate = fs.readFileSync('../credentials/server.cert', 'utf8');
+// var credentials = {key: privateKey, cert: certificate};
+// var httpsServer = https.createServer(credentials, app);
+// httpsServer.listen(8443);
 
 module.exports = app.listen(port, () => console.log(`listening on port ${port}!`));
