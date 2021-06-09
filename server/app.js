@@ -684,7 +684,7 @@ app.post('/temp-password', async (req, res) => {
         from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
         to: user_obj.email,
         subject: 'K9 Karaoke account recovery ✔', // Subject line
-        text: 'Click on link to reset password: <a href="${host_url}/${temp_password}">Reset Password</a>',
+        text: 'Click on link to reset password: <a href="https://${host_url}/${temp_password}">Reset Password</a>',
     });
 
     var user_obj = await user_sess.get_user_no_password(req.body.user_id);
