@@ -680,12 +680,19 @@ app.post('/temp-password', async (req, res) => {
 
     var url_host = "https://" + req.headers.host + "/puppet/reset.html?id=" + temp_hash_password;
 
+    // await transporter.sendMail({
+    //     from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+    //     to: user_obj.email,
+    //     subject: 'K9 Karaoke account recovery ✔', // Subject line
+    //     text: 'please use this link to reset your password: ' + url_host,
+    // });
     await transporter.sendMail({
         from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
         to: user_obj.email,
         subject: 'K9 Karaoke account recovery ✔', // Subject line
-        text: 'please use this link to reset your password: ' + url_host,
+        text: `please use this temporary password to log in to your account: ${temp_password}`,
     });
+
 
     var user_obj = await user_sess.get_user_no_password(req.body.user_id);
     res.json({
