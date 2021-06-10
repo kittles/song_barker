@@ -678,7 +678,7 @@ app.post('/temp-password', async (req, res) => {
         },
     });
 
-    var url_host = "https://" + req.headers.host + "/temp-password/" + temp_password;
+    var url_host = "https://" + req.headers.host + "/change-password/" + temp_password;
 
     await transporter.sendMail({
         from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
