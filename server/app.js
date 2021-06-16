@@ -595,11 +595,7 @@ app.get('/confirm/:uuid', async (req, res) => {
 
 
 app.post('/change-password', async (req, res) => {
-    console.log("change-password:");
-    console.log("old password = " + req.body.old_password );
-    console.log("new password = " + req.body.new_password );
     if (!req.body.old_password) {
-        console.log("change-password: missing old password");
         res.json({
             success: false,
             error: 'missing old password',
@@ -607,7 +603,6 @@ app.post('/change-password', async (req, res) => {
         return;
     }
     if (!req.body.new_password) {
-        console.log("change-password: missing new password");
         res.json({
             success: false,
             error: 'missing new password',
@@ -616,7 +611,6 @@ app.post('/change-password', async (req, res) => {
     }
     var user_obj = await user_sess.get_user(req.session.user_id);
     if (!user_obj) {
-        console.log("change-password: no such user")
         res.json({
             success: false,
             error: 'no user found',
@@ -625,7 +619,6 @@ app.post('/change-password', async (req, res) => {
     }
     var accept_password = await bcrypt.compare(req.body.old_password, user_obj.password);
     if (accept_password) {
-        console.log("change-password: password change accepted");
         var password = await hash_password(req.body.new_password);
         const db = await _db.dbPromise;
         var result = await db.run('update users set password = ? where user_id = ?',
@@ -638,7 +631,6 @@ app.post('/change-password', async (req, res) => {
             user: user_obj,
         });
     } else {
-        console.log("change-password: incorrect password");
         res.json({
             success: false,
             error: 'incorrect password',
