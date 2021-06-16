@@ -595,6 +595,13 @@ app.get('/confirm/:uuid', async (req, res) => {
 
 
 app.post('/change-password', async (req, res) => {
+    if (!req.body.old_password) {
+        res.json({
+            success: false,
+            error: 'missing old password',
+        });
+        return;
+    }
     if (!req.body.new_password) {
         res.json({
             success: false,
