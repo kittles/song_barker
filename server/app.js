@@ -648,7 +648,7 @@ app.post('/change-password', async (req, res) => {
 
 
 app.post('/temp-password', async (req, res) => {
-    var user_obj = await user_sess.get_user(req.body.user_id);
+    var user_obj = await user_sess.get_user(req.body.email);
     if (!user_obj) {
         res.json({
             success: false,
