@@ -7,13 +7,13 @@
     <!-- fav icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/fav/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/fav/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../fav/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/fav/favicon-16x16.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         @font-face {
             font-family: 'museo';
-            src: url('MuseoSansRounded-700.woff2') format('woff2'),
-            url('MuseoSansRounded-700.woff') format('woff');
+            src: url('/puppet/MuseoSansRounded-700.woff2') format('woff2'),
+            url('/puppet/MuseoSansRounded-700.woff') format('woff');
             font-weight: normal;
             font-style: normal;
             font-display: swap;
@@ -175,14 +175,16 @@
         }
     </style>
 </head>
-<body onload="getQueryVariable('id');">
+<body>
 <div id="main-container">
     <div id="k9-logo">
-        <img src="k9_logotype_small.png"></img>
+        <img src="/puppet/k9_logotype_small.png"></img>
     </div>
     <div class="center-box">
         <h1>Change Password</h1>
+        <p>Use the form below to change your password.</p>
         <div>
+            <input style="display:none;" value={{userId}} id="userId">
             <table style="width:80%;margin:0 auto;">
                 <tr>
                     <td>
@@ -190,9 +192,9 @@
                     </td>
                     <td>
                         <img class="icon" onclick="hidePassword();" id="eye-visible"
-                             src="../design_assets/build_assets_1/eye-visible.png">
+                             src="/design_assets/build_assets_1/eye-visible.png">
                         <img class="icon" onclick="showPassword();" id="eye-hidden"
-                             src="../design_assets/build_assets_1/eye-hidden.png">
+                             src="/design_assets/build_assets_1/eye-hidden.png">
                     </td>
                 </tr>
                 <tr>
@@ -201,7 +203,7 @@
                     </td>
                 </tr>
             </table>
-            <input type="text" placeholder="old password" id="old" name="old_password">
+
             <br/><button onclick="submitForm()">Submit</button>
             <p id="error" class="error">no error</p>
             <div id="response">
@@ -225,14 +227,21 @@
 
     //url = "https://thedogbarksthesong.ml/change-password";
 
-    url = "http://localhost:3000/change-password";
+    url = "http://localhost:3000/complete-reset-password";
+//    url = "https://127.0.0.1:8443/complete-reset-password";
 
-    function testjq() {
-        alert("hi");
-        return false;
+
+
+    function listCookies() {
+        var theCookies = document.cookie.split(';');
+        var aString = '';
+        for (var i = 1 ; i <= theCookies.length; i++) {
+            aString += i + ' ' + theCookies[i-1] + "\n";
+        }
+        return aString;
     }
 
-
+    //var cookies = listCookies();
 
     function showPassword() {
         eyeHidden.style.display = "none";
@@ -249,14 +258,16 @@
     }
 
     function submitForm() {
+        console.log(document.URL);
         hostURL = new URL(document.URL);
         host = hostURL.host;
-        url = "https://" + host + "/change-password";
+        //url = "http://" + host + "/change-password";
         match = password.value == confirm.value;
         passwordEmpty = password.value == "";
         confirmEmpty = confirm.value == "";
         errors = !match || passwordEmpty || confirmEmpty;
         errorMsg = "";
+        userId = document.getElementById("userId");
 
         if (!match) {
             errorMsg += "Password doesn't match confirmation.<br/>";
@@ -278,16 +289,18 @@
             error.className = "done";
             error.style.visibility = "visible";
             error.innerHTML = "Password change submitted."
-
-            $.postJSON(url, {'old_password' : oldPassword.value, 'new_password':password.value});
+            $.postJSON(url,
+                {'user_id' : userId.value,
+                    'new_password':password.value});
 
         };
 
         return false;
     }
 
+
     $.postJSON = function (url, data) {
-        console.log("postJson enter ");
+        console.log("postJson enter: " + url);
         return jQuery.ajax({
             'type': 'POST',
             'url': url,
@@ -295,14 +308,23 @@
             'data': JSON.stringify(data),
             'dataType': 'json',
             'success':  function (data) {
-                alert("success");
-                $('#response').html(data.msg);},
+                console.log(JSON.stringify(data));
+                if(data.success) {
+                    window.location.href = '/puppet/ResetComplete.html';
+                }
+                else {
+                    error.innerText = "ERROR: " + data.error;
+                    error.className = 'error';
+                }
+                },
             'fail': function (data) {
                 alert("fail");
                 $('#server-error').html(data.msg);},
             'cookie': "connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA"
         });
     }
+
+
 
     function getQueryVariable(variable) {
         var query = window.location.search.substring(1);
