@@ -800,12 +800,7 @@ app.post('/request-reset-password', async (req, res) => {
         });
         return;
     }
-    else {
-        res.json({
-            success: true
-        })
-        return;
-    }
+
 
     // generate temp one time token
     var token = uuidv4();
