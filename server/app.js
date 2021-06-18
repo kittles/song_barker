@@ -693,6 +693,158 @@ app.post('/temp-password', async (req, res) => {
     });
 });
 
+//////////////////////////////// jmf -- reset password stuff
+const maxMillisResetTokenIsValid = 1000 * 60 * 60 * 24; // token is valid for 24 hours
+app.post('/complete-reset-password', async (req, res) => {
+    console.log("complete-reset-password");
+     console.log(req.body.user_id);
+     console.log(req.body.new_password);
+
+    if (!req.body.user_id) {
+        res.json({
+            success: false,
+            error: 'missing token',
+        });
+        return;
+    }
+    if (!req.body.new_password) {
+        res.json({
+            success: false,
+            error: 'missing new password',
+        });
+        return;
+    }
+    const db = await _db.dbPromise;
+    var result = await db.get('select hidden, user_id from users where email_confirmation_string = ?',
+       req.body.user_id,
+    );
+
+    if (!_.get(result, 'user_id')) {
+        res.json ({
+            success: false,
+            error: 'bad token',
+        });
+        return;
+    }
+    
+    var elapsedTime = Date.now() - result.hidden;
+
+    if(elapsedTime > maxMillisResetTokenIsValid) {
+        res.json({
+            success: false,
+            error: 'expired token',
+        });
+        return;
+    }
+
+    console.log("result from db: " + JSON.stringify(result));
+
+    var user_id = _.get(result, 'user_id');
+    console.log(user_id);
+
+    var password = await hash_password(req.body.new_password);
+
+    var result2 = await db.run('update users set password = ?, hidden = 0, email_confirmation_string = "" where user_id = ?'
+                        , password, result.user_id);
+
+    res.json({
+        success:true,
+        result: result2,
+    });
+    return;
+
+});
+
+app.get('/reset/:uuid', async (req, res) => {
+    console.log('start-reset-password');
+    console.log(req.params.uuid);
+    var uuid = req.params.uuid;
+    
+    fs.readFile('public/puppet/reset.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+
+        var html = template({
+            userId: uuid,
+        });
+        res.send(html);
+    });
+}
+);
+// CREATE TABLE users (
+//     user_id TEXT PRIMARY KEY,
+//     name TEXT,
+//     email TEXT,
+//     password TEXT,
+//     hidden INTEGER DEFAULT 0,
+//     email_confirmation_string TEXT,
+//     pending_confirmation INTEGER DEFAULT 0
+// , user_agreed_to_terms_v1 INTEGER DEFAULT 0, account_uuid TEXT);
+
+app.post('/request-reset-password', async (req, res) => {
+    var user_obj = await user_sess.get_user(req.body.email);
+    if (!user_obj) {
+        res.json({
+            success: false,
+            error: 'no user found',
+        });
+        return;
+    }
+
+    // generate temp one time token
+    var token = uuidv4();
+    var timestamp = Date.now(); // so that identifier can be timed.    
+
+    const db = await _db.dbPromise;
+    var result = await db.run('update users set email_confirmation_string = ?, hidden = ? where user_id = ?',
+        token,
+        timestamp,
+        user_obj.user_id
+    );
+
+    console.log("token: " + token + ", timestamp: " + timestamp);
+
+    var transporter = nodemailer.createTransport({
+        host: email_config.GMAIL_SERVICE_HOST,
+        port: email_config.GMAIL_SERVICE_PORT,
+        secure: email_config.GMAIL_SERVICE_SECURE,
+        auth: {
+            user: email_config.GMAIL_USER_NAME,
+            pass: email_config.GMAIL_USER_PASSWORD,
+        },
+    });
+
+    // var url_root = `https://${process.env.k9_domain_name}/complete-reset-password/` 
+    // || 'https://k-9karaoke.com/complete-reset-password/';
+
+    //var url_root = "http://localhost:3000/puppet/reset.html?id=";
+
+    url_root = "http://localhost:3000/reset/";
+
+    var email_confirmation_url = url_root + token;
+
+
+    fs.readFile('public/puppet/request_reset_email.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+        var html = template({
+            confirmation_link: email_confirmation_url,
+        });
+        transporter.sendMail({
+            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+            to: req.body.email,
+            subject: 'K-9 Karaoke email confirmation ✔', // Subject line
+            html: html,
+        });
+    });
+
+    res.json({
+        success: true,
+    });
+});
+
+
+//////////////////////////////// jmf -- end password reset
+
+
 
 app.get('/email-available/:email', async (req, res) => {
     res.json({
