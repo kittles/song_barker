@@ -813,12 +813,12 @@ app.post('/request-reset-password', async (req, res) => {
         },
     });
 
-    // var url_root = `https://${process.env.k9_domain_name}/complete-reset-password/` 
-    // || 'https://k-9karaoke.com/complete-reset-password/';
+    var url_root = `https://${process.env.k9_domain_name}/reset/` 
+    || 'https://k-9karaoke.com/reset/';
 
     //var url_root = "http://localhost:3000/puppet/reset.html?id=";
 
-    url_root = "http://localhost:3000/reset/";
+    //url_root = "http://localhost:3000/reset/";
 
     var email_confirmation_url = url_root + token;
 
