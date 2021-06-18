@@ -819,7 +819,7 @@ app.post('/request-reset-password', async (req, res) => {
     // var url_root = `https://${process.env.k9_domain_name}/reset/` 
     // || 'https://k-9karaoke.com/reset/';
 
-    var url_root = "http://" + req.get("host") + "/reset/";
+    var url_root = "https://" + req.get("host") + "/reset/";
 
     //url_root = "http://localhost:3000/reset/";
 
