@@ -763,8 +763,11 @@ app.get('/reset/:uuid', async (req, res) => {
     fs.readFile('public/puppet/reset.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
 
+        var url = "https://" + req.get('host') + "/complete-reset-password";
+    
         var html = template({
             userId: uuid,
+            nextUrl: url,
         });
         res.send(html);
     });
@@ -813,10 +816,10 @@ app.post('/request-reset-password', async (req, res) => {
         },
     });
 
-    var url_root = `https://${process.env.k9_domain_name}/reset/` 
-    || 'https://k-9karaoke.com/reset/';
+    // var url_root = `https://${process.env.k9_domain_name}/reset/` 
+    // || 'https://k-9karaoke.com/reset/';
 
-    //var url_root = "http://localhost:3000/puppet/reset.html?id=";
+    var url_root = "http://" + req.get("host") + "/reset/";
 
     //url_root = "http://localhost:3000/reset/";
 
