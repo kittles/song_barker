@@ -784,12 +784,26 @@ app.get('/reset/:uuid', async (req, res) => {
 // , user_agreed_to_terms_v1 INTEGER DEFAULT 0, account_uuid TEXT);
 
 app.post('/request-reset-password', async (req, res) => {
-    var user_obj = await user_sess.get_user(req.body.email);
-    if (!user_obj) {
+
+    const db = await _db.dbPromise;
+
+    //var user_obj = await user_sess.get_user(req.body.email);
+    var user_id = req.body.email;
+
+    // check if user exists;
+    var user_check = await db.get('select user_id from users where user_id=?', user_id);
+
+    if(!user_check) {
         res.json({
             success: false,
             error: 'no user found',
         });
+        return;
+    }
+    else {
+        res.json({
+            success: true
+        })
         return;
     }
 
@@ -797,7 +811,7 @@ app.post('/request-reset-password', async (req, res) => {
     var token = uuidv4();
     var timestamp = Date.now(); // so that identifier can be timed.    
 
-    const db = await _db.dbPromise;
+    
     var result = await db.run('update users set email_confirmation_string = ?, hidden = ? where user_id = ?',
         token,
         timestamp,
