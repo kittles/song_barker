@@ -10,7 +10,7 @@ async function cloud_request (endpoint, data) {
         data.access_token = cloud_access_token;
         console.log("url: http://" 
             + cloud_ip + "/" + endpoint);
-        console.log("data: " + data);
+        console.log("data: " + JSON.stringify(data));
         var cloud_response = await axios({
             method: 'post',
             url: `http://${cloud_ip}/${endpoint}`,
