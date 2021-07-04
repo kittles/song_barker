@@ -8,6 +8,9 @@ var cloud_ip = '34.83.134.37';
 async function cloud_request (endpoint, data) {
     try {
         data.access_token = cloud_access_token;
+        console.log(url: http://" 
+            + cloud_ip + "/" + endpoint);
+        console.log("data: " + data);
         var cloud_response = await axios({
             method: 'post',
             url: `http://${cloud_ip}/${endpoint}`,
@@ -16,11 +19,6 @@ async function cloud_request (endpoint, data) {
         console.log(cloud_response.data);
         return cloud_response.data.data.data;
     } catch (err) {
-        if(err.response) {
-            console.log(err.response.data);
-            console.log(err.response.status);
-            console.log(err.response.headers);
-        }
         return {
             stderr: err,
         }
