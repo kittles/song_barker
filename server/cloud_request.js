@@ -8,6 +8,7 @@ var cloud_ip = '34.83.134.37';
 async function cloud_request (endpoint, data) {
     try {
         data.access_token = cloud_access_token;
+        console.log("access token: ${access_token}, url: http://${cloud_ip}/${endpoint");
         var cloud_response = await axios({
             method: 'post',
             url: `http://${cloud_ip}/${endpoint}`,
