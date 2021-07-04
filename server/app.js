@@ -1181,6 +1181,8 @@ app.post('/cloud/to_sequence', async function (req, res) {
         bucket: process.env.k9_bucket_name,
     })
     console.log(sequence_data);
+    console.log(crop_objs);
+    console.log(process.env.k9_bucket_name);
     if (_.has(sequence_data, 'stderr')) {
         res.status(503).send(`cloud request failed - ${sequence_data.stderr}`);
         return;
