@@ -13,7 +13,7 @@ async function cloud_request (endpoint, data) {
             url: `http://${cloud_ip}/${endpoint}`,
             data: data,
         });
-        console.log(cloud_response);
+        console.log(cloud_response.data);
         return cloud_response.data.data.data;
     } catch (err) {
         return {
