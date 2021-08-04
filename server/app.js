@@ -1304,14 +1304,14 @@ app.post('/cloud/to_sequence', async function (req, res) {
 })();
 
 //// for local dev with app
-var fs = require('fs');
-var https = require('https');
-var privateKey  = fs.readFileSync('../credentials/server.key', 'utf8');
-var certificate = fs.readFileSync('../credentials/server.cert', 'utf8');
-var credentials = {key: privateKey, cert: certificate};
-var httpsServer = https.createServer(credentials, app);
-httpsServer.listen(8443);
+// var fs = require('fs');
+// var https = require('https');
+// var privateKey  = fs.readFileSync('../credentials/server.key', 'utf8');
+// var certificate = fs.readFileSync('../credentials/server.cert', 'utf8');
+// var credentials = {key: privateKey, cert: certificate};
+// var httpsServer = https.createServer(credentials, app);
+// httpsServer.listen(8443);
 
 
 
-//module.exports = app.listen(port, () => console.log(`listening on port ${port}!`));
+module.exports = app.listen(port, () => console.log(`listening on port ${port}!`));
