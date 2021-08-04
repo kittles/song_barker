@@ -844,6 +844,8 @@ app.post('/request-reset-password', async (req, res) => {
     //var user_obj = await user_sess.get_user(req.body.email);
     var user_id = req.body.email;
 
+    console.log("===============================================================> UserId: " + user_id);
+
     // check if user exists;
     var user_check = await db.get('select user_id from users where user_id=?', user_id);
 
