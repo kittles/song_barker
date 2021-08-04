@@ -868,7 +868,7 @@ app.post('/request-reset-password', async (req, res) => {
     );
 
     console.log("token: " + token + ", timestamp: " + timestamp);
-    
+    console.log(JSON.stringify(email_config));
     
     var transporter = nodemailer.createTransport({
         host: email_config.GMAIL_SERVICE_HOST,
@@ -895,6 +895,7 @@ app.post('/request-reset-password', async (req, res) => {
         var html = template({
             confirmation_link: email_confirmation_url,
         });
+
         transporter.sendMail({
             from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
             to: req.body.email,
@@ -904,7 +905,7 @@ app.post('/request-reset-password', async (req, res) => {
             if (error) {
               console.log(error);
             } else {
-              console.log('Email sent: ' + info.response);
+              console.log('Email sent: ' + JSON.stringify(info));
             }
           } );
     });
