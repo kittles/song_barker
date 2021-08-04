@@ -786,21 +786,21 @@ app.post('/puppet/email-support', async (req, res) => {
 
     // validated, let's send it!
     console.log(JSON.stringify(email_config));
-    // var transporter = nodemailer.createTransport({
-    //     host: email_config.GMAIL_SERVICE_HOST,
-    //     port: email_config.GMAIL_SERVICE_PORT,
-    //     secure: email_config.GMAIL_SERVICE_SECURE,
-    //     auth: {
-    //         user: email_config.GMAIL_USER_NAME,
-    //         pass: email_config.GMAIL_USER_PASSWORD,
-    //     },
-    // });
-    // await transporter.sendMail({
-    //     from: req.body.email, // sender address
-    //     to: 'turboblasterllc@gmail.com',
-    //     subject: req.body.subject, // Subject line
-    //     text: req.body.message
-    // });
+    var transporter = nodemailer.createTransport({
+        host: email_config.GMAIL_SERVICE_HOST,
+        port: email_config.GMAIL_SERVICE_PORT,
+        secure: email_config.GMAIL_SERVICE_SECURE,
+        auth: {
+            user: email_config.GMAIL_USER_NAME,
+            pass: email_config.GMAIL_USER_PASSWORD,
+        },
+    });
+    await transporter.sendMail({
+        from: req.body.email, // sender address
+        to: 'turboblasterllc@gmail.com',
+        subject: req.body.subject, // Subject line
+        text: req.body.message
+    }, );
 
     res.json ({
         success:true
@@ -868,7 +868,7 @@ app.post('/request-reset-password', async (req, res) => {
     );
 
     console.log("token: " + token + ", timestamp: " + timestamp);
-    console.log(JSON.stringify(email_config));
+    
     
     var transporter = nodemailer.createTransport({
         host: email_config.GMAIL_SERVICE_HOST,
@@ -900,7 +900,13 @@ app.post('/request-reset-password', async (req, res) => {
             to: req.body.email,
             subject: 'K-9 Karaoke email confirmation ✔', // Subject line
             html: html,
-        });
+        }, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' + info.response);
+            }
+          } );
     });
 
     res.json({
@@ -908,6 +914,12 @@ app.post('/request-reset-password', async (req, res) => {
     });
 });
 
+function EmailCallback(errorObject, messageObject) {
+    if(errorObject) {
+        console.log("Error occurred sending mail: " + JSON.stringify(errorObject));
+        console.log(JSON.stringify(messageObject));
+    }
+}
 
 //////////////////////////////// jmf -- end password reset
 
