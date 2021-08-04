@@ -868,7 +868,8 @@ app.post('/request-reset-password', async (req, res) => {
     );
 
     console.log("token: " + token + ", timestamp: " + timestamp);
-
+    console.log(JSON.stringify(email_config));
+    
     var transporter = nodemailer.createTransport({
         host: email_config.GMAIL_SERVICE_HOST,
         port: email_config.GMAIL_SERVICE_PORT,
