@@ -755,6 +755,60 @@ app.post('/complete-reset-password', async (req, res) => {
 
 });
 
+app.post('/puppet/email-support', async (req, res) => {
+    // console.log("email-support");
+    //  console.log(req.body.email);
+    //  console.log(req.body.subject);
+    //  console.log(req.body.message);
+     
+    // validate payload
+     if (!validator.validate(req.body.email)) {
+        res.json({
+            success: false,
+            error: 'invalid email',
+        });
+        return;
+    }
+    if(!req.body.subject || req.body.subject.length == 0) {
+        res.json({
+            success: false,
+            error: 'no subject'
+        });
+        return;
+    }
+    if(!req.body.message || req.body.message.length == 0) {
+        res.json({
+            success: false,
+            error: 'no message'
+        });
+        return;
+    }
+
+    // validated, let's send it!
+    console.log(JSON.stringify(email_config));
+    // var transporter = nodemailer.createTransport({
+    //     host: email_config.GMAIL_SERVICE_HOST,
+    //     port: email_config.GMAIL_SERVICE_PORT,
+    //     secure: email_config.GMAIL_SERVICE_SECURE,
+    //     auth: {
+    //         user: email_config.GMAIL_USER_NAME,
+    //         pass: email_config.GMAIL_USER_PASSWORD,
+    //     },
+    // });
+    // await transporter.sendMail({
+    //     from: req.body.email, // sender address
+    //     to: 'turboblasterllc@gmail.com',
+    //     subject: req.body.subject, // Subject line
+    //     text: req.body.message
+    // });
+
+    res.json ({
+        success:true
+    });
+
+    return;
+});
+
 app.get('/reset/:uuid', async (req, res) => {
     console.log('start-reset-password');
     console.log(req.params.uuid);
@@ -1250,14 +1304,14 @@ app.post('/cloud/to_sequence', async function (req, res) {
 })();
 
 //// for local dev with app
-// var fs = require('fs');
-// var https = require('https');
-// var privateKey  = fs.readFileSync('../credentials/server.key', 'utf8');
-// var certificate = fs.readFileSync('../credentials/server.cert', 'utf8');
-// var credentials = {key: privateKey, cert: certificate};
-// var httpsServer = https.createServer(credentials, app);
-// httpsServer.listen(8443);
+var fs = require('fs');
+var https = require('https');
+var privateKey  = fs.readFileSync('../credentials/server.key', 'utf8');
+var certificate = fs.readFileSync('../credentials/server.cert', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
+var httpsServer = https.createServer(credentials, app);
+httpsServer.listen(8443);
 
 
 
-module.exports = app.listen(port, () => console.log(`listening on port ${port}!`));
+//module.exports = app.listen(port, () => console.log(`listening on port ${port}!`));
