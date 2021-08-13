@@ -71,29 +71,6 @@
     </script>
     <!-- this handles scaling the content -->
     <script src="/puppet/puppet-scaling.js"></script>
-
-    <!-- Web Share API Bindings -->
-    <script>
-        const shareData = {
-            title: 'K9 Karaoke',
-            text: 'Make Your Pets Sing!',
-            url: document.location.href,
-        }
-
-        const btn = document.querySelector('mobile-share-button');
-        const resultPara = document.querySelector('.result');
-
-        // Must be triggered some kind of "user activation"
-        btn.addEventListener('click', async () => {
-            try {
-                await navigator.share(shareData)
-                console.log('Card shared successfully');
-            } catch(err) {
-                console.log('Error: ' + err);
-            }
-        });
-    </script>
-
 </head>
 <body>
     <div id="container">
@@ -150,25 +127,21 @@
         <!-- controls on the right side -->
         <div id="desktop-app-links" style="display: none">
             <div id="app-tag-line">MAKE YOUR PETS SING!</div>
-            <div id="app-subhead">Check out K-9 Karaoke</div>
+            <div id="app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
             <div id="app-logos">
                 <div>
                     <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
                 </div>
-<!--                <div>-->
-<!--                    <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>-->
-<!--                </div>-->
+                <div>
+                    <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
+                </div>
             </div>
             <div id="app-badges">
                 <div class="app-badge-side">
-                    <a href="https://apps.apple.com/us/app/k-9-karaoke/id1535425619">
-                        <img src="/puppet/app-store-badge.png"></img>
-                    </a>
+                    <img src="/puppet/app-store-badge.png"></img>
                 </div>
                 <div class="app-badge-side">
-                    <a href="https://play.google.com/apps/testing/com.turboblasterunlimited.k9_karaoke">
-                        <img src="/puppet/google-play-badge.png"></img>
-                    </a>
+                    <img src="/puppet/google-play-badge.png"></img>
                 </div>
             </div>
         </div>
@@ -183,22 +156,21 @@
             <hr id="mobile-hr"></hr>
             <!-- app links and such -->
             <div id="mobile-app-tag-line">MAKE YOUR PETS SING!</div>
-            <div id="mobile-app-subhead">Check out K-9 Karaoke</div>
+            <div id="mobile-app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
             <div id="mobile-app-logos">
                 <div>
                     <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
                 </div>
+                <div>
+                    <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
+                </div>
             </div>
             <div id="mobile-app-badges">
                 <div class="app-badge">
-                    <a href="https://apps.apple.com/us/app/k-9-karaoke/id1535425619">
-                        <img src="/puppet/app-store-badge.png"></img>
-                    </a>
+                    <img src="/puppet/app-store-badge.png"></img>
                 </div>
                 <div class="app-badge">
-                    <a href="https://play.google.com/store/apps/details?id=com.turboblasterunlimited.k9_karaoke">
-                        <img src="/puppet/google-play-badge.png"></img>
-                    </a>
+                    <img src="/puppet/google-play-badge.png"></img>
                 </div>
             </div>
         </div>
