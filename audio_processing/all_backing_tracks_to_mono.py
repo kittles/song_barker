@@ -1,3 +1,7 @@
+'''
+mix an audio file down to a mono audio file using ffmpeg
+this should account for the reencoding timing offset
+'''
 import glob
 import subprocess as sp
 import tempfile

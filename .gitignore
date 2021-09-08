@@ -20,6 +20,7 @@ server/barker_database.db.bak
 server/k9karaoke-database-prod.db
 server/*.db
 server/public/node_modules
+server/public/puppet-standalone
 server/public/sequence.aac
 server/public/sequence.wav
 

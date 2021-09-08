@@ -8,19 +8,7 @@
 
       gtag('config', 'G-HEGMD1PLK4');
     </script>
-    <script src="/puppet/jquery.min.js"></script>
-    <script src="/puppet/easing.js"></script>
-    <script src="/puppet/lodash.js"></script>
-    <script src="/puppet/lodash.fp.js"></script>
-    <script src="/puppet/three.110.js"></script>
-    <script src="/puppet/gltf_loader.js"></script>
-    <script src="/puppet/orbit_controls.js"></script>
-    <script src="/puppet/stats.min.js"></script>
-    <script src="/puppet/raf.js"></script>
-    <script src="/puppet/performance.js"></script>
-    <script src="/puppet/math.min.js"></script>
-    <!-- for transpiling async await -->
-    <script src="/puppet/runtime.js"></script>
+
 
     <link rel="stylesheet" type="text/css" href="/puppet/loading_spinner.css">
     <link rel="stylesheet" type="text/css" href="/puppet/puppet.css">
@@ -41,34 +29,7 @@
     <meta name="twitter:image" content="https://storage.googleapis.com/{{bucket_name}}/{{image_bucket_fp}}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="viewport" content="width=device-width, user-scalable=no">
-    <script>
-        try {
-            window.greeting_card = {};
-            window.greeting_card.uuid='{{uuid}}';
-            window.greeting_card.card_audio_bucket_fp='{{card_audio_bucket_fp}}';
-            window.greeting_card.image_bucket_fp='{{image_bucket_fp}}';
-            window.greeting_card.decoration_image_bucket_fp='{{decoration_image_bucket_fp}}';
-            window.greeting_card.animation_json=JSON.parse('{{{animation_json}}}');
-            window.greeting_card.image_coordinates_json=JSON.parse('{{{image_coordinates_json}}}');
-            window.greeting_card.name='{{name}}';
-            window.greeting_card.recipient_name='{{recipient_name}}';
-            window.greeting_card.mouth_color='{{mouth_color}}';
-            window.greeting_card.has_envelope=parseInt('{{has_envelope}}');
-            window.greeting_card.bucket_name='{{bucket_name}}';
 
-            // TODO remember why this is here...
-            if (!window.greeting_card.image_bucket_fp) {
-                window.greeting_card.image_bucket_fp = `images/${window.greeting_card.image_id}.jpg`;
-            }
-        } catch (error) {
-            $(document).ready(() => {
-                $('#error-message').text(`problem with greeting_card values: ${error}`);
-                $('#error').fadeIn(100);
-            });
-        }
-    </script>
-    <!-- this handles scaling the content -->
-    <script src="/puppet/puppet-scaling.js"></script>
 </head>
 <body>
     <div id="container">
@@ -100,9 +61,8 @@
             <!-- share icons -->
             <div style="height: 15%">
                 <div id="desktop-share-icons">
-                    <div class="desktop-share-icon"><img src="/puppet/icons/social facebook.svg"></img></div>
-                    <div class="desktop-share-icon"><img src="/puppet/icons/social instagram.svg"></img></div>
-                    <div class="desktop-share-icon"><img src="/puppet/icons/social twitter.svg"></img></div>
+                    <div class="desktop-share-icon"><img id="facebook-badge" src="/puppet/icons/social facebook.svg"></img></div>
+                    <div class="desktop-share-icon"><img id="instagram-badge" src="/puppet/icons/social instagram.svg"></img></div>
                 </div>
             </div>
             <!-- playback controls -->
@@ -125,21 +85,18 @@
         <!-- controls on the right side -->
         <div id="desktop-app-links" style="display: none">
             <div id="app-tag-line">MAKE YOUR PETS SING!</div>
-            <div id="app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
+            <div id="app-subhead">Check out K-9 Karaoke</div>
             <div id="app-logos">
                 <div>
                     <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
                 </div>
-                <div>
-                    <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
-                </div>
             </div>
             <div id="app-badges">
                 <div class="app-badge-side">
-                    <img src="/puppet/app-store-badge.png"></img>
+                    <img id="app-store-badge" src="/puppet/app-store-badge.png"></img>
                 </div>
                 <div class="app-badge-side">
-                    <img src="/puppet/google-play-badge.png"></img>
+                    <img id="google-play-badge" src="/puppet/google-play-badge.png"></img>
                 </div>
             </div>
         </div>
@@ -154,24 +111,135 @@
             <hr id="mobile-hr"></hr>
             <!-- app links and such -->
             <div id="mobile-app-tag-line">MAKE YOUR PETS SING!</div>
-            <div id="mobile-app-subhead">Check out K-9 Karaoke<br> and Kitty Karaoke!</div>
+            <div id="mobile-app-subhead">Check out K-9 Karaoke</div>
             <div id="mobile-app-logos">
                 <div>
                     <img class="app-image-link" src="/puppet/k9_logotype_small.png"></img>
                 </div>
-                <div>
-                    <img class="app-image-link" src="/puppet/kitty-karaoke.png"></img>
-                </div>
             </div>
             <div id="mobile-app-badges">
                 <div class="app-badge">
-                    <img src="/puppet/app-store-badge.png"></img>
+                    <img id="mobile-app-store-badge" src="/puppet/app-store-badge.png"></img>
                 </div>
                 <div class="app-badge">
-                    <img src="/puppet/google-play-badge.png"></img>
+                    <img id="mobile-google-play-badge" src="/puppet/google-play-badge.png"></img>
                 </div>
             </div>
         </div>
     </div>
+    <script src="/puppet/jquery.min.js"></script>
+    <script src="/puppet/easing.js"></script>
+    <script src="/puppet/lodash.js"></script>
+    <script src="/puppet/lodash.fp.js"></script>
+    <script src="/puppet/three.110.js"></script>
+    <script src="/puppet/gltf_loader.js"></script>
+    <script src="/puppet/orbit_controls.js"></script>
+    <script src="/puppet/stats.min.js"></script>
+    <script src="/puppet/raf.js"></script>
+    <script src="/puppet/performance.js"></script>
+    <script src="/puppet/math.min.js"></script>
+    <!-- for transpiling async await -->
+    <script src="/puppet/runtime.js"></script>
+    <script>
+        try {
+            window.greeting_card = {};
+            window.greeting_card.uuid='{{uuid}}';
+            window.greeting_card.card_audio_bucket_fp='{{card_audio_bucket_fp}}';
+            window.greeting_card.image_bucket_fp='{{image_bucket_fp}}';
+            window.greeting_card.decoration_image_bucket_fp='{{decoration_image_bucket_fp}}';
+            window.greeting_card.animation_json=JSON.parse('{{{animation_json}}}');
+            window.greeting_card.image_coordinates_json=JSON.parse('{{{image_coordinates_json}}}');
+            window.greeting_card.name='{{name}}';
+            window.greeting_card.recipient_name='{{recipient_name}}';
+            window.greeting_card.mouth_color='{{mouth_color}}';
+            window.greeting_card.lip_color='{{lip_color}}';
+            window.greeting_card.lip_thickness='{{lip_thickness}}';
+            window.greeting_card.has_envelope=parseInt('{{has_envelope}}');
+            window.greeting_card.bucket_name='{{bucket_name}}';
+
+            // TODO remember why this is here...
+            if (!window.greeting_card.image_bucket_fp) {
+                window.greeting_card.image_bucket_fp = `images/${window.greeting_card.image_id}.jpg`;
+            }
+        } catch (error) {
+            $(document).ready(() => {
+                $('#error-message').text(`problem with greeting_card values: ${error}`);
+                $('#error').fadeIn(100);
+            });
+        }
+    </script>
+    <!-- this handles scaling the content -->
+    <script src="/puppet/puppet-scaling.js"></script>
+    <!-- end move -->
+
+    <!-- JMF Web Share API Bindings -->
+    <script>
+        const shareData = {
+            title: 'K9 Karaoke',
+            text: 'Make Your Pets Sing!',
+            url: document.location.href,
+        }
+
+        const shareButton = document.getElementById('share-button');
+        const mobileShareButton = document.getElementById('mobile-share-button');
+
+        async function shareCard() {
+            try {
+                await navigator.share(shareData)
+                console.log('MDN shared successfully');
+            } catch(err) {
+                console.log('Error: ' + err);
+            }
+        }
+
+        // Must be triggered some kind of "user activation"
+        shareButton.addEventListener('click', shareCard);
+        mobileShareButton.addEventListener('click', shareCard);
+    </script>
+    <!-- End JMF Web Share API Bindings -->
+
+    <!-- JMF Other button bindings -->
+    <script>
+        //The google might change when in store, the apple id won't work until published
+        const googlePlayAndroidURL = "https://play.google.com/store/apps/details?id=com.turboblasterunlimited.k9_karaoke";
+        const appleConnectURL = "https://apps.apple.com/us/app/k-9-karaoke/id1535425619";
+        const faceBookURL = "https://www.facebook.com/K9Karaoke1/";
+        const instagramURL = "https://www.instagram.com/ribbond_dental/";
+
+        const appStoreBadge = document.getElementById('app-store-badge');
+        const googlePlayBadge = document.getElementById("google-play-badge");
+
+        const facebookBadge = document.getElementById("facebook-badge");
+        const instagramBadge = document.getElementById("instagram-badge");
+
+        const mobileAppStoreBadge = document.getElementById("mobile-app-store-badge");
+        const mobileGooglePlayBadge = document.getElementById("mobile-google-play-badge");
+
+        function gotoGooglePlay() {
+            window.location.href = googlePlayAndroidURL;
+        }
+        function gotoAppStore() {
+            window.location.href = appleConnectURL;
+        }
+        function gotoFacebook() {
+            window.location.href = faceBookURL;
+        }
+        function gotoInstagram() {
+            window.location.href = instagramURL;
+        }
+
+        appStoreBadge.addEventListener('click', gotoAppStore);
+        mobileAppStoreBadge.addEventListener('click', gotoAppStore);
+
+        googlePlayBadge.addEventListener('click', gotoGooglePlay);
+        mobileGooglePlayBadge.addEventListener('click', gotoGooglePlay);
+
+        facebookBadge.addEventListener('click', gotoFacebook);
+        instagramBadge.addEventListener('click', gotoInstagram);
+
+
+    </script>
+    <!-- End JMF Other button bindings -->
+
     <script src="/build/puppet.js"></script>
 </body>

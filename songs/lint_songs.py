@@ -1,3 +1,7 @@
+'''
+this is intended to look for errors in the song info.json's
+but it is out of date and needs to be updated
+'''
 import glob
 import argparse
 import os
