@@ -527,13 +527,14 @@ app.post('/create-account', async (req, res) => {
         var html = template({
             confirmation_link: email_confirmation_url,
         });
+        1
         try {
-        transporter.sendMail({
-            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
-            to: req.body.email,
-            subject: 'K-9 Karaoke email confirmation ✔', // Subject line
-            html: html,
-        });
+            transporter.sendMail({
+                from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+                to: req.body.email,
+                subject: 'K-9 Karaoke email confirmation ✔', // Subject line
+                html: html,
+            });
         }
         catch(e) {
             console.log(JSON.stringify(e));
