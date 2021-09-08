@@ -527,12 +527,17 @@ app.post('/create-account', async (req, res) => {
         var html = template({
             confirmation_link: email_confirmation_url,
         });
+        try {
         transporter.sendMail({
             from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
             to: req.body.email,
             subject: 'K-9 Karaoke email confirmation ✔', // Subject line
             html: html,
         });
+        }
+        catch(e) {
+            console.log(JSON.stringify(e));
+        }
     });
 
     var user_obj = await user_sess.get_user_no_password(req.body.email);
