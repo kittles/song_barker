@@ -16,7 +16,8 @@ uniform sampler2D animationNoise;
 
 varying float alpha;
 varying vec4 debug;
-
+varying vec4 localPos;
+varying vec2 st;
 float sqr(float x)
 {
     return x * x;
@@ -172,13 +173,13 @@ void main()
     alpha = (clamp(color.x * 1.0, 0.0, 1.0) * clamp(mouthOpen * 16.0, 0.0, 1.0));
 
     vec2 mouthClosedOS = vec2(uv.x - 0.5, (1.0 - uv.y) - 0.5);
-
+	st = position.xz;
     vec2 animatedPositionOS = lerp(mouthClosedOS.xy, position.xz, mouthOpen * OPEN_BLEND_LIMIT);
     //vec2 animatedPositionOS = position.xz;
 
     vec2 positionWS = (modelMatrix * vec4(animatedPositionOS.x, 0.0, animatedPositionOS.y, 1.0)).xy;
 
     animatedPositionOS = AnimatePositionOS(animatedPositionOS);
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(animatedPositionOS.x, position.y, animatedPositionOS.y, 1.0);
+	localPos = vec4(animatedPositionOS.x, position.y, animatedPositionOS.y, 1.0);
+    gl_Position = projectionMatrix * modelViewMatrix * localPos;
 }

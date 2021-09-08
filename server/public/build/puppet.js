@@ -208,6 +208,15 @@ var mouth_shader = {
       type: 'v3',
       value: new THREE.Vector3()
     },
+    // asis addition
+    lipsColor: {
+      type: 'v3',
+      value: new THREE.Vector3()
+    },
+    lipsThickness: {
+      type: 'f',
+      value: 0.0
+    },
     // Head Sway
     head_displacement: {
       type: 'v2',
@@ -503,7 +512,21 @@ function _prepare_card() {
                                     } // use features to determine locations of stuff
 
 
-                                    sync_objects_to_features();
+                                    sync_objects_to_features(); // asis lips addition
+
+                                    if (card.lip_color) {
+                                      lips_color.apply(void 0, _toConsumableArray(JSON.parse(card.lip_color)));
+                                    } else {
+                                      lips_color(0.1, 0.1, 0.1);
+                                    }
+
+                                    if (card.lip_thickness) {
+                                      lips_thickness(parseFloat(card.lip_thickness));
+                                    } else {
+                                      lips_thickness(0.1);
+                                    } //
+
+
                                     update_shaders();
                                     direct_render();
                                     animate();
@@ -511,7 +534,7 @@ function _prepare_card() {
                                     random_gesture();
                                     r();
 
-                                  case 54:
+                                  case 56:
                                   case "end":
                                     return _context7.stop();
                                 }
@@ -1687,6 +1710,18 @@ function mouth_open(val) {
 
 function mouth_color(fr, fg, fb) {
   mouth_shader.uniforms.mouthColor.value = new THREE.Vector3(fr, fg, fb);
+  update_shaders();
+  direct_render();
+}
+
+function lips_color(fr, fg, fb) {
+  mouth_shader.uniforms.lipsColor.value = new THREE.Vector3(fr, fg, fb);
+  update_shaders();
+  direct_render();
+}
+
+function lips_thickness(val) {
+  mouth_shader.uniforms.lipsThickness.value = val;
   update_shaders();
   direct_render();
 }

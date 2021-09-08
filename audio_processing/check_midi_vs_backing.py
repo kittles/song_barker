@@ -1,3 +1,6 @@
+'''
+a script for checking midi vs backing track timing issues
+'''
 import subprocess as sp
 import argparse
 from midi2audio import FluidSynth

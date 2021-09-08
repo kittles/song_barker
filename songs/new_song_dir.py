@@ -1,3 +1,7 @@
+'''
+this was used to generate new song directories for adding new songs,
+but is out of date
+'''
 import os
 import json
 import argparse

@@ -169,6 +169,7 @@ def crop_to_aac (crop_bounds, data, samplerate, temp_dir, debug=False):
     tmp_aac_fp = ac.wav_to_aac_no_offset(tmp_wav_fp)
     if debug:
         sp.call('play {} -q -V1'.format(tmp_wav_fp), shell=True)
+        input()
     return {
         'fp': tmp_aac_fp,
         'duration': duration,
@@ -278,6 +279,8 @@ def cloud_endpoint (raw_uuid, bucket_name, debug=False):
                 medium_crops.append(mc)
 
         # ensure a long
+        # TODO should use some kind of ranking of all candidates to
+        # choose a desirable long crop
         if not long_crops:
             if debug:
                 print(' ! generating long crop')
@@ -291,12 +294,90 @@ def cloud_endpoint (raw_uuid, bucket_name, debug=False):
             if lc:
                 long_crops.append(lc)
 
+        # these are the crops that are actually going to be generated
+        # for the user
+        all_crops = short_crops + medium_crops[:1] + long_crops[:1]
+
+        # make sure there is no sound left behind
+        # based on whats in all_crops, look at all the spaces where there is no crop
+        # see if there are any sounds there, and make crops for them if yes
+        supplementary_crops = []
+        # these are just the indexes of the gaps where there is no crop
+        ignored_regions = []
+        # as crops are stepped through, keep track of last silence start point
+        ignored_idx = 0
+        for crop in sorted(all_crops, key=lambda x: x[0]):
+            c_onset, c_decay = crop
+            if c_onset > ignored_idx:
+                ignored_regions.append([ignored_idx, c_onset])
+                ignored_idx = c_decay
+            else:
+                ignored_idx = max(c_decay, ignored_idx)
+
+        if ignored_idx < len(data):
+            ignored_regions.append([ignored_idx, len(data)])
+
+
+        # now ignored_regions has all the gaps where no crop is
+        # skip the gaps without sound
+        #keeper_regions = []
+        keeper_regions = ignored_regions # NOTE just using all ignored regions for now
+        #for ig_region in ignored_regions:
+        #    ig_on, ig_dec = ig_region
+        #    for o, d in zip(onsets, decays):
+        #        if (ig_on < o < ig_dec or
+        #            ig_on < d < ig_dec or
+        #            o > ig_on and d < ig_dec or
+        #            o < ig_on and d > ig_dec):
+        #            # there is a sound there, so dont skip
+        #            keeper_regions.append(ig_region)
+        #            break
+
+        if debug:
+            print('keeper regions', keeper_regions)
+
+        # find good start and end for remaining region by finding
+        # nearest onset and decay to the region bounds
+        for reg in keeper_regions:
+            o, d = reg
+            # skip super short stuff
+            if ((d - o) / samplerate) < 0.1:
+                continue
+            start = max([i for i in onsets + [0] if i <= o])
+            end = min([i for i in decays + [len(data)] if i >= d])
+            #start, end = pad_region([o, d], data, samplerate)
+            supplementary_crops.append([start, end])
+
+        if debug:
+            print('SUPPLEMENTARY CROPS:')
+            print(supplementary_crops)
+            from matplotlib import collections as mc
+            fig, ax = plt.subplots()
+
+            # normal crops
+            lines = [[(i[0], 0), (i[1], 0)] for i in all_crops]
+            lc = mc.LineCollection(lines)
+            ax.add_collection(lc)
+
+            # supplementary
+            lines = [[(i[0], 1), (i[1], 1)] for i in supplementary_crops]
+            lc = mc.LineCollection(lines)
+            ax.add_collection(lc)
+
+            ax.autoscale()
+            plt.show()
+
+        # add the supplementary crops to the existing crops!
+        #all_crops = supplementary_crops
+        #all_crops = all_crops + supplementary_crops
+        #all_crops = all_crops + ignored_regions
+
         # make them fp, duration dicts, with the side effect
         # of actually creating the file as well
         # sorry- this is kind of a confusing way of doing it
         all_crops = [
             crop_to_aac(c, data, samplerate, tmp_dir, debug)
-            for c in short_crops + medium_crops[:1] + long_crops[:1]
+            for c in all_crops + supplementary_crops
         ]
 
         response_data = {

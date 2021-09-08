@@ -157,6 +157,8 @@ app.get('/c/:card_key', async (req, res) => {
             name: card.name,
             recipient_name: card_key.recipient_name, // NOTE this is actually used with short urls
             mouth_color: image.mouth_color,
+            lip_color: image.lip_color,
+            lip_thickness: image.lip_thickness,
             domain_name: process.env.k9_domain_name,
             bucket_name: process.env.k9_bucket_name,
             has_envelope: card_key.has_envelope,
@@ -260,6 +262,22 @@ function add_stock_objects_to_user (user_id) {
 }
 
 
+async function manual_to_openid_confirmation (user) {
+    // used by fb and google handlers below to
+    // handle the case where a user signs up manually,
+    // doesnt confirm their email,
+    // then logs in with open id that has the same email
+    // as their manual signup
+    // TODO put this in the two open id endpoints below and test
+    if (user.pending_confirmation) {
+        var update_query = await db.run('update users set pending_confirmation = 0 where user_id = ?',
+            user.user_id,
+        );
+        // subprocess to add stock objects
+        add_stock_objects_to_user(user.user_id);
+    }
+}
+
 app.post('/openid-token/:platform', async (req, res) => {
     try {
         var payload;
@@ -275,6 +293,9 @@ app.post('/openid-token/:platform', async (req, res) => {
         if (user) {
             // attach the user_id to the session
             req.session.user_id = payload.email;
+            // if the account was created with manual sign in, but they never confirmed
+            // this will handle that. if they did, this does nothing
+            manual_to_openid_confirmation(user);
         } else {
             // create a new user object
             await user_sess.add_user(payload.email, payload.name, payload.email);
@@ -356,6 +377,9 @@ app.post('/facebook-token', async (req, res) => {
             console.log('user exists');
             // attach the user_id to the session
             req.session.user_id = payload.email;
+            // if the account was created with manual sign in, but they never confirmed
+            // this will handle that. if they did, this does nothing
+            manual_to_openid_confirmation(user);
         } else {
             // create a new user object
             console.log('create new user');
@@ -616,7 +640,7 @@ app.post('/change-password', async (req, res) => {
 
 
 app.post('/temp-password', async (req, res) => {
-    var user_obj = await user_sess.get_user(req.body.user_id);
+    var user_obj = await user_sess.get_user(req.body.email);
     if (!user_obj) {
         res.json({
             success: false,
@@ -646,12 +670,21 @@ app.post('/temp-password', async (req, res) => {
         },
     });
 
+    var url_host = "https://" + req.headers.host + "/puppet/reset.html?id=" + temp_hash_password;
+
+    // await transporter.sendMail({
+    //     from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+    //     to: user_obj.email,
+    //     subject: 'K9 Karaoke account recovery ✔', // Subject line
+    //     text: 'please use this link to reset your password: ' + url_host,
+    // });
     await transporter.sendMail({
-        from: '"seattle city sellahs" <seattlecitysellers@gmail.com>', // sender address
+        from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
         to: user_obj.email,
         subject: 'K9 Karaoke account recovery ✔', // Subject line
         text: `please use this temporary password to log in to your account: ${temp_password}`,
     });
+
 
     var user_obj = await user_sess.get_user_no_password(req.body.user_id);
     res.json({
@@ -659,6 +692,238 @@ app.post('/temp-password', async (req, res) => {
         user: user_obj,
     });
 });
+
+//////////////////////////////// jmf -- reset password stuff
+const maxMillisResetTokenIsValid = 1000 * 60 * 60 * 24; // token is valid for 24 hours
+app.post('/complete-reset-password', async (req, res) => {
+    console.log("complete-reset-password");
+     console.log(req.body.user_id);
+     console.log(req.body.new_password);
+
+    if (!req.body.user_id) {
+        res.json({
+            success: false,
+            error: 'missing token',
+        });
+        return;
+    }
+    if (!req.body.new_password) {
+        res.json({
+            success: false,
+            error: 'missing new password',
+        });
+        return;
+    }
+    const db = await _db.dbPromise;
+    var result = await db.get('select hidden, user_id from users where email_confirmation_string = ?',
+       req.body.user_id,
+    );
+
+    if (!_.get(result, 'user_id')) {
+        res.json ({
+            success: false,
+            error: 'bad token',
+        });
+        return;
+    }
+    
+    var elapsedTime = Date.now() - result.hidden;
+
+    if(elapsedTime > maxMillisResetTokenIsValid) {
+        res.json({
+            success: false,
+            error: 'expired token',
+        });
+        return;
+    }
+
+    console.log("result from db: " + JSON.stringify(result));
+
+    var user_id = _.get(result, 'user_id');
+    console.log(user_id);
+
+    var password = await hash_password(req.body.new_password);
+
+    var result2 = await db.run('update users set password = ?, hidden = 0, email_confirmation_string = "" where user_id = ?'
+                        , password, result.user_id);
+
+    res.json({
+        success:true,
+        result: result2,
+    });
+    return;
+
+});
+
+app.post('/puppet/email-support', async (req, res) => {
+    // console.log("email-support");
+    //  console.log(req.body.email);
+    //  console.log(req.body.subject);
+    //  console.log(req.body.message);
+     
+    // validate payload
+     if (!validator.validate(req.body.email)) {
+        res.json({
+            success: false,
+            error: 'invalid email',
+        });
+        return;
+    }
+    if(!req.body.subject || req.body.subject.length == 0) {
+        res.json({
+            success: false,
+            error: 'no subject'
+        });
+        return;
+    }
+    if(!req.body.message || req.body.message.length == 0) {
+        res.json({
+            success: false,
+            error: 'no message'
+        });
+        return;
+    }
+
+    // validated, let's send it!
+    console.log(JSON.stringify(email_config));
+    var transporter = nodemailer.createTransport({
+        host: email_config.GMAIL_SERVICE_HOST,
+        port: email_config.GMAIL_SERVICE_PORT,
+        secure: email_config.GMAIL_SERVICE_SECURE,
+        auth: {
+            user: email_config.GMAIL_USER_NAME,
+            pass: email_config.GMAIL_USER_PASSWORD,
+        },
+    });
+    await transporter.sendMail({
+        from: req.body.email, // sender address
+        to: 'turboblasterllc@gmail.com',
+        subject: req.body.subject, // Subject line
+        text: req.body.message
+    }, );
+
+    res.json ({
+        success:true
+    });
+
+    return;
+});
+
+app.get('/reset/:uuid', async (req, res) => {
+    console.log('start-reset-password');
+    console.log(req.params.uuid);
+    var uuid = req.params.uuid;
+    
+    fs.readFile('public/puppet/reset.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+
+        var url = "https://" + req.get('host') + "/complete-reset-password";
+    
+        var html = template({
+            userId: uuid,
+            nextUrl: url,
+        });
+        res.send(html);
+    });
+}
+);
+// CREATE TABLE users (
+//     user_id TEXT PRIMARY KEY,
+//     name TEXT,
+//     email TEXT,
+//     password TEXT,
+//     hidden INTEGER DEFAULT 0,
+//     email_confirmation_string TEXT,
+//     pending_confirmation INTEGER DEFAULT 0
+// , user_agreed_to_terms_v1 INTEGER DEFAULT 0, account_uuid TEXT);
+
+app.post('/request-reset-password', async (req, res) => {
+
+    const db = await _db.dbPromise;
+
+    //var user_obj = await user_sess.get_user(req.body.email);
+    var user_id = req.body.email;
+    
+    // check if user exists;
+    var user_check = await db.get('select user_id from users where user_id=?', user_id);
+
+    if(!user_check) {
+        res.json({
+            success: false,
+            error: 'no user found',
+        });
+        return;
+    }
+
+
+    // generate temp one time token
+    var token = uuidv4();
+    var timestamp = Date.now(); // so that identifier can be timed.    
+
+    
+    var result = await db.run('update users set email_confirmation_string = ?, hidden = ? where user_id = ?',
+        token,
+        timestamp,
+        user_id
+    );
+
+    console.log("token: " + token + ", timestamp: " + timestamp);
+    console.log(JSON.stringify(email_config));
+    
+    var transporter = nodemailer.createTransport({
+        host: email_config.GMAIL_SERVICE_HOST,
+        port: email_config.GMAIL_SERVICE_PORT,
+        secure: email_config.GMAIL_SERVICE_SECURE,
+        auth: {
+            user: email_config.GMAIL_USER_NAME,
+            pass: email_config.GMAIL_USER_PASSWORD,
+        },
+    });
+
+    // var url_root = `https://${process.env.k9_domain_name}/reset/` 
+    // || 'https://k-9karaoke.com/reset/';
+
+    var url_root = "https://" + req.get("host") + "/reset/";
+
+    //url_root = "http://localhost:3000/reset/";
+
+    var email_confirmation_url = url_root + token;
+
+
+    fs.readFile('public/puppet/request_reset_email.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+        var html = template({
+            confirmation_link: email_confirmation_url,
+        });
+
+        transporter.sendMail({
+            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+            to: req.body.email,
+            subject: 'K-9 Karaoke email confirmation ✔', // Subject line
+            html: html,
+        }, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' + JSON.stringify(info));
+            }
+          } );
+    });
+
+    res.json({
+        success: true,
+    });
+});
+
+function EmailCallback(errorObject, messageObject) {
+    if(errorObject) {
+        console.log("Error occurred sending mail: " + JSON.stringify(errorObject));
+        console.log(JSON.stringify(messageObject));
+    }
+}
+
+//////////////////////////////// jmf -- end password reset
+
 
 
 app.get('/email-available/:email', async (req, res) => {
@@ -749,10 +1014,11 @@ app.post('/delete-account', async function (req, res) {
 
 
 // model descriptions
-// TODO remove
-app.get('/describe', (req, res) => {
-    res.json(models);
-});
+if (process.env.k9_dev) {
+    app.get('/describe', (req, res) => {
+        res.json(models);
+    });
+}
 
 
 // when a user agrees to terms
@@ -983,6 +1249,8 @@ app.post('/cloud/to_sequence', async function (req, res) {
         bucket: process.env.k9_bucket_name,
     })
     console.log(sequence_data);
+    console.log("crop objs: " + crop_objs);
+    console.log("bucket: " + process.env.k9_bucket_name);
     if (_.has(sequence_data, 'stderr')) {
         res.status(503).send(`cloud request failed - ${sequence_data.stderr}`);
         return;
@@ -1050,12 +1318,14 @@ app.post('/cloud/to_sequence', async function (req, res) {
 })();
 
 //// for local dev with app
-//var fs = require('fs');
-//var https = require('https');
-//var privateKey  = fs.readFileSync('../credentials/server.key', 'utf8');
-//var certificate = fs.readFileSync('../credentials/server.crt', 'utf8');
-//var credentials = {key: privateKey, cert: certificate};
-//var httpsServer = https.createServer(credentials, app);
-//httpsServer.listen(8443);
+// var fs = require('fs');
+// var https = require('https');
+// var privateKey  = fs.readFileSync('../credentials/server.key', 'utf8');
+// var certificate = fs.readFileSync('../credentials/server.cert', 'utf8');
+// var credentials = {key: privateKey, cert: certificate};
+// var httpsServer = https.createServer(credentials, app);
+// httpsServer.listen(8443);
+
+
 
 module.exports = app.listen(port, () => console.log(`listening on port ${port}!`));

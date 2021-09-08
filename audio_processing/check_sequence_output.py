@@ -1,4 +1,6 @@
 '''
+NOTE: this is mostly useless now that sequencing happens in the cloud
+
 meant to inject stuff in the db and call to_sequence.py
 to streamline testing and debugging sync and note issues etc
 
