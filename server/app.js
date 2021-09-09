@@ -478,6 +478,8 @@ app.post('/create-account', async (req, res) => {
         return;
     }
 
+    console.log("In create account.");
+
     if (! await email_available(req.body.email)) {
         var user_obj = await user_sess.get_user(req.body.email);
 
