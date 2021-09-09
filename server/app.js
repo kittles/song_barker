@@ -453,6 +453,8 @@ app.post('/manual-login', async (req, res) => {
     }
 });
 
+
+
 //--------------------------------------------------- create account
 app.post('/create-account', async (req, res) => {
     // check that we have a email and password
@@ -477,8 +479,6 @@ app.post('/create-account', async (req, res) => {
         });
         return;
     }
-
-    console.log("In create account.");
 
     if (! await email_available(req.body.email)) {
         var user_obj = await user_sess.get_user(req.body.email);
@@ -523,34 +523,6 @@ app.post('/create-account', async (req, res) => {
     var email_confirmation_string = uuidv4();
     var password = await hash_password(req.body.password);
     const db = await _db.dbPromise;
-    
-
-    var transporter = null;
-
-    console.log("About to create transport");
-
-    try {
-        transporter = nodemailer.createTransport({
-            host: email_config.GMAIL_SERVICE_HOST,
-            port: email_config.GMAIL_SERVICE_PORT,
-            secure: email_config.GMAIL_SERVICE_SECURE,
-            auth: {
-                user: email_config.GMAIL_USER_NAME,
-                pass: email_config.GMAIL_USER_PASSWORD,
-            },
-        });    
-    }
-    catch(err) {
-        console.log("GMAIL API createTransport ERROR: ", JSON.stringify(err));
-        res.json({
-            success:false,
-            error:"Couldn't create transform for email confirmation."
-        });
-        return;
-    }
-
-    console.log("About to insert into database, ");
-
     // create an account that is pending confirmation
     var result = await insert_into_db('users', {
         'user_id': req.body.email,
@@ -562,48 +534,51 @@ app.post('/create-account', async (req, res) => {
         'account_uuid': uuidv4(),
     });
 
+    var transporter = nodemailer.createTransport({
+        host: email_config.GMAIL_SERVICE_HOST,
+        port: email_config.GMAIL_SERVICE_PORT,
+        secure: email_config.GMAIL_SERVICE_SECURE,
+        auth: {
+            user: email_config.GMAIL_USER_NAME,
+            pass: email_config.GMAIL_USER_PASSWORD,
+        },
+    });
+
     var url_root = `https://${process.env.k9_domain_name}/confirm/` || 'https://k-9karaoke.com/confirm/';
     var email_confirmation_url = url_root + email_confirmation_string;
 
-    console.log("about to fs read file...")
+    transporter.verify(function (error, success) {
+        if (error) {
+          console.log(error);
+          res.json({
+              success:false,
+              error: error
+          });
+          return;
+        } else {
+          console.log("Server is ready to take our messages");
+        }
+      });
 
-    try {
-        fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
-            var template = handlebars.compile(source);
-            var html = template({
-                confirmation_link: email_confirmation_url,
-            });
-    
-            console.log("About to try sending mail")
-            transporter.sendMail({
-                from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
-                to: req.body.email,
-                subject: 'K-9 Karaoke email confirmation ✔', // Subject line
-                html: html,
-            });    
-            console.log("Mail sent");
+    fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+        var html = template({
+            confirmation_link: email_confirmation_url,
         });
-        console.log("End of try block");
-    }
-    catch(err) {
-        console.log("GMAIL API SEND ERROR: ", JSON.stringify(err));
-        res.json({
-            success:false,
-            error: "Send confirm email failed."
+        transporter.sendMail({
+            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+            to: req.body.email,
+            subject: 'K-9 Karaoke email confirmation ✔', // Subject line
+            html: html,
         });
-        return;
+    });
 
-    }
-
-
-    console.log("fs readfile done, getting user object for result");
     var user_obj = await user_sess.get_user_no_password(req.body.email);
     res.json({
         success: true,
         user: user_obj,
         account_already_exists: false,
     });
-    console.log("Create account is completed.")
 });
 
 
