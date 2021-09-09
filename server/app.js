@@ -559,22 +559,19 @@ app.post('/create-account', async (req, res) => {
                 subject: 'K-9 Karaoke email confirmation ✔', // Subject line
                 html: html,
             });    
-            var user_obj = await user_sess.get_user_no_password(req.body.email);
-            res.json({
-                success: true,
-                user: user_obj,
-                account_already_exists: false,
-            });
-                }
+        }
         catch(err) {
-            console.log("GMAIL API ERROR! -- " + JSON.stringify(err));
-            res.json ({
-                success: false,
-                error: err
-            });
+            console.log("GMAIL API ERROR: ", JSON.stringify(err));
+            return;
         }
     });
 
+    var user_obj = await user_sess.get_user_no_password(req.body.email);
+    res.json({
+        success: true,
+        user: user_obj,
+        account_already_exists: false,
+    });
 });
 
 
