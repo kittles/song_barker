@@ -567,13 +567,14 @@ app.post('/create-account', async (req, res) => {
 
     console.log("about to fs read file...")
 
-    fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
-        var template = handlebars.compile(source);
-        var html = template({
-            confirmation_link: email_confirmation_url,
-        });
-        console.log("About to try sending mail")
-        try {
+    try {
+        fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
+            var template = handlebars.compile(source);
+            var html = template({
+                confirmation_link: email_confirmation_url,
+            });
+    
+            console.log("About to try sending mail")
             transporter.sendMail({
                 from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
                 to: req.body.email,
@@ -581,17 +582,19 @@ app.post('/create-account', async (req, res) => {
                 html: html,
             });    
             console.log("Mail sent");
-        }
-        catch(err) {
-            console.log("GMAIL API SEND ERROR: ", JSON.stringify(err));
-            res.json({
-                success:false,
-                error: "Send confirm email failed."
-            });
-            return;
-        }
-        console.log("end rf.readfile");
-    });
+        });
+        console.log("End of try block");
+    }
+    catch(err) {
+        console.log("GMAIL API SEND ERROR: ", JSON.stringify(err));
+        res.json({
+            success:false,
+            error: "Send confirm email failed."
+        });
+        return;
+
+    }
+
 
     console.log("fs readfile done, getting user object for result");
     var user_obj = await user_sess.get_user_no_password(req.body.email);
