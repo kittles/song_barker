@@ -527,6 +527,8 @@ app.post('/create-account', async (req, res) => {
 
     var transporter = null;
 
+    console.log("About to create transport");
+
     try {
         transporter = nodemailer.createTransport({
             host: email_config.GMAIL_SERVICE_HOST,
@@ -547,6 +549,8 @@ app.post('/create-account', async (req, res) => {
         return;
     }
 
+    console.log("About to insert into database, ");
+
     // create an account that is pending confirmation
     var result = await insert_into_db('users', {
         'user_id': req.body.email,
@@ -561,13 +565,14 @@ app.post('/create-account', async (req, res) => {
     var url_root = `https://${process.env.k9_domain_name}/confirm/` || 'https://k-9karaoke.com/confirm/';
     var email_confirmation_url = url_root + email_confirmation_string;
 
+    console.log("about to fs read file...")
 
     fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
         var html = template({
             confirmation_link: email_confirmation_url,
         });
-
+        console.log("About to try sending mail")
         try {
             transporter.sendMail({
                 from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
@@ -584,6 +589,7 @@ app.post('/create-account', async (req, res) => {
             });
             return;
         }
+        console.log("Mail sent");
     });
 
     var user_obj = await user_sess.get_user_no_password(req.body.email);
