@@ -453,7 +453,7 @@ app.post('/manual-login', async (req, res) => {
     }
 });
 
-
+//--------------------------------------------------- create account
 app.post('/create-account', async (req, res) => {
     // check that we have a email and password
     if (!req.body.email) {
@@ -551,20 +551,30 @@ app.post('/create-account', async (req, res) => {
         var html = template({
             confirmation_link: email_confirmation_url,
         });
-        transporter.sendMail({
-            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
-            to: req.body.email,
-            subject: 'K-9 Karaoke email confirmation ✔', // Subject line
-            html: html,
-        });
+
+        try {
+            transporter.sendMail({
+                from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+                to: req.body.email,
+                subject: 'K-9 Karaoke email confirmation ✔', // Subject line
+                html: html,
+            });    
+            var user_obj = await user_sess.get_user_no_password(req.body.email);
+            res.json({
+                success: true,
+                user: user_obj,
+                account_already_exists: false,
+            });
+                }
+        catch(err) {
+            console.log("GMAIL API ERROR! -- " + JSON.stringify(err));
+            res.json ({
+                success: false,
+                error: err
+            });
+        }
     });
 
-    var user_obj = await user_sess.get_user_no_password(req.body.email);
-    res.json({
-        success: true,
-        user: user_obj,
-        account_already_exists: false,
-    });
 });
 
 
