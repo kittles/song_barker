@@ -580,6 +580,7 @@ app.post('/create-account', async (req, res) => {
                 subject: 'K-9 Karaoke email confirmation ✔', // Subject line
                 html: html,
             });    
+            console.log("Mail sent");
         }
         catch(err) {
             console.log("GMAIL API SEND ERROR: ", JSON.stringify(err));
@@ -589,15 +590,17 @@ app.post('/create-account', async (req, res) => {
             });
             return;
         }
-        console.log("Mail sent");
+        console.log("end rf.readfile");
     });
 
+    console.log("fs readfile done, getting user object for result");
     var user_obj = await user_sess.get_user_no_password(req.body.email);
     res.json({
         success: true,
         user: user_obj,
         account_already_exists: false,
     });
+    console.log("Create account is completed.")
 });
 
 
