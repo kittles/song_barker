@@ -521,6 +521,30 @@ app.post('/create-account', async (req, res) => {
     var email_confirmation_string = uuidv4();
     var password = await hash_password(req.body.password);
     const db = await _db.dbPromise;
+    
+
+    var transporter = null;
+
+    try {
+        transporter = nodemailer.createTransport({
+            host: email_config.GMAIL_SERVICE_HOST,
+            port: email_config.GMAIL_SERVICE_PORT,
+            secure: email_config.GMAIL_SERVICE_SECURE,
+            auth: {
+                user: email_config.GMAIL_USER_NAME,
+                pass: email_config.GMAIL_USER_PASSWORD,
+            },
+        });    
+    }
+    catch(err) {
+        console.log("GMAIL API createTransport ERROR: ", JSON.stringify(err));
+        res.json({
+            success:false,
+            error:"Couldn't create transform for email confirmation."
+        });
+        return;
+    }
+
     // create an account that is pending confirmation
     var result = await insert_into_db('users', {
         'user_id': req.body.email,
@@ -530,16 +554,6 @@ app.post('/create-account', async (req, res) => {
         'email_confirmation_string': email_confirmation_string,
         'pending_confirmation': 1,
         'account_uuid': uuidv4(),
-    });
-
-    var transporter = nodemailer.createTransport({
-        host: email_config.GMAIL_SERVICE_HOST,
-        port: email_config.GMAIL_SERVICE_PORT,
-        secure: email_config.GMAIL_SERVICE_SECURE,
-        auth: {
-            user: email_config.GMAIL_USER_NAME,
-            pass: email_config.GMAIL_USER_PASSWORD,
-        },
     });
 
     var url_root = `https://${process.env.k9_domain_name}/confirm/` || 'https://k-9karaoke.com/confirm/';
@@ -561,7 +575,11 @@ app.post('/create-account', async (req, res) => {
             });    
         }
         catch(err) {
-            console.log("GMAIL API ERROR: ", JSON.stringify(err));
+            console.log("GMAIL API SEND ERROR: ", JSON.stringify(err));
+            res.json({
+                success:false,
+                error: "Send confirm email failed."
+            });
             return;
         }
     });
