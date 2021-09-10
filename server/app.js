@@ -456,6 +456,12 @@ app.post('/manual-login', async (req, res) => {
 
 
 //--------------------------------------------------- create account
+function sendMailCallback(error, info) {
+    console.log("Error: " + error);
+    console.log(JSON.stringify(info));
+}
+
+
 app.post('/create-account', async (req, res) => {
     // check that we have a email and password
     if (!req.body.email) {
@@ -534,6 +540,7 @@ app.post('/create-account', async (req, res) => {
         'account_uuid': uuidv4(),
     });
 
+    console.log("GMAIL config: " + JSON.stringify(email_config));
     var transporter = nodemailer.createTransport({
         host: email_config.GMAIL_SERVICE_HOST,
         port: email_config.GMAIL_SERVICE_PORT,
@@ -547,7 +554,7 @@ app.post('/create-account', async (req, res) => {
     var url_root = `https://${process.env.k9_domain_name}/confirm/` || 'https://k-9karaoke.com/confirm/';
     var email_confirmation_url = url_root + email_confirmation_string;
 
-    transporter.verify(function (error, success) {
+   let awol = await transporter.verify(function (error, success) {
         if (error) {
           console.log(error);
           res.json({
@@ -570,7 +577,7 @@ app.post('/create-account', async (req, res) => {
             to: req.body.email,
             subject: 'K-9 Karaoke email confirmation ✔', // Subject line
             html: html,
-        });
+        }, sendMailCallback);
     });
 
     var user_obj = await user_sess.get_user_no_password(req.body.email);
