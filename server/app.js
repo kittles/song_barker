@@ -454,6 +454,28 @@ app.post('/manual-login', async (req, res) => {
 });
 
 
+
+//--------------------------------------------------- create account
+
+function sendEmail(email, html) {
+    var transporter = nodemailer.createTransport({
+        host: email_config.GMAIL_SERVICE_HOST,
+        port: email_config.GMAIL_SERVICE_PORT,
+        secure: email_config.GMAIL_SERVICE_SECURE,
+        auth: {
+            user: email_config.GMAIL_USER_NAME,
+            pass: email_config.GMAIL_USER_PASSWORD,
+        },
+    });
+
+    return transporter.sendMail({
+        from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+        to: email,
+        subject: 'K-9 Karaoke email confirmation ✔', // Subject line
+        html: html,
+    });
+}
+
 app.post('/create-account', async (req, res) => {
     // check that we have a email and password
     if (!req.body.email) {
@@ -498,6 +520,7 @@ app.post('/create-account', async (req, res) => {
             });
             return;
         }
+
         var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
         if (accept_password) {
             var user_obj = await user_sess.get_user_no_password(req.body.email);
@@ -532,38 +555,31 @@ app.post('/create-account', async (req, res) => {
         'account_uuid': uuidv4(),
     });
 
-    var transporter = nodemailer.createTransport({
-        host: email_config.GMAIL_SERVICE_HOST,
-        port: email_config.GMAIL_SERVICE_PORT,
-        secure: email_config.GMAIL_SERVICE_SECURE,
-        auth: {
-            user: email_config.GMAIL_USER_NAME,
-            pass: email_config.GMAIL_USER_PASSWORD,
-        },
-    });
+ //   console.log("GMAIL config: " + JSON.stringify(email_config));
 
+   
     var url_root = `https://${process.env.k9_domain_name}/confirm/` || 'https://k-9karaoke.com/confirm/';
     var email_confirmation_url = url_root + email_confirmation_string;
 
 
-    fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
+
+    var html = null;
+    await fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
-        var html = template({
+        html = template({
             confirmation_link: email_confirmation_url,
         });
-        1
+      
         try {
-            transporter.sendMail({
-                from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
-                to: req.body.email,
-                subject: 'K-9 Karaoke email confirmation ✔', // Subject line
-                html: html,
-            });
+            sendEmail(req.body.email, html);
+            console.log("Successful sendEmail");
         }
-        catch(e) {
-            console.log(JSON.stringify(e));
+        catch(error){
+            console.log("Error: " + JSON.stringify(error));
         }
     });
+
+    
 
     var user_obj = await user_sess.get_user_no_password(req.body.email);
     res.json({
@@ -571,6 +587,7 @@ app.post('/create-account', async (req, res) => {
         user: user_obj,
         account_already_exists: false,
     });
+ 
 });
 
 
