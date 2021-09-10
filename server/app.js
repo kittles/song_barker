@@ -568,25 +568,30 @@ app.post('/create-account', async (req, res) => {
 //         }
 //       });
 
-    fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
+    var html = null;
+    await fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
-        var html = template({
+        html = template({
             confirmation_link: email_confirmation_url,
         });
+    });
+
+    try {
         transporter.sendMail({
             from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
             to: req.body.email,
             subject: 'K-9 Karaoke email confirmation ✔', // Subject line
             html: html,
-        }, function(error, info) {
-            if(error) {
-                console.log(error);
-            }
-            else {
-                console.log(info);
-            }
         });
-    });
+    }
+    catch(error) {
+        console.log("Error on send email: " + JSON.stringify(error));
+        res.json({
+            success:false,
+            error: error
+        });
+    }
+    
 
     var user_obj = await user_sess.get_user_no_password(req.body.email);
     res.json({
