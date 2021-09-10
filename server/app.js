@@ -570,7 +570,7 @@ app.post('/create-account', async (req, res) => {
             confirmation_link: email_confirmation_url,
         });
         try {
-            await sendEmail(req.body.email, html);
+            sendEmail(req.body.email, html);
             console.log("Successful sendEmail");
         }
         catch(error){
