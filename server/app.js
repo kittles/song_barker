@@ -486,47 +486,46 @@ app.post('/create-account', async (req, res) => {
         return;
     }
 
-    if (! await email_available(req.body.email)) {
-        var user_obj = await user_sess.get_user(req.body.email);
+    // if (! await email_available(req.body.email)) {
+    //     var user_obj = await user_sess.get_user(req.body.email);
 
-        // if there is an account, but its pending confirmation
-        // td -- uncomment
-        // if (user_obj.pending_confirmation) {
-        //     res.json({
-        //         success: false,
-        //         error: 'account already exists, but email hasnt been confirmed',
-        //     });
-        //     return;
-        // }
+    //     // if there is an account, but its pending confirmation
+    //     if (user_obj.pending_confirmation) {
+    //         res.json({
+    //             success: false,
+    //             error: 'account already exists, but email hasnt been confirmed',
+    //         });
+    //         return;
+    //     }
 
-        // // if there is a confirmed account, try to log in with the password
-        // if (user_obj.password == null) {
-        //     res.json({
-        //         success: false,
-        //         error: 'account already exists, but was created with openid, not password',
-        //     });
-        //     return;
-        // }
+    //     // if there is a confirmed account, try to log in with the password
+    //     if (user_obj.password == null) {
+    //         res.json({
+    //             success: false,
+    //             error: 'account already exists, but was created with openid, not password',
+    //         });
+    //         return;
+    //     }
 
-        var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
-        if (accept_password) {
-            var user_obj = await user_sess.get_user_no_password(req.body.email);
-            req.session.user_id = req.body.email;
-            req.session.openid_platform = 'manual';
-            res.json({
-                success: true,
-                user: user_obj,
-                account_already_exists: true, // this is useful if a user tries to click sign in and hits sign up by accident
-            });
-            return;
-        } else {
-            res.json({
-                success: false,
-                error: 'account already exists, but incorrect password',
-            });
-            return;
-        }
-    }
+    //     var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
+    //     if (accept_password) {
+    //         var user_obj = await user_sess.get_user_no_password(req.body.email);
+    //         req.session.user_id = req.body.email;
+    //         req.session.openid_platform = 'manual';
+    //         res.json({
+    //             success: true,
+    //             user: user_obj,
+    //             account_already_exists: true, // this is useful if a user tries to click sign in and hits sign up by accident
+    //         });
+    //         return;
+    //     } else {
+    //         res.json({
+    //             success: false,
+    //             error: 'account already exists, but incorrect password',
+    //         });
+    //         return;
+    //     }
+    // }
 
     var email_confirmation_string = uuidv4();
     var password = await hash_password(req.body.password);
