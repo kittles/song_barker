@@ -490,22 +490,24 @@ app.post('/create-account', async (req, res) => {
         var user_obj = await user_sess.get_user(req.body.email);
 
         // if there is an account, but its pending confirmation
-        if (user_obj.pending_confirmation) {
-            res.json({
-                success: false,
-                error: 'account already exists, but email hasnt been confirmed',
-            });
-            return;
-        }
+        // td -- uncomment
+        // if (user_obj.pending_confirmation) {
+        //     res.json({
+        //         success: false,
+        //         error: 'account already exists, but email hasnt been confirmed',
+        //     });
+        //     return;
+        // }
 
-        // if there is a confirmed account, try to log in with the password
-        if (user_obj.password == null) {
-            res.json({
-                success: false,
-                error: 'account already exists, but was created with openid, not password',
-            });
-            return;
-        }
+        // // if there is a confirmed account, try to log in with the password
+        // if (user_obj.password == null) {
+        //     res.json({
+        //         success: false,
+        //         error: 'account already exists, but was created with openid, not password',
+        //     });
+        //     return;
+        // }
+
         var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
         if (accept_password) {
             var user_obj = await user_sess.get_user_no_password(req.body.email);
@@ -572,11 +574,18 @@ app.post('/create-account', async (req, res) => {
         var html = template({
             confirmation_link: email_confirmation_url,
         });
-        transporter.sendMail({
+        await transporter.sendMail({
             from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
             to: req.body.email,
             subject: 'K-9 Karaoke email confirmation ✔', // Subject line
             html: html,
+        }, function(error, info) {
+            if(error) {
+                console.log(error);
+            }
+            else {
+                console.log(info);
+            }
         });
     });
 
