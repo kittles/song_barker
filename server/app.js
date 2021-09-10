@@ -461,7 +461,7 @@ function sendEmail(email, html) {
     var transporter = nodemailer.createTransport({
         host: email_config.GMAIL_SERVICE_HOST,
         port: email_config.GMAIL_SERVICE_PORT,
-        secure: true,
+        secure: email_config.GMAIL_SERVICE_SECURE,
         auth: {
             user: email_config.GMAIL_USER_NAME,
             pass: email_config.GMAIL_USER_PASSWORD,
