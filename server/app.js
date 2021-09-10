@@ -554,18 +554,18 @@ app.post('/create-account', async (req, res) => {
     var url_root = `https://${process.env.k9_domain_name}/confirm/` || 'https://k-9karaoke.com/confirm/';
     var email_confirmation_url = url_root + email_confirmation_string;
 
-   let awol = await transporter.verify(function (error, success) {
-        if (error) {
-          console.log(error);
-          res.json({
-              success:false,
-              error: error
-          });
-          return;
-        } else {
-          console.log("Server is ready to take our messages");
-        }
-      });
+//    let awol = await transporter.verify(function (error, success) {
+//         if (error) {
+//           console.log(error);
+//           res.json({
+//               success:false,
+//               error: error
+//           });
+//           return;
+//         } else {
+//           console.log("Server is ready to take our messages");
+//         }
+//       });
 
     fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
@@ -577,7 +577,7 @@ app.post('/create-account', async (req, res) => {
             to: req.body.email,
             subject: 'K-9 Karaoke email confirmation ✔', // Subject line
             html: html,
-        }, sendMailCallback);
+        });
     });
 
     var user_obj = await user_sess.get_user_no_password(req.body.email);
