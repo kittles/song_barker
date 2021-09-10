@@ -574,7 +574,7 @@ app.post('/create-account', async (req, res) => {
         var html = template({
             confirmation_link: email_confirmation_url,
         });
-        await transporter.sendMail({
+        transporter.sendMail({
             from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
             to: req.body.email,
             subject: 'K-9 Karaoke email confirmation ✔', // Subject line
