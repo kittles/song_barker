@@ -569,15 +569,16 @@ app.post('/create-account', async (req, res) => {
         html = template({
             confirmation_link: email_confirmation_url,
         });
+        try {
+            await sendEmail(req.body.email, html);
+            console.log("Successful sendEmail");
+        }
+        catch(error){
+            console.log("Error: " + JSON.stringify(error));
+        }
     });
 
-    try {
-        await sendEmail(req.body.email, html);
-        console.log("Successful sendEmail");
-    }
-    catch(error){
-        console.log("Error: " + JSON.stringify(error));
-    }
+    
 
     var user_obj = await user_sess.get_user_no_password(req.body.email);
     res.json({
