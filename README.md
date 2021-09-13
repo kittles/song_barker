@@ -406,7 +406,8 @@ information about the bark needed for the db
 before users can have the stock objects, they need to be available in the bucket.
 `/stock_assets/sync_stock_to_bucket.py` will look in the barks and images directories
 and make sure everything gets uploaded to the bucket. it should be as simple as running
-the script to make sure everything is in the bucket.
+the script to make sure everything is in the bucket. Make sure you activate the environment .env
+which can be found in /audio_processing/.env before running the python scripts in this directory.
 
 
 ## adding stock objects for a user
