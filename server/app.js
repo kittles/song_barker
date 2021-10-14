@@ -270,6 +270,7 @@ async function manual_to_openid_confirmation (user) {
     // as their manual signup
     // TODO put this in the two open id endpoints below and test
     if (user.pending_confirmation) {
+        console.log("Overriding previous email attempt to signup");
         try {
             const db = await _db.dbPromise;
             var update_query = await db.run('update users set pending_confirmation = 0 where user_id = ?',
@@ -277,6 +278,7 @@ async function manual_to_openid_confirmation (user) {
             );
             // subprocess to add stock objects
             add_stock_objects_to_user(user.user_id);
+            console.log("Override successful, user has full account.");
         }
         catch(err) {
             console.log(err);
