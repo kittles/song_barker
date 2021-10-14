@@ -270,6 +270,7 @@ async function manual_to_openid_confirmation (user) {
     // as their manual signup
     // TODO put this in the two open id endpoints below and test
     if (user.pending_confirmation) {
+        const db = await _db.dbPromise;
         var update_query = await db.run('update users set pending_confirmation = 0 where user_id = ?',
             user.user_id,
         );
