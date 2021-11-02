@@ -22,7 +22,7 @@ const msg = {
 exports.sendmail = function(to, from, subject, html) {
     const msg = {
         to: to, 
-        from: 'no-reply@turboblasterunlimited.com', 
+        from: from, 
         subject: subject,
         html: html
     } 

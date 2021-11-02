@@ -32,7 +32,7 @@ var cloud_request = require('./cloud_request.js').cloud_request;
 var data_for_name = require('./autoname_crop.js').data_for_name;
 var insert_into_db = require('./db_insert.js').insert_into_db;
 
-var sendgrid = require('./sendgrid');
+//var sendgrid = require('./sendgrid');
 
 //
 // server config
@@ -581,7 +581,8 @@ app.post('/create-account', async (req, res) => {
       
         try {
             //sendEmail(req.body.email, html);
-            sendgrid_result = sendgrid.sendmail(req.body.email.html);
+            sendgrid_result = sendgrid.sendmail(req.body.email, 'no-reply@turboblasterunlimited.com'
+                                                ,'K-9 Karaoke email confirmation ✔', html);
             console.log("Sendmail results: " + sendgrid_result);
         }
         catch(error){
