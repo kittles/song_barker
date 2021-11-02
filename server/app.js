@@ -32,7 +32,7 @@ var cloud_request = require('./cloud_request.js').cloud_request;
 var data_for_name = require('./autoname_crop.js').data_for_name;
 var insert_into_db = require('./db_insert.js').insert_into_db;
 
-//var sendgrid = require('./sendgrid');
+var sendgrid = require('./sendgrid');
 
 //
 // server config
