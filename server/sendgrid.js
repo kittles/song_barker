@@ -17,7 +17,7 @@ const msg = {
 } 
  */
 
-
+console.log("Sendgrid API KEY: " + process.env.SENDGRID_API_KEY);
 
 exports.sendmail = function(to, from, subject, html) {
     const msg = {
@@ -27,6 +27,11 @@ exports.sendmail = function(to, from, subject, html) {
         html: html
     } 
     result = "";
+
+    console.log("About to send email: ", JSON.stringify(msg));
+
+
+
     sgMail
         .send(msg)
         .then(() => {
@@ -34,6 +39,7 @@ exports.sendmail = function(to, from, subject, html) {
             result = "Success"
         })
         .catch((error) => {
+            error = "Caught error: " + error;
             console.error(error)
             result = error
         })

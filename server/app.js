@@ -586,7 +586,7 @@ app.post('/create-account', async (req, res) => {
             console.log("Sendmail results: " + sendgrid_result);
         }
         catch(error){
-            console.log("Error: " + JSON.stringify(error));
+            console.log("Send mail Error: " + JSON.stringify(error));
         }
     });
 
