@@ -712,13 +712,16 @@ app.post('/temp-password', async (req, res) => {
     //     subject: 'K9 Karaoke account recovery ✔', // Subject line
     //     text: 'please use this link to reset your password: ' + url_host,
     // });
-    await transporter.sendMail({
-        from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
-        to: user_obj.email,
-        subject: 'K9 Karaoke account recovery ✔', // Subject line
-        text: `please use this temporary password to log in to your account: ${temp_password}`,
-    });
-
+    // jmf -- 02-nov-2021: comment out call to sendme.
+    // await transporter.sendMail({
+    //     from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+    //     to: user_obj.email,
+    //     subject: 'K9 Karaoke account recovery ✔', // Subject line
+    //     text: `please use this temporary password to log in to your account: ${temp_password}`,
+    // });
+    sendgrid.sendmail(user_obj.email, '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>'
+                        ,'K9 Karaoke account recovery ✔'
+                        ,  `please use this temporary password to log in to your account: ${temp_password}`);
 
     var user_obj = await user_sess.get_user_no_password(req.body.user_id);
     res.json({
@@ -819,25 +822,28 @@ app.post('/puppet/email-support', async (req, res) => {
     }
 
     // validated, let's send it!
-    console.log(JSON.stringify(email_config));
-    var transporter = nodemailer.createTransport({
-        host: email_config.GMAIL_SERVICE_HOST,
-        port: email_config.GMAIL_SERVICE_PORT,
-        secure: email_config.GMAIL_SERVICE_SECURE,
-        auth: {
-            user: email_config.GMAIL_USER_NAME,
-            pass: email_config.GMAIL_USER_PASSWORD,
-        },
-    });
-    await transporter.sendMail({
-        from: req.body.email, // sender address
-        to: 'turboblasterllc@gmail.com',
-        subject: req.body.subject, // Subject line
-        text: req.body.message
-    }, );
+    // console.log(JSON.stringify(email_config));
+    // var transporter = nodemailer.createTransport({
+    //     host: email_config.GMAIL_SERVICE_HOST,
+    //     port: email_config.GMAIL_SERVICE_PORT,
+    //     secure: email_config.GMAIL_SERVICE_SECURE,
+    //     auth: {
+    //         user: email_config.GMAIL_USER_NAME,
+    //         pass: email_config.GMAIL_USER_PASSWORD,
+    //     },
+    // });
+    // await transporter.sendMail({
+    //     from: req.body.email, // sender address
+    //     to: 'turboblasterllc@gmail.com',
+    //     subject: req.body.subject, // Subject line
+    //     text: req.body.message
+    // }, );
+
+    result = sendgrid.sendmail('turboblasterllc@gmail.com', req.body.email, req.body.subject, req.body.message);
 
     res.json ({
-        success:true
+        success:true,
+        text:result
     });
 
     return;
