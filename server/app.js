@@ -804,6 +804,7 @@ app.post('/puppet/email-support', async (req, res) => {
             success: false,
             error: 'invalid email',
         });
+        console.log("Email-support error, Invalid email");
         return;
     }
     if(!req.body.subject || req.body.subject.length == 0) {
@@ -811,6 +812,7 @@ app.post('/puppet/email-support', async (req, res) => {
             success: false,
             error: 'no subject'
         });
+        console.log("Email-support error, No Subject");
         return;
     }
     if(!req.body.message || req.body.message.length == 0) {
@@ -818,6 +820,7 @@ app.post('/puppet/email-support', async (req, res) => {
             success: false,
             error: 'no message'
         });
+        console.log("email-support error, no message.");
         return;
     }
 
@@ -839,8 +842,8 @@ app.post('/puppet/email-support', async (req, res) => {
     //     text: req.body.message
     // }, );
 
-    result = sendgrid.sendmail('turboblasterllc@gmail.com', req.body.email, req.body.subject, req.body.message);
-
+    result = sendgrid.sendmail('support@turboblasterunlimited.com', req.body.email, req.body.subject, req.body.message);
+    console.log("sending support email: " + result);
     res.json ({
         success:true,
         text:result
