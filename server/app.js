@@ -583,7 +583,7 @@ app.post('/create-account', async (req, res) => {
             //sendEmail(req.body.email, html);
             sendgrid_result = sendgrid.sendmail(req.body.email, 'no-reply@turboblasterunlimited.com'
                                                 ,'K-9 Karaoke email confirmation ✔', html);
-            console.log("Sendmail results: " + sendgrid_result);
+            console.log("Send comfirmation mail succeeded");
         }
         catch(error){
             console.log("Send mail Error: " + JSON.stringify(error));
