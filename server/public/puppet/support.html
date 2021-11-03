@@ -343,7 +343,7 @@
 
 
     $.postJSON = function (url, data) {
-
+        console.log("posting to support")
         return jQuery.ajax({
             'type': 'POST',
             'url': 'email-support',
@@ -357,8 +357,10 @@
                     $("#result").css("color", "green");
                 }
                 else {
+                    
                     error.innerText = "ERROR: " + data.error;
                     error.className = 'error';
+                    console.log("post to support error: " + data.error);
                 }
             },
             'fail': function (data) {
