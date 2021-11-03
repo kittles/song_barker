@@ -792,7 +792,7 @@ app.post('/complete-reset-password', async (req, res) => {
 
 });
 
-app.post('/email-support', async (req, res) => {
+app.post('/puppet/email-support', async (req, res) => {
     // console.log("email-support");
     //  console.log(req.body.email);
     //  console.log(req.body.subject);
