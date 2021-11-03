@@ -30,8 +30,7 @@ exports.sendmail = function(to, from, subject, html) {
     } 
     result = "";
 
-    console.log("About to send email: ", JSON.stringify(msg));
-
+    
 
 
     sgMail
