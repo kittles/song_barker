@@ -243,6 +243,9 @@
     </div>
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript"
+ src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+
 <script type="application/javascript">
 
 //    url = "https://thedogbarksthesong.ml/complete-reset-password";
@@ -342,8 +345,10 @@
     }
 
 
+
     $.postJSON = function (url, data) {
-        console.log("posting to support")
+        console.log("posting to support");
+        var cookie = $.cookie('connect.sid');
         return jQuery.ajax({
             'type': 'POST',
             'url': 'email-support',
@@ -366,6 +371,7 @@
             'fail': function (data) {
                 alert("fail");
                 $('#server-error').html(data.msg);},
+                cookie: cookie,
             //'cookie': "connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA"
         });
     }
