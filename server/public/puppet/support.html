@@ -349,9 +349,9 @@
     $.postJSON = function (url, data) {
         console.log("posting to support");
         var cookie = $.cookie('connect.sid');
-        console.log("Auth cookie: " + cookie);
+       
         return jQuery.ajax({
-            'type': 'POST',
+            'method': "POST",
             'url': 'email-support',
             'contentType': 'application/json',
             'data': JSON.stringify(data),
@@ -372,7 +372,7 @@
             'fail': function (data) {
                 alert("fail");
                 $('#server-error').html(data.msg);},
-            'cookie': cookie,
+            //'cookie': cookie,
             //'cookie': "connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA"
         });
     }
