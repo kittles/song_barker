@@ -668,6 +668,9 @@ async function prepare_card () {
         decoration_img.click(handle_click);
         desktop_play.click(handle_click);
 
+        // added JMF 05-Nov-2021: Allow button to start/stop playback
+        // temp hack to make it easier to record videos.
+        document.getElementById('button').onclick = handle_click;
 
         function card_play () {
             $('#desktop-play > img').attr('src', control_pause_img);
