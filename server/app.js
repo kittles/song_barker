@@ -792,8 +792,14 @@ app.post('/complete-reset-password', async (req, res) => {
 
 });
 
+app.get('/support.html', function(req, res){
+    var uid = req.params.uid,
+        path = req.params[0] ? req.params[0] : 'index.html';
+    res.sendFile(support.html, {root: './public'});
+});
+
 app.post('/email-support', async (req, res) => {
-    // console.log("email-support");
+    console.log("email-support web service called");
     //  console.log(req.body.email);
     //  console.log(req.body.subject);
     //  console.log(req.body.message);
