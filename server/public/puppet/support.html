@@ -256,7 +256,7 @@
 
 
      url = "https://" + host + "/email-support";
-
+    console.log("url: " + url);
 
 
     function listCookies() {
@@ -352,7 +352,7 @@
        
         return jQuery.ajax({
             'method': "POST",
-            'url': 'email-support',
+            'url': url,
             'contentType': 'application/json',
             'data': JSON.stringify(data),
             'dataType': 'json',
