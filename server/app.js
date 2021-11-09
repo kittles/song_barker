@@ -792,7 +792,7 @@ app.post('/complete-reset-password', async (req, res) => {
 
 });
 
-app.get('/support.html', function(req, res){
+app.get('/support', function(req, res){
     console.log("support.html route called")
     res.sendFile("./public/support.html");
 });
