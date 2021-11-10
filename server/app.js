@@ -796,6 +796,8 @@ app.get('/support.html', function(req, res){
     console.log("support.html route called")
     res.sendFile(support.html, {root: './public'});
 });
+const authSender = "no-reply@turboblasterunlimited.com";
+const supportEmail = "support@turboblasterunlimited.com";
 
 app.post('/email-support', async (req, res) => {
     console.log("email-support web service called");
@@ -828,6 +830,19 @@ app.post('/email-support', async (req, res) => {
         console.log("email-support error, no message.");
         return;
     }
+    var to = supportEmail;
+    var from = authSender;
+    var subject = req.body.subject;
+    var message = req.body.email + " ======" + req.body.message;
+
+    result = sendgrid.sendmail(to, from, subject, message);
+    console.log("sending support email: " + result);
+    res.json ({
+        success:true,
+        text:result
+    });
+
+    return;
 
     // validated, let's send it!
     // console.log(JSON.stringify(email_config));
@@ -847,14 +862,7 @@ app.post('/email-support', async (req, res) => {
     //     text: req.body.message
     // }, );
 
-    result = sendgrid.sendmail('support@turboblasterunlimited.com', req.body.email, req.body.subject, req.body.message);
-    console.log("sending support email: " + result);
-    res.json ({
-        success:true,
-        text:result
-    });
 
-    return;
 });
 
 app.get('/reset/:uuid', async (req, res) => {
