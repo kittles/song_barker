@@ -30,8 +30,9 @@ exports.sendmail = function(to, from, subject, html) {
     } 
     result = "";
 
+    console.log("Sendgrid API KEY: " + apiKey);
+    console.log("About to send: " + JSON.stringify(msg));
     
-
 
     sgMail
         .send(msg)
