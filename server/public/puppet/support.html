@@ -23,7 +23,7 @@
             overflow-y: hidden;
             overflow-x: hidden;
             font-family: 'museo';
-            background-image: url('k9_create_background.svg');
+            background-image: url('/puppet/k9_create_background.svg');
             background-size: cover;
             background-attachment: fixed;
             margin: 0;
@@ -59,6 +59,7 @@
             height: 20%;
             margin: auto;
         }
+
         /*
                 @media (min-width: 1000px) {
                     #message-text {
@@ -159,7 +160,7 @@
         }
 
         .error {
-            color:red;
+            color: red;
             visibility: hidden;
             font-size: 1em;
         }
@@ -167,30 +168,33 @@
         .done {
             visibility: hidden;
             font-size: 1.5em;
-            color:#004692;
+            color: #004692;
         }
 
         #old {
-            visibility:hidden;
+            visibility: hidden;
         }
+
         input[type=text] {
             width: 90%;
             padding: 12px 20px;
             margin: 8px auto;
             box-sizing: border-box;
         }
+
         textarea {
             width: 90%;
             padding: 12px 20px;
             margin: 8px auto;
             box-sizing: border-box;
         }
+
         button {
-            background-color:#004692;
-            color:whitesmoke;
-            width:100px;
-            height:40px;
-            font-size:1.5em;
+            background-color: #004692;
+            color: whitesmoke;
+            width: 100px;
+            height: 40px;
+            font-size: 1.5em;
         }
     </style>
 </head>
@@ -231,7 +235,8 @@
                 </tr>
             </table>
 
-            <br/><button id="sendButton" onclick="submitForm()">Send</button>
+            <br/>
+            <button id="sendButton" onclick="submitForm()">Send</button>
             <p id="error" class="error">no error</p>
             <div id="result">
 
@@ -244,26 +249,43 @@
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript"
- src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+        src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 
 <script type="application/javascript">
 
-//    url = "https://thedogbarksthesong.ml/complete-reset-password";
+    //    url = "https://thedogbarksthesong.ml/complete-reset-password";
 
     //    url = "http://localhost:3000/complete-reset-password";
     hostURL = new URL(document.URL);
     host = hostURL.host;
 
 
-     url = "https://" + host + "/email-support";
-    console.log("url: " + url);
+    url = "https://" + host + "/email-support";
 
+    //console.log("url: " + url);
+
+    function showErrorMessages(shouldShow) {
+        if (!shouldShow)
+            document.getElementById("result").style.visibility = "hidden";
+        else
+            document.getElementById("result").style.visibility = "visible";
+    }
+
+    function hideMessages() {
+        showErrorMessages(false);
+    }
+
+    hideMessages();
+    // window.onload = (event) => {
+    //     hideMessages();
+    //     console.log('page is fully loaded');
+    // };
 
     function listCookies() {
         var theCookies = document.cookie.split(';');
         var aString = '';
-        for (var i = 1 ; i <= theCookies.length; i++) {
-            aString += i + ' ' + theCookies[i-1] + "\n";
+        for (var i = 1; i <= theCookies.length; i++) {
+            aString += i + ' ' + theCookies[i - 1] + "\n";
         }
         return aString;
     }
@@ -305,12 +327,11 @@
             err += "Message cannot be empty."
         }
 
-        if(err.length > 0) {
+        if (err.length > 0) {
             document.getElementById("sendButton").disabled = true;
             $result.text(err);
             $result.css("color", "red");
-        }
-        else {
+        } else {
             document.getElementById("sendButton").disabled = false;
         }
 
@@ -325,45 +346,44 @@
     validate();
 
     function submitForm() {
+  //      showErrorMessages(true);
         if ($("#result").text().length > 0) {
             return false;
-        }
-
-
-        else {
+        } else {
             error.className = "done";
             error.style.visibility = "visible";
             error.innerHTML = "Email sent"
             $.postJSON(url,
-                {'email' : document.getElementById("email").value,
-                    'subject':document.getElementById("subject").value,
-                    'message':document.getElementById("message").value});
+                {
+                    'email': document.getElementById("email").value,
+                    'subject': document.getElementById("subject").value,
+                    'message': document.getElementById("message").value
+                });
 
-        };
+        }
+        ;
 
         return false;
     }
 
 
-
     $.postJSON = function (url, data) {
         console.log("posting to support");
         var cookie = $.cookie('connect.sid');
-       
+
         return jQuery.ajax({
             'method': "POST",
             'url': url,
             'contentType': 'application/json',
             'data': JSON.stringify(data),
             'dataType': 'json',
-            'success':  function (data) {
+            'success': function (data) {
                 console.log(JSON.stringify(data));
-                if(data.success) {
+                if (data.success) {
                     $("#result").text("Email Sent");
                     $("#result").css("color", "green");
-                }
-                else {
-                    
+                } else {
+
                     error.innerText = "ERROR: " + data.error;
                     error.className = 'error';
                     console.log("post to support error: " + data.error);
@@ -371,12 +391,12 @@
             },
             'fail': function (data) {
                 alert("fail");
-                $('#server-error').html(data.msg);},
+                $('#server-error').html(data.msg);
+            },
             //'cookie': cookie,
             //'cookie': "connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA; connect.sid=s:VWp_i04Uor0_pa1ydRz-gebLFOTltVp7.WFRxxOXHIdlQin1ODUbqPvHSbvhOTBCKBV7/7gHgYsA"
         });
     }
-
 
 
     function getQueryVariable(variable) {
