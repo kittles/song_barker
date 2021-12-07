@@ -925,16 +925,17 @@ app.post('/request-reset-password', async (req, res) => {
 
     console.log("token: " + token + ", timestamp: " + timestamp);
     console.log(JSON.stringify(email_config));
-    
-    var transporter = nodemailer.createTransport({
-        host: email_config.GMAIL_SERVICE_HOST,
-        port: email_config.GMAIL_SERVICE_PORT,
-        secure: email_config.GMAIL_SERVICE_SECURE,
-        auth: {
-            user: email_config.GMAIL_USER_NAME,
-            pass: email_config.GMAIL_USER_PASSWORD,
-        },
-    });
+ 
+    // Jmf 6-dec-21: replace by SendGrid
+    // var transporter = nodemailer.createTransport({
+    //     host: email_config.GMAIL_SERVICE_HOST,
+    //     port: email_config.GMAIL_SERVICE_PORT,
+    //     secure: email_config.GMAIL_SERVICE_SECURE,
+    //     auth: {
+    //         user: email_config.GMAIL_USER_NAME,
+    //         pass: email_config.GMAIL_USER_PASSWORD,
+    //     },
+    // });
 
     // var url_root = `https://${process.env.k9_domain_name}/reset/` 
     // || 'https://k-9karaoke.com/reset/';
@@ -945,6 +946,7 @@ app.post('/request-reset-password', async (req, res) => {
 
     var email_confirmation_url = url_root + token;
 
+    var result = "";
 
     fs.readFile('public/puppet/request_reset_email.html', 'utf-8', function (error, source) {
         var template = handlebars.compile(source);
@@ -952,23 +954,38 @@ app.post('/request-reset-password', async (req, res) => {
             confirmation_link: email_confirmation_url,
         });
 
-        transporter.sendMail({
-            from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
-            to: req.body.email,
-            subject: 'K-9 Karaoke email confirmation ✔', // Subject line
-            html: html,
-        }, function(error, info){
-            if (error) {
-              console.log(error);
-            } else {
-              console.log('Email sent: ' + JSON.stringify(info));
-            }
-          } );
+        var to = req.body.email;
+        var from = '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>';
+        var subject = 'K-9 Karaoke email confirmation ✔';
+        var message = html;
+
+        result = sendgrid.sendmail(to, from, subject, message);
+        console.log("sending support email: " + result);
+    
+        // jmf -- replaced by SendGrid
+        // transporter.sendMail({
+        //     from: '"K-9 Karaoke" <no-reply@turboblasterunlimited.com>', // sender address
+        //     to: req.body.email,
+        //     subject: 'K-9 Karaoke email confirmation ✔', // Subject line
+        //     html: html,
+        // }, function(error, info){
+        //     if (error) {
+        //       console.log(error);
+        //     } else {
+        //       console.log('Email sent: ' + JSON.stringify(info));
+        //     }
+        //   } );
     });
 
-    res.json({
-        success: true,
+    res.json ({
+        success:true,
+        text:result
     });
+
+// jmf -- replaced by SendGrid
+    // res.json({
+    //     success: true,
+    // });
 });
 
 function EmailCallback(errorObject, messageObject) {
