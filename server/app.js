@@ -436,13 +436,14 @@ app.post('/manual-login', async (req, res) => {
         });
         return;
     }
-    if (_.get(user_obj, 'pending_confirmation') === 1) {
-        res.json({
-            success: false,
-            error: 'unconfirmed account',
-        });
-        return;
-    }
+    // jmf - 17 dec 21: remove pending confirmation check so that losing confirm or timing out doesn't make account inaccessible.
+    // if (_.get(user_obj, 'pending_confirmation') === 1) {
+    //     res.json({
+    //         success: false,
+    //         error: 'unconfirmed account',
+    //     });
+    //     return;
+    // }
     var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
 
     var user_obj = await user_sess.get_user_no_password(req.body.email);
