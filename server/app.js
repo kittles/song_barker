@@ -436,14 +436,15 @@ app.post('/manual-login', async (req, res) => {
         });
         return;
     }
-    // jmf - 17 dec 21: remove pending confirmation check so that losing confirm or timing out doesn't make account inaccessible.
-    // if (_.get(user_obj, 'pending_confirmation') === 1) {
-    //     res.json({
-    //         success: false,
-    //         error: 'unconfirmed account',
-    //     });
-    //     return;
-    // }
+    
+    if (_.get(user_obj, 'pending_confirmation') === 1) {
+        res.json({
+            success: false,
+            error: 'unconfirmed account',
+        });
+        return;
+    }
+
     var accept_password = await bcrypt.compare(req.body.password, user_obj.password);
 
     var user_obj = await user_sess.get_user_no_password(req.body.email);
@@ -513,14 +514,15 @@ app.post('/create-account', async (req, res) => {
     if (! await email_available(req.body.email)) {
         var user_obj = await user_sess.get_user(req.body.email);
 
+    // jmf - 17 dec 21: Removed pending confirmation check so that losing confirm or timing out doesn't make account inaccessible.
         // if there is an account, but its pending confirmation
-        if (user_obj.pending_confirmation) {
-            res.json({
-                success: false,
-                error: 'account already exists, but email hasnt been confirmed',
-            });
-            return;
-        }
+        // if (user_obj.pending_confirmation) {
+        //     res.json({
+        //         success: false,
+        //         error: 'account already exists, but email hasnt been confirmed',
+        //     });
+        //     return;
+        // }
 
         // if there is a confirmed account, try to log in with the password
         if (user_obj.password == null) {
