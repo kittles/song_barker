@@ -898,6 +898,7 @@ app.post('/cloud/to_crops', async function (req, res) {
         bucket: process.env.k9_bucket_name,
     })
     if (_.has(crop_data, 'stderr')) {
+        console.log("Error actual splitting (call at line 896 app.js):", crop_data );
         res.status(503).send(`cloud request failed - ${crop_data.stderr}`);
         return;
     }
