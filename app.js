@@ -863,17 +863,29 @@ app.post('/cloud/to_crops', async function (req, res) {
         res.status(401).send('you must have a valid user_id to access this resource');
         return;
     }
+
+
+
+
+    console.log("TO CROPS -- validated id");
+    
     var agreed = await terms_agreed(req);
     if (!agreed) {
         res.status(401).send('you must have agree to terms to access this resource');
         return;
     }
+    
+    console.log("TO CROPS -- agreed to terms");
+    
     const db = await _db.dbPromise;
     // check that raw exists
     if (!uuid_validate(req.body.uuid)) {
         res.status(400).send('malformed raw uuid');
         return;
     }
+
+    console.log("TO CROPS -- Existence of raw verifed.");
+
     // NOTE raw object is created in the python script below
     if (req.body.image_id) {
         // check that image exists
@@ -891,6 +903,8 @@ app.post('/cloud/to_crops', async function (req, res) {
         }
     }
 
+    console.log("TO CROPS -- Existence of image verified.");
+
     // now that the stuff is all validated, make a request to the cloud endpoint for the actual
     // splitting
     var crop_data = await cloud_request('to_crops', {
@@ -902,6 +916,10 @@ app.post('/cloud/to_crops', async function (req, res) {
         res.status(503).send(`cloud request failed - ${crop_data.stderr}`);
         return;
     }
+
+    console.log("TO CROPS -- Call to split succeeded.");
+
+
     // response looks like
     // {
     //   crops: [
@@ -924,6 +942,9 @@ app.post('/cloud/to_crops', async function (req, res) {
         // probably unique constraint error, nbd
         console.log('error inserting raw row', err);
     }
+
+    console.log("TO CROPS -- Insert ids into database succeeded");
+
     // TODO this is susceptible to timing issues
     var name_info = await data_for_name(req.body.image_id, req.session.user_id);
     //looks like :
@@ -947,6 +968,8 @@ app.post('/cloud/to_crops', async function (req, res) {
         });
     }
 
+    console.log("TO CROPS -- Insert of crops succeeded");
+
     // everythings in the db now, so respond to client with new crops
     // by selecting them out of the db (so they mimic the rest api)
     var crop_qs = _.join(_.map(crop_data.crops, (crop) => { return '?'; }), ', ');
@@ -958,6 +981,9 @@ app.post('/cloud/to_crops', async function (req, res) {
     _.map(crops, (crop) => {
         crop.obj_type = 'crop';
     });
+
+    console.log("TO CROPS -- Selection of crops to mimic API succeeded, returning info to client");
+
     res.json(crops);
 });
 
