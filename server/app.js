@@ -1149,7 +1149,7 @@ app.post('/signed-upload-url', async (req, res) => {
 
 // process raw audio into cropped pieces ..._in the cloud_...
 app.post('/cloud/to_crops', async function (req, res) {
-    console.log('TO CROPS BODY:', req.body);
+    console.log('TO_CROPS BODY START:', req.body);
     // auth
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
@@ -1166,10 +1166,14 @@ app.post('/cloud/to_crops', async function (req, res) {
         res.status(400).send('malformed raw uuid');
         return;
     }
+
+    console.log("To crops Body End.  Now about to create raw object in python script below");
+
     // NOTE raw object is created in the python script below
     if (req.body.image_id) {
         // check that image exists
         if (!uuid_validate(req.body.image_id)) {
+            console.log("400 error, malformed image uuid");
             res.status(400).send('malformed image uuid');
             return;
         }
@@ -1178,11 +1182,13 @@ app.post('/cloud/to_crops', async function (req, res) {
             req.session.user_id,
         ]);
         if (!_.get(image_exists, '1', false)) {
+            console.log("400 error, image object not found");
             res.status(400).send('image object not found');
             return;
         }
     }
 
+    console.log("To crops is about to make request to cloud endpoint to split barks");
     // now that the stuff is all validated, make a request to the cloud endpoint for the actual
     // splitting
     var crop_data = await cloud_request('to_crops', {
@@ -1193,6 +1199,9 @@ app.post('/cloud/to_crops', async function (req, res) {
         res.status(503).send(`cloud request failed - ${crop_data.stderr}`);
         return;
     }
+
+    console.log("crop_data: ", crop_data);
+
     // response looks like
     // {
     //   crops: [
@@ -1205,6 +1214,8 @@ app.post('/cloud/to_crops', async function (req, res) {
 
     // db stuff
     // TODO maybe this should be one big transaction
+
+    console.log("About to insert ids");
 
     try {
         await insert_into_db('raws', {
@@ -1222,6 +1233,10 @@ app.post('/cloud/to_crops', async function (req, res) {
     //    base_name: 'some-name',
     //    count: 4
     //}
+
+    console.log("ids:", name_info);
+    console.log("About to insert crops");
+
     for (var i = 0; i < crop_data.crops.length; i++) {
         // dont respond until everything is in the db?
         // i dont remember how this
@@ -1238,6 +1253,8 @@ app.post('/cloud/to_crops', async function (req, res) {
         });
     }
 
+    console.log("Inserts succeeded");
+
     // everythings in the db now, so respond to client with new crops
     // by selecting them out of the db (so they mimic the rest api)
     var crop_qs = _.join(_.map(crop_data.crops, (crop) => { return '?'; }), ', ');
@@ -1249,6 +1266,9 @@ app.post('/cloud/to_crops', async function (req, res) {
     _.map(crops, (crop) => {
         crop.obj_type = 'crop';
     });
+
+
+    console.log("selection to mimic apis succeeded, returning crop info to client");
     res.json(crops);
 });
 
