@@ -147,6 +147,8 @@ message inside envelope
     height: 100%;
     /*box-shadow: 0px 0px 15px 5px #00000099;*/
     background-image: url("./EnvelopeContents.png");
+    background-size: 640px;
+    background-color: black;
     z-index: 7;
 }
 .overlay-button {
