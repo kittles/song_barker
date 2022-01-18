@@ -344,8 +344,7 @@ async function prepare_card () {
             // fade out loading spinner
             $('.loading-spinner').fadeOut(250);
             setTimeout(() => {
-                // jmf: don't need
-//                $('#message-cover').fadeOut(250);
+                $('#message-cover').fadeOut(250);
                 setTimeout(() => {
                     // TODO this should be in a layout fn
                     //$('#mobile-bottom-controls').fadeIn(500);
@@ -421,8 +420,7 @@ async function prepare_card () {
             // fade out loading spinner
             $('.loading-spinner').fadeOut(250);
             setTimeout(() => {
-                // jmf:don't need
- //               $('#message-cover').fadeOut(250);
+                $('#message-cover').fadeOut(250);
                 setTimeout(() => {
                     // TODO this should be in a layout fn
                     //$('#mobile-bottom-controls').fadeIn(500);
