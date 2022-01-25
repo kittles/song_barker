@@ -664,8 +664,6 @@ app.post('/resend-confirm', async (req, res) => {
         
     }
 
-    // email confirmation string
-    var email_confirmation_string = user_obj.email_confirmation_string;
 
     // resend confirmation email.
     var url_root = `https://${process.env.k9_domain_name}/confirm/` || 'https://k-9karaoke.com/confirm/';
