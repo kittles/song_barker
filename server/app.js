@@ -634,7 +634,7 @@ app.post('/resend-confirm', async (req, res) => {
             //     error: 'account already exists, but email hasnt been confirmed',
             // });
             // return;
-            continue;
+            
         }
         else {
             console.log("app already confirmed, no action taken.")
