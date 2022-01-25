@@ -655,7 +655,6 @@ app.post('/resend-confirm', async (req, res) => {
 
     // get database reference
     const db = await _db.dbPromise;
-    var email_confirmation_string = uuid4();
 
     if (user_obj.pending_confirmation) {
     var email_confirmation_string = uuidv4();
