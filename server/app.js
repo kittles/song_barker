@@ -603,6 +603,108 @@ app.post('/create-account', async (req, res) => {
  
 });
 
+app.post('/resend-confirm', async (req, res) => {
+    console.log("app.resend-confirm: resend requested");
+    // check that we have a email
+    if (!req.body.email) {
+        console.log("app.resend-confirm error: email missing");
+        res.json({
+            success: false,
+            error: 'missing email',
+        });
+        return;
+    }
+    if (!validator.validate(req.body.email)) {
+        console.log("app.resend-confirm error: email missing");
+        res.json({
+            success: false,
+            error: 'invalid email',
+        });
+        return;
+    }
+
+    if (! await email_available(req.body.email)) {
+        var user_obj = await user_sess.get_user(req.body.email);
+
+        // if there is an account, but its pending confirmation
+        if (user_obj.pending_confirmation) {
+            // nothing to do but continue to send reconfirmation
+            // res.json({
+            //     success: false,
+            //     error: 'account already exists, but email hasnt been confirmed',
+            // });
+            // return;
+            continue;
+        }
+        else {
+            console.log("app already confirmed, no action taken.")
+            res.json({
+                success: false,
+                error: 'Account already confirmed, no action taken.',
+            })
+        }
+    }
+    else {
+        console.log("app.resend-confirm error: account doesn't exist");
+        res.json({
+            success: false,
+            error: "Account doesn't exist -- can't send confirmation email.",
+        });
+        return;
+    }
+
+    // get database reference
+    const db = await _db.dbPromise;
+    var email_confirmation_string = uuid4();
+
+    if (user_obj.pending_confirmation) {
+    var email_confirmation_string = uuidv4();
+    var update_query = await db.run('update users set email_confirmation_string = ? where user_id = ?',
+                                            email_confirmation_string, user_obj.user_id,
+                            );
+        
+    }
+
+    // email confirmation string
+    var email_confirmation_string = user_obj.email_confirmation_string;
+
+    // resend confirmation email.
+    var url_root = `https://${process.env.k9_domain_name}/confirm/` || 'https://k-9karaoke.com/confirm/';
+    var email_confirmation_url = url_root + email_confirmation_string;
+
+
+
+    var html = null;
+    await fs.readFile('public/puppet/confirmation_email.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+        html = template({
+            confirmation_link: email_confirmation_url,
+        });
+      
+        try {
+            //sendEmail(req.body.email, html);
+            sendgrid_result = sendgrid.sendmail(req.body.email, 'no-reply@turboblasterunlimited.com'
+                                                ,'K-9 Karaoke email confirmation ✔', html);
+            console.log("Send comfirmation mail succeeded");
+        }
+        catch(error){
+            console.log("Send mail Error: " + JSON.stringify(error));
+        }
+    });
+
+    
+
+    var user_obj = await user_sess.get_user_no_password(req.body.email);
+    console.log("app.resend-confirm success: email sent");
+
+    res.json({
+        success: true,
+        user: user_obj,
+        account_already_exists: false,
+    });
+ 
+});
+
 
 app.get('/confirm/:uuid', async (req, res) => {
     if (!uuid_validate(req.params.uuid)) {
