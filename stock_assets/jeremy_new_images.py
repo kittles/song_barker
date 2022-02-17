@@ -15,7 +15,6 @@ from google.cloud import storage
 storage_client = storage.Client()
 reader = csv.DictReader(open('./jeremy_dogs.csv'))
 
-
 def download_filename_from_bucket (remote_fp, fp):
     '''
     for getting dog images from the bucket
@@ -30,7 +29,6 @@ def download_filename_from_bucket (remote_fp, fp):
 if __name__ == '__main__':
     c = 0
     for row in reader:
-
         # skip unwanted rows
         if int(row['is_stock']) or int(row['hidden']):
             print('STOCK OR HIDDEN - skipping row', row['name'])
@@ -38,9 +36,8 @@ if __name__ == '__main__':
 
         name = row['name']
         print(name);
-        uuid = row[0];
+        uuid = row['\ufeffuuid']
         print(uuid);
-        uuid = row['uuid']
 
         # mouth color can be round or square braces or null
         # so homogenize here
