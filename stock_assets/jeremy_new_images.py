@@ -37,6 +37,9 @@ if __name__ == '__main__':
             continue
 
         name = row['name']
+        print(name);
+        uuid = row[0];
+        print(uuid);
         uuid = row['uuid']
 
         # mouth color can be round or square braces or null
