@@ -64,7 +64,9 @@ app.use(
     })
 );
 
-
+app.get('/', function(req, res) {
+    request('https://x4y.517.myftpupload.com/').pipe(res);
+});
 //
 // greeting cards
 //
