@@ -166,10 +166,14 @@ app.get('/c/:card_key', async (req, res) => {
         res.send(html);
     });
 });
-
-app.get('/', async (req, res) => {
-    res.send("testing...");
+app.get('/', (req, res, next) => {
+    // get actual data from other server and return it as our response
+    request('https://104.238.68.196').pipe(res);
 });
+
+// app.get('/', async (req, res) => {
+//     res.send("testing...");
+// });
 //
 // landing page
 //
