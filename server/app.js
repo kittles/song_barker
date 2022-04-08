@@ -64,9 +64,6 @@ app.use(
     })
 );
 
-app.get('/', function(req, res) {
-    request('104.238.68.196').pipe(res);
-});
 //
 // greeting cards
 //
