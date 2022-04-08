@@ -169,7 +169,7 @@ app.get('/c/:card_key', async (req, res) => {
 
 app.get('/', async (req, res) => {
     res.send("testing...");
-}
+});
 //
 // landing page
 //
