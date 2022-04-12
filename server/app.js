@@ -171,9 +171,9 @@ app.get('/c/:card_key', async (req, res) => {
 //     request('https://x4y.517.myftpupload.com/').pipe(res);
 // });
 
-app.get('/', async (req, res) => {
-    res.send("testing...");
-});
+// app.get('/', async (req, res) => {
+//     res.send("testing...");
+// });
 //
 // landing page
 //
