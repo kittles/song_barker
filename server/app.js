@@ -177,64 +177,64 @@ app.get('/c/:card_key', async (req, res) => {
 //
 // landing page
 //
-// app.get('/', async (req, res) => {
-//     function show_error_page () {
-//         res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
-//     }
+app.get('/', async (req, res) => {
+    function show_error_page () {
+        res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
+    }
 
-//     var uuid = '9f8ee9b2-dba6-4023-9791-0940324f6ff9';
-//     const db = await _db.dbPromise;
-//     var card = await db.get('select * from greeting_cards where uuid = ?', uuid);
-//     if (_.isUndefined(card)) {
-//         //res.status(404).send('card does not exist');
-//         show_error_page();
-//         return;
-//     }
-//     // get face coordinates
-//     var image = await db.get('select * from images where uuid = ?', card.image_id);
-//     if (_.isUndefined(image)) {
-//         //res.status(400).send('unable to find image for card');
-//         show_error_page();
-//         return;
-//     }
-//     // get decoration image bucket fp
-//     var decoration_image = await db.get('select * from decoration_images where uuid = ?', card.decoration_image_id);
-//     if (_.isUndefined(decoration_image)) {
-//         //res.status(400).send('unable to find decoration image for card');
-//         //return;
-//         decoration_image = {
-//             bucket_fp: null,
-//         };
-//     }
-//     // card audio bucket fp
-//     var card_audio = await db.get('select * from card_audios where uuid = ?', card.card_audio_id);
-//     if (_.isUndefined(card_audio)) {
-//         //res.status(400).send('unable to find card audio');
-//         show_error_page();
-//         return;
-//     }
-//     fs.readFile('public/puppet/puppet.html', 'utf-8', function (error, source) {
-//         var template = handlebars.compile(source);
-//         var html = template({
-//             uuid: uuid,
-//             // asset bucket fps
-//             card_audio_bucket_fp: card_audio.bucket_fp,
-//             image_bucket_fp: image.bucket_fp,
-//             decoration_image_bucket_fp: decoration_image.bucket_fp,
-//             // animation
-//             image_coordinates_json: image.coordinates_json,
-//             animation_json: card.animation_json,
-//             // card text
-//             name: card.name,
-//             recipient_name: card.recipient_name,
-//             mouth_color: image.mouth_color,
-//             domain_name: process.env.k9_domain_name,
-//             bucket_name: process.env.k9_bucket_name,
-//             has_envelope: false,
-//         });
-//         res.send(html);
-//     });
-// });
+    var uuid = '9f8ee9b2-dba6-4023-9791-0940324f6ff9';
+    const db = await _db.dbPromise;
+    var card = await db.get('select * from greeting_cards where uuid = ?', uuid);
+    if (_.isUndefined(card)) {
+        //res.status(404).send('card does not exist');
+        show_error_page();
+        return;
+    }
+    // get face coordinates
+    var image = await db.get('select * from images where uuid = ?', card.image_id);
+    if (_.isUndefined(image)) {
+        //res.status(400).send('unable to find image for card');
+        show_error_page();
+        return;
+    }
+    // get decoration image bucket fp
+    var decoration_image = await db.get('select * from decoration_images where uuid = ?', card.decoration_image_id);
+    if (_.isUndefined(decoration_image)) {
+        //res.status(400).send('unable to find decoration image for card');
+        //return;
+        decoration_image = {
+            bucket_fp: null,
+        };
+    }
+    // card audio bucket fp
+    var card_audio = await db.get('select * from card_audios where uuid = ?', card.card_audio_id);
+    if (_.isUndefined(card_audio)) {
+        //res.status(400).send('unable to find card audio');
+        show_error_page();
+        return;
+    }
+    fs.readFile('public/puppet/puppet.html', 'utf-8', function (error, source) {
+        var template = handlebars.compile(source);
+        var html = template({
+            uuid: uuid,
+            // asset bucket fps
+            card_audio_bucket_fp: card_audio.bucket_fp,
+            image_bucket_fp: image.bucket_fp,
+            decoration_image_bucket_fp: decoration_image.bucket_fp,
+            // animation
+            image_coordinates_json: image.coordinates_json,
+            animation_json: card.animation_json,
+            // card text
+            name: card.name,
+            recipient_name: card.recipient_name,
+            mouth_color: image.mouth_color,
+            domain_name: process.env.k9_domain_name,
+            bucket_name: process.env.k9_bucket_name,
+            has_envelope: false,
+        });
+        res.send(html);
+    });
+});
 
 
 //
