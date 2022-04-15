@@ -187,8 +187,8 @@ app.get('/', async (req, res) => {
     var q = url.parse(req.url, true);
     console.log("pathname: " + q.pathname);
     if ( q.pathname == '/' || q.pathname == "/index.html" || q.pathname == "/index.htm" || q.pathname == "/index") {
-        console.log("Redirecting to http://159.89.38.51/wp/wordpress/" );
-        res.redirect('http://159.89.38.51/wp/wordpress/');
+        console.log("Redirecting to https://k-9karaoke.com/wordpress/" );
+        res.redirect('https://k-9karaoke.com/wordpress/');
         return;
     }
 
