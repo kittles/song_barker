@@ -186,7 +186,7 @@ app.get('/', async (req, res) => {
 
     var q = url.parse(req.url, true);
     console.log("pathname: " + q.pathname);
-    if ( q.pathname.length == '/' || q.pathname == "/index.html" || q.pathname == "/index.htm" || q.pathname == "/index") {
+    if ( q.pathname == '/' || q.pathname == "/index.html" || q.pathname == "/index.htm" || q.pathname == "/index") {
         console.log("Redirecting to http://159.89.38.51/wp/wordpress/" );
         res.redirect('http://159.89.38.51/wp/wordpress/');
         return;
