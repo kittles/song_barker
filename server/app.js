@@ -184,7 +184,7 @@ app.get('/', async (req, res) => {
         res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
     }
 
-    var q = url.parse(adr, true);
+    var q = url.parse(req, true);
     if ( q.pathname.length == 0 || q.pathname == "index.html" || q.pathname == "index.htm" || q.pathname == "index") {
         print("Redirecting to http://159.89.38.51/wp/wordpress/" );
         res.redirect('http://159.89.38.51/wp/wordpress/');
