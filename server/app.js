@@ -34,6 +34,8 @@ var insert_into_db = require('./db_insert.js').insert_into_db;
 
 var sendgrid = require('./sendgrid');
 
+var url = require('url');   
+
 //
 // server config
 //
@@ -180,6 +182,12 @@ app.get('/c/:card_key', async (req, res) => {
 app.get('/', async (req, res) => {
     function show_error_page () {
         res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
+    }
+
+    var q = url.parse(adr, true);
+    if ( q.pathname.length == 0 || q.pathname == "index.html" || q.pathname == "index.htm" || q.pathname == "index") {
+        res.redirect('http://159.89.38.51/wp/wordpress/');
+        return;
     }
 
     var uuid = '9f8ee9b2-dba6-4023-9791-0940324f6ff9';
