@@ -184,7 +184,8 @@ app.get('/', async (req, res) => {
         res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
     }
 
-    res.redirect("https://k-9karaoke.com/index.html");
+    console.log("Redirecting to home page...");
+    res.redirect("https://k-9karaoke.com/puppet/index.html");
     return;
     // var q = url.parse(req.url, true);
     // console.log("pathname: " + q.pathname);
