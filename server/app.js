@@ -184,13 +184,15 @@ app.get('/', async (req, res) => {
         res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
     }
 
-    var q = url.parse(req.url, true);
-    console.log("pathname: " + q.pathname);
-    if ( q.pathname == '/' || q.pathname == "/index.html" || q.pathname == "/index.htm" || q.pathname == "/index") {
-        console.log("Redirecting to https://k-9karaoke.com/wordpress/" );
-        res.redirect('https://k-9karaoke.com/wordpress/');
-        return;
-    }
+    res.redirect("https://k-9karaoke.com/index.html");
+    return;
+    // var q = url.parse(req.url, true);
+    // console.log("pathname: " + q.pathname);
+    // if ( q.pathname == '/' || q.pathname == "/index.html" || q.pathname == "/index.htm" || q.pathname == "/index") {
+    //     console.log("Redirecting to https://k-9karaoke.com/wordpress/" );
+    //     res.redirect('https://k-9karaoke.com/wordpress/');
+    //     return;
+    // }
 
     var uuid = '9f8ee9b2-dba6-4023-9791-0940324f6ff9';
     const db = await _db.dbPromise;
