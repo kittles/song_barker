@@ -66,9 +66,9 @@ def create_crops_for_stock_usr():
     conn.commit()
 
 
-def create_crops_for_new_user(user_id, stock_user="stock@turboblaster.com"):
+def create_crops_for_new_user(user_id):
     cur = conn.cursor()
-    cur.execute('SELECT * FROM crops where user_id = stock_user and is_stock = 1')
+    cur.execute('SELECT * FROM crops where user_id = "stock_user@k-9karaoke.com" and is_stock = 1')
     for row in cur.fetchall():
         info = {}
         # print_row(row)
@@ -125,10 +125,11 @@ def db_insert (table, **kwargs):
         print(e)
         return None
 
-# create_crops_for_new_user('foo@bar.com')
-create_crops_for_new_user('stock_user@k-9karaoke.com', 'jeff@magikarts.com')
 
-#create_crops_for_stock_usr()
+create_crops_for_stock_usr()
+
+#create_crops_for_new_user('foo@bar.com')
+
 #get_stock_crops()
 #make_stock_user()
 # # get user id via args
