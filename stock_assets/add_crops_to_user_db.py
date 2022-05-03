@@ -13,8 +13,8 @@ def dict_factory (cursor, row):
     return d
 
 
-#db_fp = os.environ.get('k9_database', '../server/k9karaoke-database-prod.db')
-db_fp = '/volumes/ssd4/Turboblaster/Server/song_barker/server/k9karaoke-database-prod.db'
+db_fp = os.environ.get('k9_database', '../server/k9karaoke-database-prod.db')
+#db_fp = '/volumes/ssd4/Turboblaster/Server/song_barker/server/k9karaoke-database-prod.db'
 conn = sqlite3.connect(db_fp)
 conn.row_factory = dict_factory
 #conn.set_trace_callback(print)
