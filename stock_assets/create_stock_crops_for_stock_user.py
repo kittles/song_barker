@@ -5,6 +5,10 @@ import os
 import uuid
 import argparse
 
+#
+# Run this once to create stock crops for a fictious user (no users record) stock_user.
+# Assumes an account jeff@magikarts.com with stock crops.  Probably don't need to run this.
+#
 
 def dict_factory (cursor, row):
     d = {}
