@@ -42,6 +42,29 @@ def db_insert (table, **kwargs):
         return None
 
 
+# Add JMF 2 May 2022: Function that creates stock crops for new users without
+# having to read each of the info.json. 
+
+def create_crops_for_new_user(user_id):
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM crops where user_id = "stock_user@k-9karaoke.com" and is_stock = 1')
+    for row in cur.fetchall():
+        info = {}
+        # print_row(row)
+        new_uuid = str(uuid.uuid4())
+        info['uuid'] = new_uuid
+        info['name'] = row['name']
+        info['crop_type'] = row['crop_type']
+        info['user_id'] = user_id
+        info['is_stock'] = 1
+        info['bucket_url'] = row['bucket_url']
+        info['bucket_fp'] = row['bucket_fp']
+        info['duration_seconds'] = row['duration_seconds']
+        print(info)
+        db_insert('crops', **info)
+        # print(row["name"], row["duration_seconds"])
+#    conn.commit()
+
 # get user id via args
 
 
@@ -83,18 +106,20 @@ if __name__ == '__main__':
         db_insert('images', **info)
 
 
-    for crop_dir in glob.glob(os.path.join(crops_dir, '*/')):
-        crop_fp = glob.glob(os.path.join(crop_dir, '*.aac'))[0]
-        info_fp = glob.glob(os.path.join(crop_dir, 'info.json'))[0]
-        info = json.load(open(info_fp))
-        # new uuid, but use existing bucket_fp and bucket_url
-        new_uuid = str(uuid.uuid4())
-        old_blob = os.path.join(crop_bucket_base, info['uuid'] + '.aac')
-        info['uuid'] = new_uuid
-        info['bucket_url'] = os.path.join('gs://{}'.format(bucket_name), old_blob)
-        info['bucket_fp'] = old_blob
-        info['user_id'] = args.user_id
-        info['is_stock'] = 1
-        db_insert('crops', **info)
+    # for crop_dir in glob.glob(os.path.join(crops_dir, '*/')):
+    #     crop_fp = glob.glob(os.path.join(crop_dir, '*.aac'))[0]
+    #     info_fp = glob.glob(os.path.join(crop_dir, 'info.json'))[0]
+    #     info = json.load(open(info_fp))
+    #     # new uuid, but use existing bucket_fp and bucket_url
+    #     new_uuid = str(uuid.uuid4())
+    #     old_blob = os.path.join(crop_bucket_base, info['uuid'] + '.aac')
+    #     info['uuid'] = new_uuid
+    #     info['bucket_url'] = os.path.join('gs://{}'.format(bucket_name), old_blob)
+    #     info['bucket_fp'] = old_blob
+    #     info['user_id'] = args.user_id
+    #     info['is_stock'] = 1
+    #     db_insert('crops', **info)
+
+    create_crops_for_new_user(args.user_id);
 
     conn.commit()
