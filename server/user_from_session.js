@@ -33,3 +33,14 @@ async function add_user (user_id, name, email) {
     ]);
 }
 exports.add_user = add_user;
+/**
+ *         var result = await db.run('update users set password = ? where user_id = ?',
+            password,
+            user_obj.user_id
+        );
+ */ 
+async function update_user_email(user_id, email) {
+    var db = await _db.dbPromise;
+    return db.run('update users set email = ? where user_id = ?', email, user_id);
+}
+exports.update_user_email = update_user_email;
