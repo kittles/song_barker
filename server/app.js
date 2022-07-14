@@ -34,7 +34,9 @@ var insert_into_db = require('./db_insert.js').insert_into_db;
 
 var sendgrid = require('./sendgrid');
 
-var url = require('url');   
+
+
+const AppleAuth = require("apple-auth");
 
 //
 // server config
@@ -95,6 +97,7 @@ app.post('/to_card_key', async (req, res) => {
     key_data['url'] = `https://${process.env.k9_domain_name}/c/${key_uuid}`;
     res.json(key_data);
 });
+
 
 
 
@@ -425,6 +428,95 @@ app.post('/facebook-token', async (req, res) => {
     }
 });
 
+////////////////////////////////
+// JMF 07/07/22: Add Apple SignIn
+//
+//const tokenService = require('./apple_token');
+app.post('/authenticateAppleSignin', async (req, res) => {
+    const { token, email, name, apple_id } = req.body;
+    const registeredUser = { apple_id, name, email };
+    var loggedInUser = {apple_id, name, email }; //
+
+  // todo: validate parameters
+    res.status(200).send(registeredUser);  
+    // // attempt login
+    // var user = await user_sess.get_user(email);
+    // if (user) {
+    //     // login user
+    //     if (email && email !== user.email) {
+    //         await user_sess.update_user_email(apple_id, email);
+    //         loggedInUser.email = email;
+    //      }
+    //      res.status(200).send(loggedInUser);
+    // }
+    // else {
+    //     // register user
+    //     tokenService.verify(req.body, (err) => {
+    //         if (err) {
+    //             res.status(401).send(err.message);
+    //         } 
+    //         else {
+    //             await user_sess.add_user(apple_id, name, email);
+    //         }
+    //       });
+    // }
+
+});
+
+// app.post("/sign_in_with_apple", async (request, response) => {
+//     const auth = new AppleAuth(
+//       {
+//         // use the bundle ID as client ID for native apps, else use the service ID for web-auth flows
+//         // https://forums.developer.apple.com/thread/118135
+//         client_id:
+//           request.query.useBundleId === "true"
+//             ? process.env.BUNDLE_ID
+//             : process.env.SERVICE_ID,
+//         team_id: process.env.TEAM_ID,
+//         redirect_uri:
+//           "https://k-9karaoke.com/sign_in_with_apple", // does not matter here, as this is already the callback that verifies the token after the redirection
+//         key_id: process.env.KEY_ID
+//       },
+//       process.env.KEY_CONTENTS.replace(/\|/g, "\n"),
+//       "text"
+//     );
+  
+//     console.log(request.query);
+  
+//     const accessToken = await auth.accessToken(request.query.authCode);
+  
+//     const idToken = JSON.parse(accessToken.id_token);
+  
+//     const userID = idToken.sub;
+  
+//     console.log(idToken);
+  
+//     // `userEmail` and `userName` will only be provided for the initial authorization with your app
+//     const userEmail = idToken.email;
+//     const userName = `${request.query.firstName} ${request.query.lastName}`;
+  
+//     // 👷🏻‍♀️ TODO: Use the values provided create a new session for the user in your system
+//     var user = await user_sess.get_user(userEmail);
+//     if (user) {
+//         console.log('user exists');
+//         // attach the user_id to the session
+//         req.session.user_id = userEmail
+//         // if the account was created with manual sign in, but they never confirmed
+//         // this will handle that. if they did, this does nothing
+//         manual_to_openid_confirmation(user);
+//     } else {
+//         // create a new user object
+//         console.log('create new user');
+//         await user_sess.add_user(userEmail, userName, userEmail);
+//         // should verify that db insert worked
+//         // subprocess to add stock objects
+//         add_stock_objects_to_user(userEmail)
+//         req.session.user_id = userEmail;
+//     }
+//     req.session.openid_platform = 'apple';
+//     var user_obj = await user_sess.get_user_no_password(userEmail);
+//     return res.json({ success: true, error: null, user: user_obj });
+//   });
 
 //
 // manual account stuff
