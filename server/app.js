@@ -431,37 +431,41 @@ app.post('/facebook-token', async (req, res) => {
 ////////////////////////////////
 // JMF 07/07/22: Add Apple SignIn
 //
-//auconst tokenService = require('./apple_token');
-// app.post('/authenticateAppleSignin', async (req, res) => {
-//     const { token, email, name, apple_id } = req.body;
-//     const registeredUser = { apple_id, name, email };
-//     var loggedInUser = {apple_id, name, email }; //
+//const tokenService = require('./apple_token');
 
-//   // todo: validate parameters
-//     res.status(200).send(registeredUser);  
-//     // // attempt login
-//     // var user = await user_sess.get_user(email);
-//     // if (user) {
-//     //     // login user
-//     //     if (email && email !== user.email) {
-//     //         await user_sess.update_user_email(apple_id, email);
-//     //         loggedInUser.email = email;
-//     //      }
-//     //      res.status(200).send(loggedInUser);
-//     // }
-//     // else {
-//     //     // register user
-//     //     tokenService.verify(req.body, (err) => {
-//     //         if (err) {
-//     //             res.status(401).send(err.message);
-//     //         } 
-//     //         else {
-//     //             await user_sess.add_user(apple_id, name, email);
-//     //         }
-//     //       });
-//     // }
+app.post('/authenticateAppleSignin', async (req, res) => {
+    const { token, email, name, apple_id } = req.body;
+    const registeredUser = { apple_id, name, email };
+    var loggedInUser = {apple_id, name, email }; //
 
-// });
+    console.log("authenticateAppleSignin");
+    console.log(token, email, registeredUser);
+
+  // todo: validate parameters
+    res.status(200).send(registeredUser);  
+    // // attempt login
+    // var user = await user_sess.get_user(email);
+    // if (user) {
+    //     // login user
+    //     if (email && email !== user.email) {
+    //         await user_sess.update_user_email(apple_id, email);
+    //         loggedInUser.email = email;
+    //      }
+    //      res.status(200).send(loggedInUser);
+    // }
+    // else {
+    //     // register user
+    //     tokenService.verify(req.body, (err) => {
+    //         if (err) {
+    //             res.status(401).send(err.message);
+    //         } 
+    //         else {
+    //             await user_sess.add_user(apple_id, name, email);
+    //         }
+    //       });
+    // }
+
+});
 
 // app.post("/sign_in_with_apple", async (request, response) => {
 //     const auth = new AppleAuth(
@@ -1171,7 +1175,7 @@ app.post('/request-reset-password', async (req, res) => {
         var message = html;
 
         result = sendgrid.sendmail(to, from, subject, message);
-        console.log("sending support email: " + result);
+        console.log("sending password reset " + result);
     
         // jmf -- replaced by SendGrid
         // transporter.sendMail({
