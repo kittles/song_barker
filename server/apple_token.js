@@ -12,6 +12,7 @@ const verify = (user, callback) => {
         JWT,   // JSON Web Token (JWT)
         errors // errors utilized by jose
     } = jose;
+    console.log(JWKS, JWT, jose);
     // we request the public keys from apple
     request({ url, json: true }, (err, { body }) => {
         if (err) {
