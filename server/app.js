@@ -308,6 +308,27 @@ async function manual_to_openid_confirmation (user) {
     }
 }
 
+/**
+ * Added jmf 7/26/22
+ * 
+ */
+async function complete_apple_registration(appleid, email) {
+    try {
+        const db = await _db.dbPromise;
+        var update_query = await db.run(
+            'update users set pending_confirmation = 0, email_confirmation_string = ? where user_id = ?',
+            email,
+            appleid
+        );
+        // subprocess to add stock objects
+        add_stock_objects_to_user(user.user_id);
+        console.log("Apple registration successful, user has full account.");
+    }
+    catch(err) {
+        console.log(err);
+    }
+}
+
 app.post('/openid-token/:platform', async (req, res) => {
     try {
         var payload;
@@ -431,40 +452,74 @@ app.post('/facebook-token', async (req, res) => {
 ////////////////////////////////
 // JMF 07/07/22: Add Apple SignIn
 //
-//const tokenService = require('./apple_token');
+/**
+ *  else {
+            // create a new user object
+            await user_sess.add_user(payload.email, payload.name, payload.email);
+            // should verify that db insert worked
+            req.session.user_id = payload.email;
+            // subprocess to add stock objects
+            add_stock_objects_to_user(payload.email)
+        }
+        req.session.openid_platform = 'google';
+        var user_obj = await user_sess.get_user_no_password(payload.email);
+        return res.json({ success: true, error: null, user: user_obj });
+    } catch (err) {
+        return res.json({ success: false, error: err, user: null });
+    }
+ */
+const tokenService = require('./apple_token');
 
 app.post('/authenticateAppleSignin', async (req, res) => {
-    const { token, email, name, apple_id } = req.body;
-    const registeredUser = { apple_id, name, email };
-    var loggedInUser = {apple_id, name, email }; //
+    try {
 
-    console.log("authenticateAppleSignin");
-    console.log(token, email, registeredUser);
+        const { token, email, name, apple_id } = req.body;
+        const registeredUser = { apple_id, name, email };
+        var loggedInUser = {apple_id, name, email }; //
 
-  // todo: validate parameters
-    res.status(200).send(registeredUser);  
-    // // attempt login
-    // var user = await user_sess.get_user(email);
-    // if (user) {
-    //     // login user
-    //     if (email && email !== user.email) {
-    //         await user_sess.update_user_email(apple_id, email);
-    //         loggedInUser.email = email;
-    //      }
-    //      res.status(200).send(loggedInUser);
-    // }
-    // else {
-    //     // register user
-    //     tokenService.verify(req.body, (err) => {
-    //         if (err) {
-    //             res.status(401).send(err.message);
-    //         } 
-    //         else {
-    //             await user_sess.add_user(apple_id, name, email);
-    //         }
-    //       });
-    // }
+        console.log("authenticateAppleSignin");
+        console.log(token, email, registeredUser);
 
+    // todo: validate parameters
+        //res.status(200).send(registeredUser);  
+        
+        // attempt login
+        console.log("Checking whether user at " + email + " exits.");
+        var user = await user_sess.get_user(email);
+        if (user) {
+            // login user
+            console.log("User exists , logging in.");
+            if (email && email !== user.email) {
+
+                await user_sess.update_email(apple_id, email);
+                user.email = email;
+                console.log("updated user's email to ", email);
+            }
+        }
+        else {
+            // register user
+            tokenService.verify(req.body, (err) => {
+                if (err) {
+                    console.log("apple validation failed with error ", err);
+                    throw err;
+                } 
+                else {
+                    console.log("apple validation succeeded, starting registration of apple user ");
+                    await user_sess.add_user(apple_id, name, email);
+                    req.session.user_id = apple_id;
+                    complete_apple_registration(apple_id, email);
+                    console.log("apple validation completed");
+                }
+            });
+        }
+        req.session.openid_profile = loggedInUser;
+        req.session.openid_platform = "apple";
+        var user_obj = await user_sess.get_user_no_password(apple_id);
+        return res.json({success: true, error:null, user: user_obj});
+    }
+    catch (err) {
+        return res.json({ success: false, error: err, user: null });
+    }
 });
 
 // app.post("/sign_in_with_apple", async (request, response) => {
