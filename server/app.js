@@ -505,7 +505,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                 } 
                 else {
                     console.log("apple validation succeeded, starting registration of apple user ");
-                    await user_sess.add_user(apple_id, name, email);
+                    user_sess.add_user(apple_id, name, email);
                     req.session.user_id = apple_id;
                     complete_apple_registration(apple_id, email);
                     console.log("apple validation completed");
