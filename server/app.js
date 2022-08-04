@@ -321,7 +321,7 @@ async function complete_apple_registration(appleid, email) {
             appleid
         );
         // subprocess to add stock objects
-        add_stock_objects_to_user(user.user_id);
+        add_stock_objects_to_user(appleid);
         console.log("Apple registration successful, user has full account.");
     }
     catch(err) {
@@ -498,24 +498,24 @@ app.post('/authenticateAppleSignin', async (req, res) => {
         }
         else {
             // register user
-            tokenService.verify(req.body, (err) => {
-                if (err) {
-                    console.log("apple validation failed with error ", err);
-                    throw err;
+            tokenService.verify(req.body, (r) => {
+                if (!r.success) {
+                    console.log("apple validation failed with error ", r.error);
+                    res.json(r);
                 } 
                 else {
                     console.log("apple validation succeeded, starting registration of apple user ");
-                    user_sess.add_user(apple_id, name, email);
-                    req.session.user_id = apple_id;
+                    user_sess.add_user(r.sessionId, "Canine Friend", email);
+                    req.session.user_id = r.sessionId;
                     complete_apple_registration(apple_id, email);
                     console.log("apple validation completed");
+                    req.session.openid_profile = loggedInUser;
+                    req.session.openid_platform = "apple";
+                    var user_obj = await user_sess.get_user_no_password(apple_id);
+                    return res.json({success: true, error:null, user: user_obj});
                 }
             });
         }
-        req.session.openid_profile = loggedInUser;
-        req.session.openid_platform = "apple";
-        var user_obj = await user_sess.get_user_no_password(apple_id);
-        return res.json({success: true, error:null, user: user_obj});
     }
     catch (err) {
         return res.json({ success: false, error: err, user: null });
