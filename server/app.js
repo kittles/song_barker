@@ -498,7 +498,8 @@ app.post('/authenticateAppleSignin', async (req, res) => {
         }
         else {
             // register user
-            tokenService.verify(req.body, (r) => {
+            console.log("Calling tokenService with token", token);
+            tokenService.verify(token, (r) => {
                 if (!r.success) {
                     console.log("apple validation failed with error ", r.error);
                     res.json(r);
