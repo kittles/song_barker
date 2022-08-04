@@ -18,5 +18,10 @@ echo k9_FACEBOOK_CREDENTIALS=$k9_FACEBOOK_CREDENTIALS
 echo "--"
 echo k9_python_virtual_env=$k9_python_virtual_env
 echo k9_discord_webhook_url=$k9_discord_webhook_url
+echo "--"
+echo BUNDLE_ID=$BUNDLE_ID
+echo TEAM_ID=$TEAM_ID
+echo KEY_ID=$KEY_ID
+echo KEY_CONTENTS=$KEY_CONTENTS
 echo "*** END ENVIRONMENT VARIABLES ***"
 
