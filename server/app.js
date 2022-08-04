@@ -511,7 +511,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                     console.log("apple validation completed");
                     req.session.openid_profile = loggedInUser;
                     req.session.openid_platform = "apple";
-                    var user_obj = await user_sess.get_user_no_password(apple_id);
+                    var user_obj = user_sess.get_user_no_password(apple_id);
                     return res.json({success: true, error:null, user: user_obj});
                 }
             });
