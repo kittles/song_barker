@@ -496,6 +496,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                 user.email = email;
                 console.log("updated user's email to ", email);
             }
+            return res.json({success: true, error:null, user: user});
         }
         else {
             // register user
