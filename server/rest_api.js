@@ -42,6 +42,7 @@ function obj_rest_api (def, db) {
                     res.status(401).send('[rest api error] cannot get all for this type');
                     return;
                 }
+                console.log("def:", def);
                 // auth
                 if (def.user_owned) {
                     if (!check_authentication(req, res)) {
