@@ -473,7 +473,7 @@ const tokenService = require('./apple_token');
 
 app.post('/authenticateAppleSignin', async (req, res) => {
     try {
-
+        console.log("Entering authenticateAppleSignin");
         const { token, email, name, apple_id } = req.body;
         const registeredUser = { apple_id, name, email };
         var loggedInUser = {apple_id, name, email }; //
@@ -1302,6 +1302,8 @@ async function hash_password (password) {
 
 // for checking if logged in
 app.get('/is-logged-in', async (req, res) => {
+    console.log("Entering is-logged-in");
+    try {
     var state = {
         logged_in: false,
         user_obj: null,
@@ -1319,6 +1321,11 @@ app.get('/is-logged-in', async (req, res) => {
         state.user_obj = await user_sess.get_user_no_password(req.session.user_id);
     }
     res.json(state);
+}
+catch(e) {
+    console.log("Error:", e);
+    res.json(state);
+}
 });
 
 
