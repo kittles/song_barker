@@ -479,14 +479,14 @@ app.post('/authenticateAppleSignin', async (req, res) => {
         var loggedInUser = {apple_id, name, email }; //
 
         console.log("authenticateAppleSignin");
-        console.log(token, email, registeredUser);
+        console.log("Parameters", token, email, registeredUser);
 
     // todo: validate parameters
         //res.status(200).send(registeredUser);  
         
         // attempt login
-        console.log("Checking whether user at " + email + " exits.");
-        var user = await user_sess.get_user(email);
+        console.log("Checking whether user at " + apple_id + " exits.");
+        var user = await user_sess.get_user(apple_id);
         if (user) {
             // login user
             console.log("User exists , logging in.");
@@ -508,7 +508,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                 else {
                     console.log("apple validation succeeded, starting registration of apple user ");
                     console.log("returned from validation:", r);
-                    user_sess.add_user(r.sessionId, "Canine Friend", email);
+                    user_sess.add_user(r.sessionId, "Canine Friend", r.email);
                     req.session.user_id = r.sessionId;
                     complete_apple_registration(apple_id, email);
                     console.log("apple validation completed");
