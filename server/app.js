@@ -519,7 +519,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                     req.session.openid_profile = loggedInUser;
                     req.session.openid_platform = "apple";
                     var user_obj = user_sess.get_user_no_password(apple_id);
-                    console.log("Returning user object for user: ", appleid, "\n", user_obj);
+                    console.log("Returning user object for user: ", apple_id, "\n", user_obj);
                     return res.json({success: true, error:null, user: user_obj});
                 }
             });
