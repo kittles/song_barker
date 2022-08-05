@@ -1306,20 +1306,24 @@ async function hash_password (password) {
 // for checking if logged in
 app.get('/is-logged-in', async (req, res) => {
     console.log("Entering is-logged-in");
+    
     try {
     var state = {
         logged_in: false,
         user_obj: null,
         user_id: false,
     };
+
+    if(!res.session || !req.session.user_id) {
+        console.log("is-logged-in: No, user_id is null");
+        return res.json(state);
+    }
+
     if (!_.get(req.session, 'user_id', false)) {
         state.user_id = false;
         res.json(state);
     }
-    if(!req.session.user_id) {
-        console.log("is-logged-in: No, user_id is null");
-        return res.json(state);
-    }
+    
     const db = await _db.dbPromise;
     var is_user = await db.get('select 1 from users where user_id = ?', req.session.user_id);
     if (_.get(is_user, '1', false)) {
