@@ -1316,6 +1316,10 @@ app.get('/is-logged-in', async (req, res) => {
         state.user_id = false;
         res.json(state);
     }
+    if(!req.session.user_id) {
+        console.log("is-logged-in: No, user_id is null");
+        return res.json(state);
+    }
     const db = await _db.dbPromise;
     var is_user = await db.get('select 1 from users where user_id = ?', req.session.user_id);
     if (_.get(is_user, '1', false)) {
