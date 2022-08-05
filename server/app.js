@@ -320,6 +320,7 @@ async function complete_apple_registration(appleid, email) {
             email,
             appleid
         );
+        
         // subprocess to add stock objects
         add_stock_objects_to_user(appleid);
         console.log("Apple registration successful, user has full account.");
@@ -506,6 +507,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                 } 
                 else {
                     console.log("apple validation succeeded, starting registration of apple user ");
+                    console.log("returned from validation:", r);
                     user_sess.add_user(r.sessionId, "Canine Friend", email);
                     req.session.user_id = r.sessionId;
                     complete_apple_registration(apple_id, email);
