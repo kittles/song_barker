@@ -1317,11 +1317,6 @@ app.get('/is-logged-in', async (req, res) => {
     console.log("request.session: ", req.session);
     console.log("result_session:", res.session);
 
-    if(!res.session || !req.session.user_id) {
-        console.log("is-logged-in: No, user_id is null");
-        return res.json(state);
-    }
-
     if (!_.get(req.session, 'user_id', false)) {
         state.user_id = false;
         res.json(state);
