@@ -68,6 +68,51 @@ app.use(
     })
 );
 
+/*****************
+Begin configuration for new google signin application
+JMF -- 13-oct-2022
+*/
+
+app.use(express.urlencoded({ extended: true }));
+
+// Import the functions you need from the SDKs you need
+const firebase = require("firebase/app");
+const firebaseAnalytics = require("firebase/analytics");
+
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyANbOcar7YVUUAzsmNTpk2x0MVNXeG54XA",
+    authDomain: "song-barker.firebaseapp.com",
+    databaseURL: "https://song-barker.firebaseio.com",
+    projectId: "song-barker",
+    storageBucket: "song-barker.appspot.com",
+    messagingSenderId: "867304541572",
+    appId: "1:867304541572:web:0f92b665524cbfbb20e1d1",
+    measurementId: "G-Z41C74JL05"
+  };
+  
+
+const { 
+  getAuth, 
+  signInWithCredential,
+  GoogleAuthProvider,
+ } = require("firebase/auth");
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+const firebaseApp = firebase.getApp();
+//const analytics = firebaseAnalytics.getAnalytics(app);
+
+
+
+/*****
+ * End configuration for new google signin
+ */
+
 //
 // greeting cards
 //
@@ -333,12 +378,38 @@ async function complete_apple_registration(appleid, email) {
 app.post('/openid-token/:platform', async (req, res) => {
     try {
         var payload;
-        if (req.params.platform === 'android') {
-            payload = await verify.android_verify(req.body);
-        }
-        if (req.params.platform === 'ios') {
-            payload = await verify.ios_verify(req.body);
-        }
+// ************************ Old Google Signin        
+        // if (req.params.platform === 'android') {
+        //     payload = await verify.android_verify(req.body);
+        // }
+        // if (req.params.platform === 'ios') {
+        //     payload = await verify.ios_verify(req.body);
+        // }
+// *********************** new google signin 
+        var id_token = req.body.id_token;
+        console.log(id_token);
+        var credential = GoogleAuthProvider.credential(id_token);
+
+        // Sign in with credential from the Google user.
+        const auth = getAuth();
+        signInWithCredential(auth, credential)
+        .then((userCredential)=> {
+            console.log("Successful login")
+            //res.send({ success: true, user: userCredential });
+        })      
+        .catch((error) => {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            console.log(errorMessage);
+            // The email of the user's account used.
+            var email = error.email;
+            // The firebase.auth.AuthCredential type that was used.
+            var credential = error.credential;
+            // ...
+            throw new Error(errorMessage);
+        });
+//********************************* end new google signin */        
         req.session.openid_profile = payload;
         // see if an account with the payload's email as user_id exists
         var user = await user_sess.get_user(payload.email);
@@ -351,7 +422,7 @@ app.post('/openid-token/:platform', async (req, res) => {
         } else {
             // create a new user object
             await user_sess.add_user(payload.email, payload.name, payload.email);
-            // should verify that db insert worked
+            // should verify that db insert worked-
             req.session.user_id = payload.email;
             // subprocess to add stock objects
             add_stock_objects_to_user(payload.email)
