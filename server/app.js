@@ -395,6 +395,7 @@ app.post('/openid-token/:platform', async (req, res) => {
         signInWithCredential(auth, credential)
         .then((userCredential)=> {
             console.log("Successful login")
+            payload = userCredential.user;
             //res.send({ success: true, user: userCredential });
         })      
         .catch((error) => {
