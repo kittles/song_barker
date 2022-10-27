@@ -402,11 +402,11 @@ app.post('/openid-token/:platform', async (req, res) => {
             // Handle Errors here.
             var errorCode = error.code;
             var errorMessage = error.message;
-            console.log(errorMessage);
+            console.log("Error from signin with credential", errorMessage);
             // The email of the user's account used.
-            var email = error.email;
-            // The firebase.auth.AuthCredential type that was used.
-            var credential = error.credential;
+            // var email = error.email;
+            // // The firebase.auth.AuthCredential type that was used.
+            // var credential = error.credential;
             // ...
             throw new Error(errorMessage);
         });
