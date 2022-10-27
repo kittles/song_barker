@@ -412,6 +412,7 @@ app.post('/openid-token/:platform', async (req, res) => {
         });
 //********************************* end new google signin */        
         req.session.openid_profile = payload;
+        console.log(payload);
         // see if an account with the payload's email as user_id exists
         var user = await user_sess.get_user(payload.email);
         if (user) {
