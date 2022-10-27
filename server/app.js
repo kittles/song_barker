@@ -394,9 +394,9 @@ app.post('/openid-token/:platform', async (req, res) => {
         const auth = getAuth();
         signInWithCredential(auth, credential)
         .then((userCredential)=> {
-            console.log("userCredential ", userCredential._tokenResponse);
-            console.log("Google signin: Successful login", credential);
-            payload = userCredential._tokenResponse;
+            console.log("userCredential===> ", userCredential.email);
+            console.log("Google signin: Successful login");
+            payload = userCredential;
             //res.send({ success: true, user: userCredential });
         })      
         .catch((error) => {
