@@ -394,7 +394,7 @@ app.post('/openid-token/:platform', async (req, res) => {
         const auth = getAuth();
         signInWithCredential(auth, credential)
         .then((userCredential)=> {
-            console.log("Successful login")
+            console.log("Google signin: Successful login")
             payload = userCredential.user;
             //res.send({ success: true, user: userCredential });
         })      
@@ -430,8 +430,10 @@ app.post('/openid-token/:platform', async (req, res) => {
         }
         req.session.openid_platform = 'google';
         var user_obj = await user_sess.get_user_no_password(payload.email);
+        console.log("About to send successful response");
         return res.json({ success: true, error: null, user: user_obj });
     } catch (err) {
+        console.log("Caught exception: " + err);
         return res.json({ success: false, error: err, user: null });
     }
 });
