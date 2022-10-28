@@ -375,6 +375,13 @@ async function complete_apple_registration(appleid, email) {
     }
 }
 
+async function finish_google_signin(email) {
+    req.session.openid_platform = 'google';
+    var user_obj = await user_sess.get_user_no_password(email);
+    console.log("About to send successful response");
+    return res.json({ success: true, error: null, user: user_obj });
+}
+
 app.post('/openid-token/:platform', async (req, res) => {
     try {
         var payload;
@@ -398,6 +405,37 @@ app.post('/openid-token/:platform', async (req, res) => {
             console.log("Google signin: Successful login");
             payload = userCredential.user;
             //res.send({ success: true, user: userCredential });
+            // back to existing google signin code
+            req.session.openid_profile = payload;
+            console.log("payload2:", payload);
+            // see if an account with the payload's email as user_id exists
+            var user = user_sess.get_user(payload.email)
+            .then((user) => {
+            if (user) {
+                // attach the user_id to the session
+                req.session.user_id = payload.email;
+                // if the account was created with manual sign in, but they never confirmed
+                // this will handle that. if they did, this does nothing
+                manual_to_openid_confirmation(user);
+                finish_google_signin(payload.email);
+            } else {
+                // create a new user object
+                user_sess.add_user(payload.email, payload.name, payload.email)
+                .then(()=>{
+                    // should verify that db insert worked-
+                    req.session.user_id = payload.email;
+                    // subprocess to add stock objects
+                    add_stock_objects_to_user(payload.email)
+                    finish_google_signin(payload.email);
+                });
+            }
+            // req.session.openid_platform = 'google';
+            // var user_obj = await user_sess.get_user_no_password(payload.email);
+            // console.log("About to send successful response");
+            // return res.json({ success: true, error: null, user: user_obj });
+
+            });
+
         })      
         .catch((error) => {
             // Handle Errors here.
@@ -412,28 +450,28 @@ app.post('/openid-token/:platform', async (req, res) => {
             throw new Error(errorMessage);
         });
 //********************************* end new google signin */        
-        req.session.openid_profile = payload;
-        console.log(payload);
-        // see if an account with the payload's email as user_id exists
-        var user = await user_sess.get_user(payload.email);
-        if (user) {
-            // attach the user_id to the session
-            req.session.user_id = payload.email;
-            // if the account was created with manual sign in, but they never confirmed
-            // this will handle that. if they did, this does nothing
-            manual_to_openid_confirmation(user);
-        } else {
-            // create a new user object
-            await user_sess.add_user(payload.email, payload.name, payload.email);
-            // should verify that db insert worked-
-            req.session.user_id = payload.email;
-            // subprocess to add stock objects
-            add_stock_objects_to_user(payload.email)
-        }
-        req.session.openid_platform = 'google';
-        var user_obj = await user_sess.get_user_no_password(payload.email);
-        console.log("About to send successful response");
-        return res.json({ success: true, error: null, user: user_obj });
+        // req.session.openid_profile = payload;
+        // console.log("payload2:", payload);
+        // // see if an account with the payload's email as user_id exists
+        // var user = await user_sess.get_user(payload.email);
+        // if (user) {
+        //     // attach the user_id to the session
+        //     req.session.user_id = payload.email;
+        //     // if the account was created with manual sign in, but they never confirmed
+        //     // this will handle that. if they did, this does nothing
+        //     manual_to_openid_confirmation(user);
+        // } else {
+        //     // create a new user object
+        //     await user_sess.add_user(payload.email, payload.name, payload.email);
+        //     // should verify that db insert worked-
+        //     req.session.user_id = payload.email;
+        //     // subprocess to add stock objects
+        //     add_stock_objects_to_user(payload.email)
+        // }
+        // req.session.openid_platform = 'google';
+        // var user_obj = await user_sess.get_user_no_password(payload.email);
+        // console.log("About to send successful response");
+        // return res.json({ success: true, error: null, user: user_obj });
     } catch (err) {
         console.log("Caught exception: " + err);
         return res.json({ success: false, error: err, user: null });
