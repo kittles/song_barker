@@ -394,6 +394,9 @@ app.post('/openid-token/:platform', async (req, res) => {
         // }
 // *********************** new google signin 
         var id_token = req.body.id_token;
+        if(id_token == null) {
+            throw new Error("bad request");
+        }
         console.log(id_token);
         var credential = GoogleAuthProvider.credential(id_token);
 
