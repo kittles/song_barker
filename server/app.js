@@ -375,7 +375,7 @@ async function complete_apple_registration(appleid, email) {
     }
 }
 
-async function finish_google_signin(email) {
+async function finish_google_signin(email, req, res) {
     req.session.openid_platform = 'google';
     var user_obj = await user_sess.get_user_no_password(email);
     console.log("About to send successful response");
@@ -417,7 +417,7 @@ app.post('/openid-token/:platform', async (req, res) => {
                 // if the account was created with manual sign in, but they never confirmed
                 // this will handle that. if they did, this does nothing
                 manual_to_openid_confirmation(user);
-                finish_google_signin(payload.email);
+                finish_google_signin(payload.email, req, res);
             } else {
                 // create a new user object
                 user_sess.add_user(payload.email, payload.name, payload.email)
@@ -426,7 +426,7 @@ app.post('/openid-token/:platform', async (req, res) => {
                     req.session.user_id = payload.email;
                     // subprocess to add stock objects
                     add_stock_objects_to_user(payload.email)
-                    finish_google_signin(payload.email);
+                    finish_google_signin(payload.email, req, res);
                 });
             }
             // req.session.openid_platform = 'google';
