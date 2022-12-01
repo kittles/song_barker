@@ -643,6 +643,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
         }
     }
     catch (err) {
+        console.log("Apple signin error: ", err)
         return res.json({ success: false, error: err, user: null });
     }
 });
