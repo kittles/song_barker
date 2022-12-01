@@ -39,8 +39,8 @@ exports.add_user = add_user;
             user_obj.user_id
         );
  */ 
-async function update_user_email(user_id, email) {
+async function update_email(user_id, email) {
     var db = await _db.dbPromise;
     return db.run('update users set email = ? where user_id = ?', email, user_id);
 }
-exports.update_user_email = update_user_email;
+exports.update_email = update_email;
