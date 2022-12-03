@@ -12,6 +12,15 @@ async function get_user (user_id) {
 }
 exports.get_user = get_user;
 
+async function get_user_by_email(email) {
+    var db = await _db.dbPromise;
+    user_obj = await db.get('select * from users where email = ?', email);
+    if(user_obj) {
+        user_obj.obj_type = 'user';
+    }
+    return user_obj;
+}
+exports.get_user_by_email = get_user_by_email;
 
 async function get_user_no_password (user_id) {
     var user_obj = await get_user(user_id);
