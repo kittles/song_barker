@@ -604,6 +604,11 @@ app.post('/authenticateAppleSignin', async (req, res) => {
         // attempt login
         console.log("Checking whether user at " + apple_id + " exits.");
         var user = await user_sess.get_user(apple_id);
+
+        if(!user) {
+            user = await user_sess.get_user_by_email(email);
+        }
+
         if (user) {
             // login user
             console.log("User exists , logging in.");
