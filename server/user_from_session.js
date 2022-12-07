@@ -22,9 +22,31 @@ async function get_user_by_email(email) {
 }
 exports.get_user_by_email = get_user_by_email;
 
+function is_valid_email(mail) 
+{
+ if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(myForm.emailAddr.value))
+  {
+    return (true);
+  }
+  else {  
+    return (false);
+  }
+}
+
 async function get_user_no_password (user_id) {
     var user_obj = await get_user(user_id);
     if(user_obj) {
+        if(user_obj.account_type == null) {
+            if(user_obj.password != null) {
+                user_obj.account_type = "email";
+            }
+            else if(!is_valid_email(user_obj.email)) {
+                user_obj.account_type = "apple";
+            }
+            else {
+                user_obj.account_type = "google";
+            }
+        }
         delete user_obj.password;
     }
     return user_obj;
