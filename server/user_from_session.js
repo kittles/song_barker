@@ -42,6 +42,7 @@ async function get_user_no_password (user_id) {
     if(user_obj) {
         console.log("get_user_no_password, user_obj is not null")
         if(user_obj.account_type == null) {
+            console.log("User account type is null");
             if(user_obj.password != null) {
                 console.log("Account created via email");
                 user_obj.account_type = "email";
