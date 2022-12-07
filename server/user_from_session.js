@@ -24,7 +24,7 @@ exports.get_user_by_email = get_user_by_email;
 
 function is_valid_email(mail) 
 {
- if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(myForm.emailAddr.value))
+ if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail))
   {
     return (true);
   }
