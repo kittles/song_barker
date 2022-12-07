@@ -34,7 +34,11 @@ function is_valid_email(mail)
 }
 
 async function get_user_no_password (user_id) {
-    var user_obj = await get_user(user_id);
+    console.log("get_user, about to get db object");
+    var db = await _db.dbPromise;
+    console.log("get_user, about to call select by user_Id ");
+    user_obj = await db.get('select * from users where user_id = ?', user_id);
+    console.log("get_user, got user obj");
     if(user_obj) {
         if(user_obj.account_type == null) {
             if(user_obj.password != null) {
