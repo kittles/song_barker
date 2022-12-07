@@ -34,12 +34,13 @@ function is_valid_email(mail)
 }
 
 async function get_user_no_password (user_id) {
-    console.log("get_user, about to get db object");
+    console.log("get_user_no_password, about to get db object");
     var db = await _db.dbPromise;
-    console.log("get_user, about to call select by user_Id ");
+    console.log("get_user_no_password, about to call select by user_Id ");
     user_obj = await db.get('select * from users where user_id = ?', user_id);
-    console.log("get_user, got user obj");
+    console.log("get_user_no_password, got user obj");
     if(user_obj) {
+        console.log("get_user_no_password, user_obj is not null")
         if(user_obj.account_type == null) {
             if(user_obj.password != null) {
                 console.log("Account created via email");
@@ -55,6 +56,9 @@ async function get_user_no_password (user_id) {
             }
         }
         delete user_obj.password;
+    }
+    else {
+        console.log("get_user_no_password, user_obj is null.")
     }
     return user_obj;
 }
