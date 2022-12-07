@@ -1443,15 +1443,16 @@ app.get('/is-logged-in', async (req, res) => {
     };
 
     console.log("request.session: ", req.session);
-    console.log("result_session:", res.session);
+//    console.log("result_session:", res.session);
 
+    console.log("about to check request session for user_id");
     if (!_.get(req.session, 'user_id', false)) {
         state.user_id = false;
         console.log("is-logged-in exit early, no user_id");
         res.json(state);
         return;
     }
-    
+    console.log("about to check record in database");
     const db = await _db.dbPromise;
     var is_user = await db.get('select 1 from users where user_id = ?', req.session.user_id);
     if (_.get(is_user, '1', false)) {
