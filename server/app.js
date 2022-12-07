@@ -1457,7 +1457,8 @@ app.get('/is-logged-in', async (req, res) => {
     console.log("Got database object");
     console.log("Fetching on ", req.session.user_id);
     var is_user = await db.get('select 1 from users where user_id = ?', req.session.user_id);
-    console.log("Got user object");
+    console.log("Got user object", is_user);
+    console.log("_get(is_user) returns ", _.get(is_user, '1', false));
     if (_.get(is_user, '1', false)) {
         console.log("about to call get_user_no_password");
         var sstate = state != null ? "defined" : "null";
