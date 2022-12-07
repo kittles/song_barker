@@ -1457,6 +1457,7 @@ app.get('/is-logged-in', async (req, res) => {
     console.log("Got database object");
     console.log("Fetching on ", req.session.user_id);
     var is_user = await db.get('select 1 from users where user_id = ?', req.session.user_id);
+    console.log("Got user object");
     if (_.get(is_user, '1', false)) {
         state.logged_in = true;
         state.user_id = req.session.user_id;
