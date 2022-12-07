@@ -622,6 +622,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
             //user.account_type = "Apple";
             req.session.openid_profile = loggedInUser;
             req.session.openid_platform = "apple";
+            console.log("About to return from Apple signin");
             return res.json({success: true, error:null, user: user});
         }
         else {

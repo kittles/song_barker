@@ -38,12 +38,15 @@ async function get_user_no_password (user_id) {
     if(user_obj) {
         if(user_obj.account_type == null) {
             if(user_obj.password != null) {
+                console.log("Account created via email");
                 user_obj.account_type = "email";
             }
             else if(!is_valid_email(user_obj.user_id)) {
+                console.log("Account created via Apple");
                 user_obj.account_type = "Apple";
             }
             else {
+                console.log("Account created via Google");
                 user_obj.account_type = "Google";
             }
         }
