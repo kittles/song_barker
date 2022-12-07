@@ -26,8 +26,9 @@ exports.get_user_by_email = get_user_by_email;
 
 function is_valid_email(mail) 
 {
-    match = /^\w+([.-]\w+)*@\w+([.-]\w+)*\.\w{2,3}$/;
-    matcx = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    match = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+//    match = /^\w+([.-]\w+)*@\w+([.-]\w+)*\.\w{2,3}$/;
+//    matcx = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     if (match.test(mail))
     {
         return (true);
