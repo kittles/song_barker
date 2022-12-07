@@ -41,10 +41,10 @@ async function get_user_no_password (user_id) {
                 user_obj.account_type = "email";
             }
             else if(!is_valid_email(user_obj.user_id)) {
-                user_obj.account_type = "apple";
+                user_obj.account_type = "Apple";
             }
             else {
-                user_obj.account_type = "google";
+                user_obj.account_type = "Google";
             }
         }
         delete user_obj.password;
