@@ -1447,6 +1447,7 @@ app.get('/is-logged-in', async (req, res) => {
 
     if (!_.get(req.session, 'user_id', false)) {
         state.user_id = false;
+        console.log("is-logged-in exit early, no user_id");
         res.json(state);
     }
     
@@ -1457,6 +1458,7 @@ app.get('/is-logged-in', async (req, res) => {
         state.user_id = req.session.user_id;
         state.user_obj = await user_sess.get_user_no_password(req.session.user_id);
     }
+    console.log("is-logged-in exits normally");
     res.json(state);
 }
 catch(e) {
