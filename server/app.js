@@ -605,9 +605,9 @@ app.post('/authenticateAppleSignin', async (req, res) => {
         console.log("Checking whether user at " + apple_id + " exits.");
         var user = await user_sess.get_user(apple_id);
 
-        if(!user) {
-            user = await user_sess.get_user_by_email(email);
-        }
+        // if(!user) {
+        //     user = await user_sess.get_user_by_email(email);
+        // }
 
         if (user) {
             // login user
@@ -619,6 +619,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                 console.log("updated user's email to ", email);
             }
             req.session.user_id = apple_id;
+            user.account_type = "apple";
             req.session.openid_profile = loggedInUser;
             req.session.openid_platform = "apple";
             return res.json({success: true, error:null, user: user});
@@ -825,9 +826,13 @@ app.post('/create-account', async (req, res) => {
 
         // if there is a confirmed account, try to log in with the password
         if (user_obj.password == null) {
+            // Since apple created accounts secured by apple_id, we can't get here
+            // unless account created via Google Sign-In
+            var message = 'account already exists, created using Google Sign-In';
             res.json({
                 success: false,
-                error: 'account already exists, but was created with openid, not password',
+                error: message,
+//                error: 'account already exists, but was created with openid, not password',
             });
             return;
         }
