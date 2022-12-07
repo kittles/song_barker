@@ -1449,6 +1449,7 @@ app.get('/is-logged-in', async (req, res) => {
         state.user_id = false;
         console.log("is-logged-in exit early, no user_id");
         res.json(state);
+        return;
     }
     
     const db = await _db.dbPromise;
