@@ -619,7 +619,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                 console.log("updated user's email to ", email);
             }
             req.session.user_id = apple_id;
-            user.account_type = "apple";
+            user.account_type = "Apple";
             req.session.openid_profile = loggedInUser;
             req.session.openid_platform = "apple";
             return res.json({success: true, error:null, user: user});
