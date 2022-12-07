@@ -1471,7 +1471,7 @@ app.get('/is-logged-in', async (req, res) => {
     res.json(state);
 }
 catch(e) {
-    console.log("is-logged-in: User not logged in.");
+    console.log("is-logged-in, exception: ", e);
     res.json(state);
 }
 });
