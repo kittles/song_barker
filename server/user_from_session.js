@@ -47,10 +47,10 @@ async function get_user_no_password (user_id) {
                 console.log("Account created via email");
                 user_obj.account_type = "email";
             }
-            else if(!is_valid_email(user_obj.user_id)) {
-                console.log("Account created via Apple");
-                user_obj.account_type = "Apple";
-            }
+            // else if(!is_valid_email(user_obj.user_id)) {
+            //     console.log("Account created via Apple");
+            //     user_obj.account_type = "Apple";
+            // }
             else {
                 console.log("Account created via Google");
                 user_obj.account_type = "Google";
