@@ -1462,7 +1462,7 @@ app.get('/is-logged-in', async (req, res) => {
     if (_.get(is_user, '1', false)) {
         console.log("about to call get_user_no_password");
         var sstate = state != null ? "defined" : "null";
-        cconsole.log("state is", sstate);
+        console.log("state is", sstate);
         state.logged_in = true;
         state.user_id = req.session.user_id;
         state.user_obj = await user_sess.get_user_no_password(req.session.user_id);
