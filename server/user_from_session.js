@@ -55,11 +55,14 @@ async function get_user_no_password (user_id) {
                 user_obj.account_type = "Google";
             }
         }
+        console.log("About to delete password...");
         delete user_obj.password;
+        console.log("password deleted.");
     }
     else {
         console.log("get_user_no_password, user_obj is null.")
     }
+    console.log("About to return user_obj = ", user_obj);
     return user_obj;
 }
 exports.get_user_no_password = get_user_no_password;
