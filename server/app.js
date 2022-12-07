@@ -611,7 +611,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
 
         if (user) {
             // login user
-            console.log("User exists , logging in.");
+            console.log("User exists , logging in. user data: ", user);
             if (email && email !== user.email) {
 
                 await user_sess.update_email(apple_id, email);
