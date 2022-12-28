@@ -1831,7 +1831,7 @@ app.post('/cloud/to_sequence', async function (req, res) {
     */
 
     // begin jmf code insert 12/27/2022
-    var sequence_obj = False;
+    var sequence_obj = false;
     if(req.session.user_id == guest_account) {
         console.log("===================> Skipping insert for GUEST");
         sequence_obj = sequence_data;
