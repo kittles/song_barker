@@ -45,6 +45,8 @@ var sendgrid = require('./sendgrid');
 
 var port = process.env.PORT || 3000;
 
+var guest_account = "support@turboblasterunlimited.com";
+
 app.use(express.json({
     type: 'application/json',
 }));
@@ -1810,9 +1812,42 @@ app.post('/cloud/to_sequence', async function (req, res) {
     sequence_data['name'] = `${song_obj.name} ${sequence_count + 1}`;
     sequence_data['user_id'] = req.session.user_id;
 
-    var insert_result = await insert_into_db('sequences', sequence_data);
+    /* JMF -- server mods for guest accounts **/
+    /* sequence structure
+    CREATE TABLE sequences (
+    uuid TEXT PRIMARY KEY,
+    song_id TEXT,
+    crop_id TEXT,
+    user_id TEXT,
+    name TEXT,
+    backing_track_url TEXT,
+    backing_track_fp TEXT,
+    bucket_url TEXT,
+    bucket_fp TEXT,
+    stream_url TEXT,
+    hidden INTEGER DEFAULT 0,
+    created INTEGER DEFAULT CURRENT_TIMESTAMP
+);
+    */
 
-    var sequence_obj = await db.get('select * from sequences where uuid = ?', sequence_data.uuid);
+    // begin jmf code insert 12/27/2022
+    var sequence_obj = False;
+    if(req.session.user_id == guest_account) {
+        console.log("===================> Skipping insert for GUEST");
+        sequence_obj = sequence_data;
+    }
+    else {
+        console.log("===================> regular account, inserting new sequence into database.");
+        var insert_result = await insert_into_db('sequences', sequence_data);
+        sequence_obj = await db.get('select * from sequences where uuid = ?', sequence_data.uuid);
+    }
+    // end jmf code insert 12/27/2022
+
+    // begin jmf old code remove 12/27/2022
+    // var insert_result = await insert_into_db('sequences', sequence_data);
+    // var sequence_obj = await db.get('select * from sequences where uuid = ?', sequence_data.uuid);
+    // end jmf remove
+
     sequence_obj.obj_type = 'sequence';
 
     res.json(sequence_obj);
