@@ -1,9 +1,9 @@
 import sqlite3
-import os
+
 import datetime as dt
 import time
 import uuid
-from constants import guest
+from constants import guest, db_fp
 
 def dict_factory(cursor, row):
     d = {}
@@ -11,8 +11,6 @@ def dict_factory(cursor, row):
         d[col[0]] = row[idx]
     return d
 
-db_fp = os.environ.get('k9_database', ''
-                        '../node-cron-example/k9karaoke-database-prod.db')
 print("querying", db_fp)
 conn = sqlite3.connect(db_fp)
 conn.row_factory = dict_factory

@@ -1,10 +1,9 @@
 import sqlite3
-import os
 import datetime as dt
 import time
-import uuid
+
 import heartbeat
-from constants import guest
+from constants import guest, db_fp
 
 def dict_factory(cursor, row):
     d = {}
@@ -12,8 +11,7 @@ def dict_factory(cursor, row):
         d[col[0]] = row[idx]
     return d
 
-db_fp = os.environ.get('k9_database', ''
-                                      '../node-cron-example/k9karaoke-database-prod.db')
+
 print("Deleting guest records in ", db_fp)
 conn = sqlite3.connect(db_fp)
 conn.row_factory = dict_factory
@@ -60,5 +58,5 @@ if __name__ == '__main__':
     delete_by_age_user(0.0034722222222222225, guest)
     count1 = heartbeat.count_by_age_user(0, guest)
     print("deleted", count0 - count1, "guest sequences older than", lifetime*60*24, "minutes")
-    print(count1, "guest sequences remain.")
+    print(count1, "guest sequences remain at", dt.datetime.fromtimestamp(time.time()))
     mark_highwater(count1)
