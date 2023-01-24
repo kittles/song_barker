@@ -145,7 +145,17 @@ app.post('/to_card_key', async (req, res) => {
     res.json(key_data);
 });
 
+app.get('/privacy.html', async(req, res) => {
+    res.sendFile(path.join(__dirname + '/public/puppet/privacy.html'));
+});
 
+app.get('/TermsOfUse.html', async(req, res) => {
+    res.sendFile(path.join(__dirname + '/public/puppet/TermsOfUse.html'));
+});
+
+app.get('/support.html', async(req, res) => {
+    res.sendFile(path.join(__dirname + '/public/puppet/supportq.html'));
+});
 
 
 // TODO refactor these three endpoints
@@ -229,13 +239,18 @@ app.get('/c/:card_key', async (req, res) => {
 //
 // landing page
 //
+app.get('/index.html', async (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/puppet/index.html'));
+});
+
 app.get('/', async (req, res) => {
     function show_error_page () {
         res.sendFile(path.join(__dirname + '/public/puppet/error-page.html'));
     }
 
-    console.log("Redirecting to home page...");
-    res.redirect("https://k-9karaoke.com/puppet/index.html");
+    console.log("I'm Redirecting to home page...");
+    res.sendFile(path.join(__dirname + '/public/puppet/index.html'));
+    //res.redirect("https://k-9karaoke.com/puppet/index.html");
     return;
     // var q = url.parse(req.url, true);
     // console.log("pathname: " + q.pathname);
