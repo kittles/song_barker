@@ -372,7 +372,7 @@ async function manual_to_openid_confirmation (user) {
 
 /**
  * Added jmf 7/26/22
- * 
+ * Needs device_id mods
  */
 async function complete_apple_registration(appleid, email) {
     try {
@@ -414,6 +414,7 @@ app.post('/openid-token/:platform', async (req, res) => {
         if(id_token == null) {
             throw new Error("bad request");
         }
+        console.log("Platform ============>", req.session.openid_platform);
         console.log(id_token);
         var credential = GoogleAuthProvider.credential(id_token);
 
@@ -640,6 +641,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
             req.session.openid_profile = loggedInUser;
             req.session.openid_platform = "apple";
             console.log("About to return from Apple signin");
+            console.log("user:", user);
             return res.json({success: true, error:null, user: user});
         }
         else {
@@ -733,6 +735,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
 
 
 app.post('/manual-login', async (req, res) => {
+    console.log("Manual login session id before ===>", req.session.user_id);
     if (!req.body.email) {
         res.json({
             success: false,
@@ -769,6 +772,7 @@ app.post('/manual-login', async (req, res) => {
     var user_obj = await user_sess.get_user_no_password(req.body.email);
     if (accept_password) {
         req.session.user_id = req.body.email;
+        await devmgr.signin_registered_user(req.session.user_id, req.body.deviceId);
         req.session.openid_platform = 'manual';
         res.json({
             success: true,
@@ -1325,6 +1329,7 @@ app.post('/request-reset-password', async (req, res) => {
     var user_id = req.body.email;
     
     // check if user exists;
+    // Todo: 2/16/23
     var user_check = await db.get('select user_id from users where user_id=?', user_id);
 
     if(!user_check) {
@@ -1448,11 +1453,24 @@ async function hash_password (password) {
 // account state management
 //
 
+var devmgr = require('./device_signin')
+app.post('/signin-device', async(req, res) => {
+    state = await devmgr.signin_device(req, res);
+    console.log("signin-device.state =>", state);
+    if(state.new_user) {
+        console.log("/signin-device: adding stock objects for", req.session.user_id);
+        add_stock_objects_to_user(req.session.user_id);        
+    }
+    else {
+        console.log("signin-device, existing user:", req.session.user_id);
+    }
+    res.json(state);
+});
 
 // for checking if logged in
+// Needs device_id mods
 app.get('/is-logged-in', async (req, res) => {
     console.log("Entering is-logged-in");
-    
     try {
     var state = {
         logged_in: false,
@@ -1460,7 +1478,7 @@ app.get('/is-logged-in', async (req, res) => {
         user_id: false,
     };
 
-    console.log("request.session: ", req.session);
+    console.log("request.session: ", req.session.user_id);
 //    console.log("result_session:", res.session);
 
     console.log("about to check request session for user_id");
@@ -1543,6 +1561,19 @@ if (process.env.k9_dev) {
 
 
 // when a user agrees to terms
+// jmf - 2/23/23
+app.post('/agree-to-terms-device', async (req, res) => {
+    if (!req.session.user_id) {
+        res.status(401).send('you must have a valid user_id to access this resource');
+        return;
+    }
+    const db = await _db.dbPromise;
+    await db.run('update devices set accepted_terms = 1 where device_id = ?', req.session.user_id);
+    res.json({
+        success: true,
+    });
+})
+
 app.post('/agree-to-terms', async (req, res) => {
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
@@ -1560,8 +1591,8 @@ app.post('/agree-to-terms', async (req, res) => {
 //
 async function terms_agreed (req) {
     // users cant do anything until they agree to terms
-    var user_obj = await user_sess.get_user(req.session.user_id);
-    return user_obj.user_agreed_to_terms_v1;
+    var user_obj = await user_sess.get_user_by_device(req.session.device_id);
+    return user_obj.accepted_terms;
 }
 
 
@@ -1594,6 +1625,7 @@ app.post('/signed-upload-url', async (req, res) => {
 
 
 // process raw audio into cropped pieces ..._in the cloud_...
+// Needs device_id mods user_id => device_id
 app.post('/cloud/to_crops', async function (req, res) {
     console.log('TO_CROPS BODY START:', req.body);
     // auth
@@ -1601,6 +1633,10 @@ app.post('/cloud/to_crops', async function (req, res) {
         res.status(401).send('you must have a valid user_id to access this resource');
         return;
     }
+
+    console.log("Requested by", req.session.user_id);
+
+
     var agreed = await terms_agreed(req);
     if (!agreed) {
         res.status(401).send('you must have agree to terms to access this resource');
@@ -1720,10 +1756,12 @@ app.post('/cloud/to_crops', async function (req, res) {
 
 
 // sequence audio into a song
+// Needs device_id mods
 app.post('/cloud/to_sequence', async function (req, res) {
     console.log('TO SEQUENCE BODY:', req.body);
     // validation
-
+    var device_id = req.session.device_id;
+    console.log("TO SEQUENCE device:", device_id);
     // auth
     if (!req.session.user_id) {
         res.status(401).send('you must have a valid user_id to access this resource');
@@ -1744,9 +1782,11 @@ app.post('/cloud/to_sequence', async function (req, res) {
         return;
     }
     var crops_exist = _.map(req.body.uuids, async (uuid) => {
-        var crop_exists = await db.get('select 1 from crops where uuid = ? and user_id = ?', [
-            uuid,
-            req.session.user_id,
+        var crop_exists 
+            = await db.get('select 1 from crops where uuid = ? and (user_id = ? or user_id = ?)', [
+                uuid,
+                req.session.user_id,
+                req.session.device_id,
         ]);
         if (!_.get(crop_exists, '1', false)) {
             return false;
@@ -1755,12 +1795,14 @@ app.post('/cloud/to_sequence', async function (req, res) {
         }
     });
     if (crops_exist.includes(false)) {
+        console.trace("Crop object not found");
         res.status(400).send('crop object not found');
         return;
     }
     // check song
     var song_exists = await db.get('select 1 from songs where id = ?', req.body.song_id);
     if (!_.get(song_exists, '1', false)) {
+        console.trace("Song not found");
         res.status(400).send('song not found');
         return;
     }
@@ -1769,9 +1811,11 @@ app.post('/cloud/to_sequence', async function (req, res) {
     var song_obj = await db.get('select * from songs where id = ?', req.body.song_id);
     song_obj.name
     var crop_objs = await Promise.all(_.map(req.body.uuids, async (uuid) => {
-        var row = await db.get('select * from crops where uuid = ? and user_id = ?', [
+        var row = await db.get('select * from crops where uuid = ? and (user_id = ? or user_id = ?)'
+        , [
             uuid,
             req.session.user_id,
+            req.session.device_id,
         ]);
         return row;
     }));
@@ -1789,7 +1833,7 @@ app.post('/cloud/to_sequence', async function (req, res) {
         crops: crop_objs,
         bucket: process.env.k9_bucket_name,
     })
-    console.log(sequence_data);
+    console.log("Sequence data:", sequence_data);
     console.log("crop objs: " + crop_objs);
     console.log("bucket: " + process.env.k9_bucket_name);
     if (_.has(sequence_data, 'stderr')) {
@@ -1869,12 +1913,12 @@ app.post('/cloud/to_sequence', async function (req, res) {
     res.json(sequence_obj);
 });
 
+// fetch registered ids associated with devices
 
 // rest api
 (async () => {
     // await _db.initialize_db(models);
     const db = await _db.dbPromise;
-
     _.each(models, (def) => {
         if (def.disable_rest) {
             // do not include this object in the rest api
@@ -1902,5 +1946,20 @@ app.post('/cloud/to_sequence', async function (req, res) {
 // httpsServer.listen(8443);
 
 
+// uncomment to run on local server
+// const https = require('https');
+// //const fs = require('fs');
+// const credentials = {
+//   key: fs.readFileSync('./localhost-key.pem'),
+//   cert: fs.readFileSync('./localhost.pem'),
+// };
+// const credentials2 = {
+//     key: fs.readFileSync('./public/puppet/certs/development.key'),
+//     cert: fs.readFileSync('./public/puppet/certs/development.crt'),
+//     ca: fs.readFileSync('./public/puppet/certs/development-ca.crt'),
+  
+// }
+// var httpsServer = https.createServer(credentials2, app);
+// httpsServer.listen(443);
 
 module.exports = app.listen(port, () => console.log(`listening on port ${port}!`));
