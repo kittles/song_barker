@@ -30,7 +30,7 @@ def delete_blob (blob_name):
     except:
         print('Blob failed to delete')
 
-
+# Needs device_id mods
 def all_from_table (table, user_id):
     sql = '''
         SELECT * from {} WHERE user_id = :user_id
@@ -78,17 +78,64 @@ if __name__ == '__main__':
     parser.add_argument('--user-id', '-u', help='user_id to delete all stuff from')
     parser.add_argument('--debug', '-d', action='store_true', help='dont actually do anything', default=False)
     args = parser.parse_args()
-
+    print(args.user_id)
+    print("------------------")
     rows = all_user_rows(args.user_id)
     if args.debug:
         for row in rows:
             print(row)
         print('total rows:', len(rows))
-    else:
+        cur.execute("select * from users where user_id = :user_id", {
+            'user_id' : args.user_id,
+        })
+        rows = cur.fetchall()
         for row in rows:
-            delete_row(row)
+            print(row)
+        cur.execute("select * from devices_users where user_id = :user_id", {
+            'user_id' : args.user_id,
+        })
+        rows = cur.fetchall()
+        for row in rows:
+            print(row)
+    else:
+        print("Deleting assets owned by", args.user_id)
+        # try:
+        #     for row in rows:
+        #         delete_row(row)
+        # except Exception as e:
+        #     print(e)
+
+        
+        cur.execute("delete from card_audios where user_id = :user_id", {
+            'user_id' : args.user_id
+        })
+        cur.execute("delete from crops where user_id = :user_id", {
+            'user_id' : args.user_id
+        })
+        cur.execute("delete from decoration_images where user_id = :user_id", {
+            'user_id' : args.user_id
+        })
+        cur.execute("delete from greeting_cards where user_id = :user_id", {
+            'user_id' : args.user_id
+        })
+        cur.execute("delete from images where user_id = :user_id", {
+            'user_id' : args.user_id
+        })
+        cur.execute("delete from raws where user_id = :user_id", {
+            'user_id' : args.user_id
+        })
+        cur.execute("delete from sequences where user_id = :user_id", {
+            'user_id' : args.user_id
+        })
+
         # delete the user object
+        print("Deleting users record for", args.user_id)
         cur.execute('delete from users where user_id = :user_id', {
+            'user_id': args.user_id,
+        })
+        # delete all rows in devices_users linking user to a device
+        print("Deleting all records in devices_users for", args.user_id)
+        cur.execute('delete from devices_users where user_id = :user_id', {
             'user_id': args.user_id,
         })
         conn.commit()
