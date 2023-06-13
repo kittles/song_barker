@@ -12,6 +12,16 @@ async function get_user (user_id) {
 }
 exports.get_user = get_user;
 
+async function get_user_by_device(device_id) {
+    var db = await _db.dbPromise;
+    user_obj = await db.get('select * from devices where device_id = ?', device_id);
+    if(user_obj) {
+        user_obj.obj_type = 'user';
+    }
+    return user_obj;
+}
+exports.get_user_by_device = get_user_by_device;
+
 async function get_user_by_email(email) {
     var db = await _db.dbPromise;
     user_obj = await db.get('select * from users where email = ?', email);
@@ -39,6 +49,7 @@ function is_valid_email(mail)
 }
 
 async function get_user_no_password (user_id) {
+    console.log("***** Session ID ******** ===>", user_id);
     console.log("get_user_no_password, about to get db object");
     var db = await _db.dbPromise;
     console.log("get_user_no_password, about to call select by user_Id ");
