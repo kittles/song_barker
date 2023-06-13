@@ -5,7 +5,7 @@ const request = require('request');
 
 
 // we pass the user and a callback
-function verify (apple_id, callback) {
+function verify (apple_token, callback) {
 
   k = process.env.KEY_ID;
   b = process.env.BUNDLE_ID;
@@ -14,7 +14,7 @@ function verify (apple_id, callback) {
   console.log("KEY_ID", k);
   console.log("BUNDLE_ID", b);
   console.log("TEAM_ID", t);
-  console.log("APPLE_TOKEN", apple_id);
+  console.log("APPLE_TOKEN", apple_token);
 
   const auth = new AppleAuth(
     {
@@ -30,7 +30,7 @@ function verify (apple_id, callback) {
     "text"
   );
 
-  const accessTokenPromise = auth.accessToken(apple_id);
+  const accessTokenPromise = auth.accessToken(apple_token);
   try {
     console.log("About to call auth");
     accessTokenPromise.then(function(accessToken) {
