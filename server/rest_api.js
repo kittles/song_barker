@@ -31,6 +31,89 @@ function check_uuid (req, res, test_str) {
 }
 
 
+// Needs device_id mods
+async function fetch_user_ids (device_id, register_id, db) {
+    // query
+    var sql = `SELECT "${device_id}" as user_id;`
+    if(register_id.length > 0) {
+        sql = `SELECT "${device_id}" as user_id UNION SELECT "${register_id}" as user_id\n`;
+        sql += `UNION SELECT device_id as user_id FROM devices_users WHERE user_id = "${register_id}";`; 
+    }
+    var rows = await db.all(sql);
+    return rows;
+}
+
+async function fetch_user_ids_associated_with_device(device_id) {
+    
+    var sql = "Select user_id from devices_users where device_id = '${device_id};'\n";
+    var rows = await db.all(sql);
+    return rows;
+}
+
+/*
+def fetch_assets(table, user_ids):
+    sql = "select * from " + table + " where user_id in ("
+    for i in range(len(user_ids)):
+        if i > 0:
+            sql += ','
+        el = user_ids[i]
+        sql += "'" + el["user_id"] + "'"
+    sql += ");"
+    print(sql)
+
+    cur.execute(sql)
+    try:
+        rows = cur.fetchall()
+    except Exception:
+        print(Exception)
+    return rows
+*/
+
+function build_sql_user_assets(table, device_id, user_id, has_stock=0) {
+    var sql = "select * from " + table + " where user_id='" + device_id + "'\n ";
+    console.log("build_sql_user_assets:", device_id, user_id);
+    var is_registered = device_id != user_id;
+    if(is_registered) {
+        sql += "union\n"
+            + "select * from " + table + " where user_id='" + user_id + "'\n ";
+        // if((table == "images" || table == 'crops')) {
+        //     sql += "and is_stock=0";
+        // }
+    }
+    return sql;
+}
+
+function get_all_images(device_id, user_id) {
+    var sql = "select * from images where user_id='" + device_id + "'\n ";
+    var is_registered = device_id != user_id;
+    if(is_registered) {
+        sql += "union\n"
+            + "select * from images where user_id='" + user_id + "'\n ";
+    }
+    return sql;
+}
+
+function get_all_crops(device_id, user_id) {
+    var sql = "select * from crops where user_id='" + device_id + "'\n ";
+    var is_registered = device_id != user_id;
+    if(is_registered) {
+        sql += "and is_stock=0\n"
+        sql += "union\n"
+            + "select * from crops where user_id='" + user_id + "'\n ";
+    }
+    return sql;
+}
+
+function get_all_user_assets(table, device_id, user_id) {
+    var sql = "select * from " + table + " where user_id='" + device_id + "'\n ";
+    console.log("build_sql_user_assets:", device_id, user_id);
+    var is_registered = device_id != user_id;
+    if(is_registered) {
+        sql += "union\n"
+            + "select * from " + table + " where user_id='" + user_id + "'\n ";
+    }
+    return sql;
+}
 
 function obj_rest_api (def, db) {
     var rest_api = {
@@ -42,7 +125,9 @@ function obj_rest_api (def, db) {
                     res.status(401).send('[rest api error] cannot get all for this type');
                     return;
                 }
-                //console.log("def:", def);
+                console.log("Retrieve_all for :", def.table_name);
+                if(def.table_name == "images" || def.table_name == "crops" )
+                     console.log(def.table_name, "has stock?", req.query['stock']);
                 // auth
                 if (def.user_owned) {
                     console.log("User id:", req.session.user_id);
@@ -54,7 +139,20 @@ function obj_rest_api (def, db) {
                 // query
                 var sql = `SELECT * from ${def.table_name}\n`;
                 if (def.user_owned) {
-                    sql += `    where user_id = "${req.session.user_id}"\n`;
+                    // var has_stock = def.table_name == "images" || def.table_name == "crops"
+                    //                 ? req.query['stock'] : 0;
+                    // sql = build_sql_user_assets(def.table_name, req.session.device_id, 
+                    //                 req.session.user_id, has_stock);
+                    if(def.table_name == "images") {
+                        sql = get_all_images(req.session.device_id, req.session.user_id);
+                    }
+                    else if(def.table_name == "crops") {
+                        sql = get_all_crops(req.session.device_id, req.session.user_id);
+                    }
+                    else {
+                        sql = get_all_user_assets(def.table_name, req.session.device_id, req.session.user_id);
+                    }
+                    console.log("current:", sql);
                 }
                 if (def.order_by) {
                     sql += `    order by ${def.order_by} ASC\n`;
@@ -64,6 +162,7 @@ function obj_rest_api (def, db) {
                 _.each(rows, (row) => {
                     row.obj_type = def.obj_type;
                 });
+                console.log(rows.length, "rows returned for", def.table_name);
                 return res.json(rows);
             },
         },
