@@ -1455,6 +1455,7 @@ async function hash_password (password) {
 
 var devmgr = require('./device_signin')
 app.post('/signin-device', async(req, res) => {
+    console.log("/signin-dev===>")
     state = await devmgr.signin_device(req, res);
     console.log("signin-device.state =>", state);
     if(state.new_user) {
