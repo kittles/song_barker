@@ -89,9 +89,7 @@ async function signin_device(req, res) {
     console.log("Entering signin_device(", );
     const { deviceId } = req.body;
     const user_id = req.session.user_id;
-    if(device_id == undefined || device_id == null) {
-        device_id = req.session.device_id;
-    }
+
     var state = {
         logged_in: false,
         user_obj: null,
