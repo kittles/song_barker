@@ -642,8 +642,6 @@ app.post('/authenticateAppleSignin', async (req, res) => {
             req.session.openid_platform = "apple";
             console.log("About to return from Apple signin");
             console.log("user:", user);
-            state = await devmgr.signin_device(req, res);
-            console.log("signin-device.state =>", state);
             return res.json({success: true, error:null, user: user});
         }
         else {
@@ -665,8 +663,6 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                     req.session.openid_platform = "apple";
                     var user_obj = user_sess.get_user_no_password(apple_id);
                     console.log("Returning user object for user: ", apple_id, "\n", user_obj);
-                    state = devmgr.signin_device(req, res);
-                    console.log("signin-device.state =>", state);
                     return res.json({success: true, error:null, user: user_obj});
                 }
             });
