@@ -608,7 +608,7 @@ const tokenService = require('./apple_token');
 
 app.post('/authenticateAppleSignin', async (req, res) => {
     try {
-        console.log("Entering authenticateAppleSignin");
+        console.log("Entering authenticateAppleSignin for", req.session.user_id);
         const { token, email, name, apple_id } = req.body;
         const registeredUser = { apple_id, name, email };
         var loggedInUser = {apple_id, name, email }; //
