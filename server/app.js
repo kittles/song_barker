@@ -416,6 +416,7 @@ app.post('/openid-token/:platform', async (req, res) => {
         }
         console.log("Platform ============>", req.session.openid_platform);
         console.log(id_token);
+        console.log("GOOGLE LOGIN", req.session.user_id);
         var credential = GoogleAuthProvider.credential(id_token);
 
         // Sign in with credential from the Google user.
