@@ -609,6 +609,7 @@ const tokenService = require('./apple_token');
 app.post('/authenticateAppleSignin', async (req, res) => {
     try {
         console.log("Entering authenticateAppleSignin for", req.session.user_id);
+        req.session.device_id = req.session.user_id; // added jmf 6-22-23
         const { token, email, name, apple_id } = req.body;
         const registeredUser = { apple_id, name, email };
         var loggedInUser = {apple_id, name, email }; //
@@ -626,6 +627,9 @@ app.post('/authenticateAppleSignin', async (req, res) => {
         // if(!user) {
         //     user = await user_sess.get_user_by_email(email);
         // }
+
+        // added jmf: 6-22-23
+        await devmgr.signin_registered_user(req.session.user_id, req.session.device_id);
 
         if (user) {
             // login user
