@@ -74,6 +74,7 @@ async function get_device(device_id) {
     var db = await _db.dbPromise;
     var sql = 'SELECT * FROM devices WHERE device_id = ?';
     var sequence_row = await db.get(sql, [device_id]);
+    console.log(sequence_row);
     user.accepted_terms = sequence_row['accepted_terms']
     return user;
 }
