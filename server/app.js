@@ -395,6 +395,8 @@ async function complete_apple_registration(appleid, email) {
 async function finish_google_signin(email, req, res) {
     req.session.openid_platform = 'google';
     var user_obj = await user_sess.get_user_no_password(email);
+    // added jmf: 6-22-23
+    devmgr.signin_registered_user(req.session.user_id, req.session.device_id);
     console.log("About to send successful response");
     return res.json({ success: true, error: null, user: user_obj });
 }
@@ -411,6 +413,8 @@ app.post('/openid-token/:platform', async (req, res) => {
         // }
 // *********************** new google signin 
         var id_token = req.body.id_token;
+        // added jmf 6/22/23
+        req.session.device_id = req.session.user_id;
         if(id_token == null) {
             throw new Error("bad request");
         }
@@ -457,6 +461,8 @@ app.post('/openid-token/:platform', async (req, res) => {
             // return res.json({ success: true, error: null, user: user_obj });
 
             });
+            // // added jmf: 6-22-23
+            // devmgr.signin_registered_user(req.session.user_id, req.session.device_id);
 
         })      
         .catch((error) => {
