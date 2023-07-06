@@ -28,6 +28,18 @@ def delete_blob (blob_name):
         blob.delete()
         print('Blob {} deleted.'.format(blob_name))
     except:
+        print('Blob {} failed to delete'.format(blob_name))
+
+def verify_blob(blob_name):
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(blob_name)
+    try:
+        if blob.exists():
+            print('Blob {} deleted.'.format(blob_name))
+        else:
+            print('Blob {} not found.'.format(blob_name))
+    except:
         print('Blob failed to delete')
 
 # Needs device_id mods
@@ -61,6 +73,7 @@ def delete_row (row):
     print("Deleting", row['uuid'], "from", row['table'])
     # expects a table attribute added to each row
     if row.get('uuid'):
+        print("Deleting", row['uuid'], "from", row['table'])
         sql = '''
             DELETE from {} WHERE uuid = :uuid
         '''.format(row['table'])
@@ -73,6 +86,25 @@ def delete_row (row):
     if row.get('bucket_fp'):
         delete_blob(row['bucket_fp'])
 
+def fake_delete_row(row):
+    # expects a table attribute added to each row
+    if row.get('uuid'):
+        # sql = '''
+        #         DELETE from {} WHERE uuid = :uuid
+        #     '''.format(row['table'])
+        # cur.execute(sql, {
+        #     'uuid': row['uuid'],
+        # })
+        print("Deleting", row['uuid'], "from", row['table'])
+    else:
+        print(row['table'], "doesn't have ", row['uuid'])
+
+    # dont delete stock objects in bucket
+    if row.get('is_stock'):
+        print("Skipping deleting blob since row is stock.")
+        return
+    if row.get('bucket_fp'):
+        verify_blob(row['bucket_fp'])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -83,11 +115,13 @@ if __name__ == '__main__':
     print("------------------")
     rows = all_user_rows(args.user_id)
     if args.debug:
-        try:
-            for row in rows:
-                delete_row(row)
-        except Exception as e:
-            print(e)
+        for row in rows:
+            fake_delete_row(row)
+        # try:
+        #     for row in rows:
+        #         delete_row(row)
+        # except Exception as e:
+        #     print(e)
         # for row in rows:
         #     print(row)
         # print('total rows:', len(rows))
@@ -106,43 +140,20 @@ if __name__ == '__main__':
     else:
         print("Deleting assets owned by", args.user_id)
         # below commented out for debugging
-        # try:
-        #     for row in rows:
-        #         delete_row(row)
-        # except Exception as e:
-        #     print(e)
+        try:
+            for row in rows:
+                delete_row(row)
+        except Exception as e:
+            print(e)
 
-        
-        # cur.execute("delete from card_audios where user_id = :user_id", {
-        #     'user_id' : args.user_id
-        # })
-        # cur.execute("delete from crops where user_id = :user_id", {
-        #     'user_id' : args.user_id
-        # })
-        # cur.execute("delete from decoration_images where user_id = :user_id", {
-        #     'user_id' : args.user_id
-        # })
-        # cur.execute("delete from greeting_cards where user_id = :user_id", {
-        #     'user_id' : args.user_id
-        # })
-        # cur.execute("delete from images where user_id = :user_id", {
-        #     'user_id' : args.user_id
-        # })
-        # cur.execute("delete from raws where user_id = :user_id", {
-        #     'user_id' : args.user_id
-        # })
-        # cur.execute("delete from sequences where user_id = :user_id", {
-        #     'user_id' : args.user_id
-        # })
-
-        # # delete the user object
-        # print("Deleting users record for", args.user_id)
-        # cur.execute('delete from users where user_id = :user_id', {
-        #     'user_id': args.user_id,
-        # })
-        # # delete all rows in devices_users linking user to a device
-        # print("Deleting all records in devices_users for", args.user_id)
-        # cur.execute('delete from devices_users where user_id = :user_id', {
-        #     'user_id': args.user_id,
-        # })
-        # conn.commit()
+        # delete the user object
+        print("Deleting users record for", args.user_id)
+        cur.execute('delete from users where user_id = :user_id', {
+            'user_id': args.user_id,
+        })
+        # delete all rows in devices_users linking user to a device
+        print("Deleting all records in devices_users for", args.user_id)
+        cur.execute('delete from devices_users where user_id = :user_id', {
+            'user_id': args.user_id,
+        })
+        conn.commit()
