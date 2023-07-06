@@ -1535,7 +1535,7 @@ app.get('/logout', (req, res) => {
 function handle_delete_account (user_id) {
     // when new accounts are created, this runs a python script that will add
     // db entries for stock objects for the new user
-    print("About to delete database records for user", user_id);
+    console.log("About to delete database records for user", user_id);
     var python_env_script = `${__dirname}/../audio_processing/.env/bin/activate`;
     var add_stock_script = `${__dirname}/../audio_processing/delete_account.py`;
     var app_credentials = ' export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json"';
