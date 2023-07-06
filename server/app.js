@@ -1540,6 +1540,7 @@ function handle_delete_account (user_id) {
     var add_stock_script = `${__dirname}/../audio_processing/delete_account.py`;
     var app_credentials = ' export GOOGLE_APPLICATION_CREDENTIALS="../credentials/bucket-credentials.json"';
     var cmd = `source ${python_env_script} && ${app_credentials} &&  python ${add_stock_script} --user-id "${user_id}"`;
+    console.log("handle_delete_account calling", cmd);
     exec(cmd, { shell: '/bin/bash' }, () => { console.log(`handle_delete_account: deleted ${user_id}`); });
 }
 
@@ -1553,6 +1554,7 @@ app.post('/delete-account', async function (req, res) {
     }
     handle_delete_account(req.session.user_id);
     delete req.session.user_id;
+    console.log("/delete_account finished.");
     res.json({ success: true });
 });
 
