@@ -357,7 +357,9 @@ async function manual_to_openid_confirmation (user) {
         console.log("Overriding previous email attempt to signup");
         try {
             const db = await _db.dbPromise;
-            var update_query = await db.run('update users set pending_confirmation = 0 where user_id = ?',
+            // todo: update account_type = google.
+            var update_query = await db.run('update users set pending_confirmation = 0, set account_type = ? where user_id = ?',
+                'google',
                 user.user_id,
             );
             // subprocess to add stock objects
@@ -377,10 +379,12 @@ async function manual_to_openid_confirmation (user) {
 async function complete_apple_registration(appleid, email) {
     try {
         const db = await _db.dbPromise;
+        // todo: update account_type to apple.
         var update_query = await db.run(
-            'update users set pending_confirmation = 0, email_confirmation_string = ? where user_id = ?',
+            'update users set pending_confirmation = 0, email_confirmation_string = ?, account_type = ? where user_id = ?',
             email,
-            appleid
+            'apple',
+            appleid,
         );
         
         // subprocess to add stock objects
@@ -1055,8 +1059,9 @@ app.get('/confirm/:uuid', async (req, res) => {
         res.status(400).send('no account for this confirmation string');
         return;
     }
-
-    var update_query = await db.run('update users set pending_confirmation = 0 where user_id = ?',
+    // todo: update account_type for email login
+    var update_query = await db.run('update users set pending_confirmation = 0, account_type = ? where user_id = ?',
+        'email',
         result.user_id,
     );
     // subprocess to add stock objects
