@@ -477,7 +477,6 @@ async function complete_apple_registration(appleid, email) {
         
         // subprocess to add stock objects
         add_stock_objects_to_user(appleid);
-        await send_login_ga4(appleid, "Apple");
         console.log("Apple registration successful, user has full account.");
     }
     catch(err) {
@@ -747,6 +746,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
             req.session.openid_platform = "apple";
             console.log("About to return from Apple signin");
             console.log("user:", user);
+            await send_login_ga4(appleid, "Apple");
             return res.json({success: true, error:null, user: user});
         }
         else {
@@ -768,6 +768,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
                     req.session.openid_platform = "apple";
                     var user_obj = user_sess.get_user_no_password(apple_id);
                     console.log("Returning user object for user: ", apple_id, "\n", user_obj);
+                    send_login_ga4(appleid, "Apple");
                     return res.json({success: true, error:null, user: user_obj});
                 }
             });
