@@ -140,7 +140,7 @@ app.post('/testga', async(req, res) => {
 app.post('revenuecat', async(req, res) => {
     res.status(200).send();
     console.log("Sent 200 code");
-    return true;
+    return;
 });
 
 //
