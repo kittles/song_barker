@@ -129,8 +129,25 @@ app.post('/testga', async(req, res) => {
         body: JSON.stringify({
             client_id: '123.123',
             events: [{
-            name: 'tutorial_begin',
+            name: 'login',
             params: {user_id: req.body.name},
+            }]
+        })
+    });
+    res.status(200).send("testing ga4: " + result.toString());
+});
+
+app.post('/ga4', async(req, res) => {
+    //var clientid = ga.getAll ().get ('clientId');
+    console.log(req.body.name);
+    var result = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, 
+        {
+        method: "POST",
+        body: JSON.stringify({
+            client_id: req.body.name,
+            events: [{
+            name: 'login',
+            params: {method: 'Apple'},
             }]
         })
     });
