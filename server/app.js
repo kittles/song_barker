@@ -130,7 +130,7 @@ app.post('/testga', async(req, res) => {
             client_id: '123.123',
             events: [{
             name: 'tutorial_begin',
-            params: {user_id: "mrmxip"},
+            params: {user_id: req.body.name},
             }]
         })
     });
