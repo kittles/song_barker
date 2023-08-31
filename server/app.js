@@ -477,6 +477,7 @@ async function complete_apple_registration(appleid, email) {
         
         // subprocess to add stock objects
         add_stock_objects_to_user(appleid);
+        await send_login_ga4(appleid, "Apple");
         console.log("Apple registration successful, user has full account.");
     }
     catch(err) {
