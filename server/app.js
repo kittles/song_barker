@@ -122,6 +122,7 @@ const api_secret = "PtwAnu7bQcmiZk1TDYxNrQ";
 // testing
 app.post('/testga', async(req, res) => {
     //var clientid = ga.getAll ().get ('clientId');
+    console.log(req.body.name);
     var result = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, 
         {
         method: "POST",
