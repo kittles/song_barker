@@ -137,7 +137,11 @@ app.post('/testga', async(req, res) => {
     res.status(200).send("testing ga4: " + result.toString());
 });
 
-
+app.post('revenuecat', async(req, res) => {
+    res.status(200).send();
+    console.log("Sent 200 code");
+    return true;
+});
 
 //
 // greeting cards
