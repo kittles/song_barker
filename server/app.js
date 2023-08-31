@@ -151,19 +151,20 @@ app.post('/ga4', async(req, res) => {
     //         }]
     //     })
     // });
-    var result = await send_login_ga4(req);
+    console.log(req.body.name, req.body.login_method);
+    var result = await send_login_ga4(req.body.name, req.body.login_method);
     res.status(200).send("testing ga4 sent event: " + result.toString());
 });
 
-async function send_login_ga4 (req, res) {
+async function send_login_ga4 (clientId, loginMethod) {
     var result = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, 
         {
         method: "POST",
         body: JSON.stringify({
-            client_id: req.body.name,
+            client_id: clientId,
             events: [{
             name: 'login',
-            params: {method: 'Device'},
+            params: {method: loginMethod},
             }]
         })
     });
