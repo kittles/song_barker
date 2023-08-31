@@ -490,6 +490,7 @@ async function finish_google_signin(email, req, res) {
     // added jmf: 6-22-23
     devmgr.signin_registered_user(req.session.user_id, req.session.device_id);
     console.log("About to send successful response");
+    await send_login_ga4(req.session.user_id, "Google");
     return res.json({ success: true, error: null, user: user_obj });
 }
 
