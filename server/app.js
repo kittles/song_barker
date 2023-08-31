@@ -129,7 +129,7 @@ app.post('/testga', async(req, res) => {
         body: JSON.stringify({
             client_id: '123.123',
             events: [{
-            name: 'login',
+            name: 'tutorial_begin',
             params: {user_id: req.body.name},
             }]
         })
@@ -140,6 +140,22 @@ app.post('/testga', async(req, res) => {
 app.post('/ga4', async(req, res) => {
     //var clientid = ga.getAll ().get ('clientId');
     console.log(req.body.name);
+    // var result = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, 
+    //     {
+    //     method: "POST",
+    //     body: JSON.stringify({
+    //         client_id: req.body.name,
+    //         events: [{
+    //         name: 'login',
+    //         params: {method: 'Apple'},
+    //         }]
+    //     })
+    // });
+    var result = await send_login_ga4(req);
+    res.status(200).send("testing ga4 sent event: " + result.toString());
+});
+
+async function send_login_ga4 (req, res) {
     var result = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, 
         {
         method: "POST",
@@ -147,12 +163,12 @@ app.post('/ga4', async(req, res) => {
             client_id: req.body.name,
             events: [{
             name: 'login',
-            params: {method: 'Apple'},
+            params: {method: 'Google'},
             }]
         })
     });
-    res.status(200).send("testing ga4: " + result.toString());
-});
+    return result;
+}
 
 app.post('/revenuecat', async(req, res) => {
     res.status(200).send();
