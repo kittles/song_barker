@@ -36,6 +36,8 @@ var sendgrid = require('./sendgrid');
 
 var devmgr = require('./device_signin')
 
+const fetch = require("node-fetch");
+
 //const AppleAuth = require("apple-auth");
 
 //
@@ -114,6 +116,25 @@ const firebaseApp = firebase.getApp();
 /*****
  * End configuration for new google signin
  */
+const measurement_id = "G-VTMC8Z7ZC9";
+const api_secret = "PtwAnu7bQcmiZk1TDYxNrQ";
+
+// testing
+app.post('/testga', async(req, res) => {
+    //var clientid = ga.getAll ().get ('clientId');
+    var result = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, 
+        {
+        method: "POST",
+        body: JSON.stringify({
+            client_id: '123.123',
+            events: [{
+            name: 'tutorial_begin',
+            params: {user_id: "mrmxip"},
+            }]
+        })
+    });
+    res.status(200).send("testing ga4: " + result.toString());
+});
 
 //
 // greeting cards
