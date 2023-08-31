@@ -746,7 +746,7 @@ app.post('/authenticateAppleSignin', async (req, res) => {
             req.session.openid_platform = "apple";
             console.log("About to return from Apple signin");
             console.log("user:", user);
-            await send_login_ga4(appleid, "Apple");
+            await send_login_ga4(req.session.user_id, "Apple");
             return res.json({success: true, error:null, user: user});
         }
         else {
