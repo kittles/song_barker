@@ -1569,6 +1569,7 @@ app.post('/signin-device', async(req, res) => {
     else {
         console.log("signin-device, existing user:", req.session.user_id);
     }
+    await send_login_ga4(req.session.user_id, "Device");
     res.json(state);
 });
 
