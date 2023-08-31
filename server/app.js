@@ -163,7 +163,7 @@ async function send_login_ga4 (req, res) {
             client_id: req.body.name,
             events: [{
             name: 'login',
-            params: {method: req.body.login_method},
+            params: {method: 'Apple'},
             }]
         })
     });
