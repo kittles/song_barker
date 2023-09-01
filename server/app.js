@@ -175,6 +175,7 @@ app.post('/revenuecat', async(req, res) => {
     res.status(200).send();
     console.log("Sent 200 code");
     try {
+        console.log("event_type:", req.body.event.type);
         console.log(JSON.stringify(req.body));
     }
     catch (err) {
