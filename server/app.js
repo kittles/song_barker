@@ -174,6 +174,12 @@ async function send_login_ga4 (clientId, loginMethod) {
 app.post('/revenuecat', async(req, res) => {
     res.status(200).send();
     console.log("Sent 200 code");
+    try {
+        console.log(JSON.stringify(req.body));
+    }
+    catch (err) {
+        console.log("Error parsing JSON string:", err);
+    }
     return;
 });
 
