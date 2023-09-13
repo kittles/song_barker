@@ -910,6 +910,7 @@ app.post('/manual-login', async (req, res) => {
         req.session.user_id = req.body.email;
         await devmgr.signin_registered_user(req.session.user_id, req.body.deviceId);
         req.session.openid_platform = 'manual';
+        await send_login_ga4(req.body.email, "manual");
         res.json({
             success: true,
             error: null,
