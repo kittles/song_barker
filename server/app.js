@@ -38,6 +38,8 @@ var devmgr = require('./device_signin')
 
 const fetch = require("node-fetch");
 
+var rcat = require('./rcat2ga4');
+
 //const AppleAuth = require("apple-auth");
 
 //
@@ -171,12 +173,33 @@ async function send_login_ga4 (clientId, loginMethod) {
     return result;
 }
 
+async function send_revenuecat_ga4(event) {
+    var result = false;
+    if(event != null)
+    {
+        var event_string = JSON.stringify(event);
+        console.log("ga4 body: ", event_string);
+        result = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, 
+            {
+            method: "POST",
+            body: event_string
+        });
+        
+    }
+
+    var result = true;
+    return result;
+}
+
 app.post('/revenuecat', async(req, res) => {
     res.status(200).send();
     console.log("Sent 200 code");
     try {
         console.log("event_type:", req.body.event.type);
-        console.log(JSON.stringify(req.body));
+        //console.log(JSON.stringify(req.body));
+        var event = rcat.translate_event(req.body.event);
+        var result = await send_revenuecat_ga4(event);
+        console.log("revenue cat GA4 send result:", result);
     }
     catch (err) {
         console.log("Error parsing JSON string:", err);
