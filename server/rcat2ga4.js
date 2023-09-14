@@ -41,8 +41,41 @@ function translate_purchase_event(event) {
     return ga4;
 }
 
+function get_real_user(id_array) {
+    let anon = "RCAnonymousID";
+    let real_user = "unknown";
+    for(var idx = 0; idx < id_array.length; idx++) {
+        var id = id_array[idx];
+        if(id.search("RCAnonymousID") < 0) {
+            real_user = id;
+            break;
+        }
+    }
+    return real_user;
+}
+
+
 function translate_transfer_event(event) {
-    console.log("Skipping transfer event for now.");
+    let from_id = get_real_user(event.transferred_from);
+    let to_id = get_real_user(event.transferred_to);
+    let ga4 = {
+        "client_id": "536d72d16fca11c3",
+        "non_personalized_ads": false,
+        "events": 
+        [
+          {
+            "name": "transfer",
+            "params": {
+              "items": [],
+              "from_client_id": from_id,
+              "to_client_id": to_id,
+              "affiliation": event.store
+            }
+          }
+        ]
+    };
+    console.log(JSON.stringify(ga4));
+    return ga4;
 }
 
 
@@ -52,7 +85,7 @@ function translate_event(event, client_id) {
         console.log("event_type:", event.type);
         //console.log(JSON.stringify(event));
         if(event.type == "TRANSFER") {
-            translate_transfer_event(event);
+            translated_event = translate_transfer_event(event);
         }
         else {
             translated_event = translate_purchase_event(event, client_id);
