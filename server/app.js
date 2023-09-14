@@ -198,6 +198,7 @@ app.post('/revenuecat', async(req, res) => {
         console.log("event_type:", req.body.event.type);
         //console.log(JSON.stringify(req.body));
         var event = rcat.translate_event(req.body.event);
+        console.log("about to send event");
         var result = await send_revenuecat_ga4(event);
         console.log("revenue cat GA4 send result:", result);
     }
