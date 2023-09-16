@@ -185,7 +185,7 @@
         const mobileShareButton = document.getElementById('mobile-share-button');
 
         async function shareCard() {
-            if(!navigator.canShare()) {
+            if(false && !navigator.canShare()) {
                 alert("Your browser does not support webShare.");
             }
             else {
