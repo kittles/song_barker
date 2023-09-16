@@ -185,16 +185,11 @@
         const mobileShareButton = document.getElementById('mobile-share-button');
 
         async function shareCard() {
-            if(false && !navigator.canShare()) {
-                alert("Your browser does not support webShare.");
-            }
-            else {
-                try {
-                    await navigator.share(shareData)
-                    console.log('MDN shared successfully');
-                } catch (err) {
-                    console.log('Error: ' + err);
-                }
+            try {
+                await navigator.share(shareData)
+                console.log('MDN shared successfully');
+            } catch(err) {
+                console.log('Error: ' + err);
             }
         }
 
