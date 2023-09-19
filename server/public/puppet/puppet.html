@@ -175,6 +175,13 @@
 
     <!-- JMF Web Share API Bindings -->
     <script>
+        function send_share() {
+            gtag('event', 'share', {
+                        "user_agent" : navigator.userAgent
+                    });
+            console.log("Sent share GA4 event");
+        }
+
         const shareData = {
             title: 'K9 Karaoke',
             text: 'Make Your Pets Sing!',
@@ -186,7 +193,8 @@
 
         async function shareCard() {
             try {
-                await navigator.share(shareData)
+                await navigator.share(shareData);
+                send_share();
                 console.log('MDN shared successfully');
             } catch(err) {
                 console.log('Error: ' + err);
