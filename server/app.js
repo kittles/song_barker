@@ -208,6 +208,23 @@ app.post('/revenuecat', async(req, res) => {
     return;
 });
 
+app.post('/appstore', async(req, res) => {
+    res.status(200).send();
+    console.log("/appstore: Sent 200 code");
+    // try {
+    //     console.log("event_type:", req.body.event.type);
+    //     //console.log(JSON.stringify(req.body));
+    //     var event = rcat.translate_event(req.body.event);
+    //     console.log("about to send event");
+    //     var result = await send_revenuecat_ga4(event);
+    //     console.log("revenue cat GA4 send result:", result);
+    // }
+    // catch (err) {
+    //     console.log("Error parsing JSON string:", err);
+    // }
+    return;
+});
+
 const cyrb53 = (str, seed = 0) => {
     let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
     for(let i = 0, ch; i < str.length; i++) {
