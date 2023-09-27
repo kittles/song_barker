@@ -212,7 +212,7 @@ app.post('/appstore', async(req, res) => {
     res.status(200).send();
     console.log("/appstore: Sent 200 code");
     try {
-        console.log(responseBodyV2);
+        console.log(req.body.responseBodyV2);
         // //console.log(JSON.stringify(req.body));
         // var event = rcat.translate_event(req.body.event);
         // console.log("about to send event");
