@@ -1662,7 +1662,7 @@ app.post('/signin-device', async(req, res) => {
     if(state.new_user) {
         console.log("/signin-device: adding stock objects for", req.session.user_id);
         add_stock_objects_to_user(req.session.user_id);
-             
+        await send_install_ga4(req.session.user_id, "unknown");    
     }
     else {
         console.log("signin-device, existing user:", req.session.user_id);
