@@ -173,6 +173,51 @@ async function send_login_ga4 (clientId, loginMethod) {
     return result;
 }
 
+
+
+/* --------------------------------
+{
+  "client_id": "536d72d16fca11c3",
+  "non_personalized_ads": false,
+  "events": [
+    {
+      "name": "Install",
+      "params": {
+        "items": [],
+        "platform": "iOS",
+        "id": "12345"
+      }
+    }
+  ]
+}
+*/
+
+// app.post("/install", async(req, res)=>{
+//     clientId = "9876";
+//     platform = "test";
+//     var result = await send_install_ga4(clientId, platform);
+//     res.status(200).send("testing ga4 install: " + result);
+// });
+
+async function send_install_ga4(clientId, platform) {
+    var result = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, 
+        {
+        method: "POST",
+        body: JSON.stringify({
+            client_id: clientId,
+            events: [{
+            name: 'Install',
+            params: {
+                platform: platform,
+                id: clientId
+            },
+            }]
+        })
+    });
+    console.log("sent install ga4, result:", result.status);
+    return result.status;
+}
+
 async function send_revenuecat_ga4(event) {
     var result = false;
     if(event != null)
@@ -1616,7 +1661,8 @@ app.post('/signin-device', async(req, res) => {
     console.log("signin-device.state =>", state);
     if(state.new_user) {
         console.log("/signin-device: adding stock objects for", req.session.user_id);
-        add_stock_objects_to_user(req.session.user_id);        
+        add_stock_objects_to_user(req.session.user_id);
+             
     }
     else {
         console.log("signin-device, existing user:", req.session.user_id);
