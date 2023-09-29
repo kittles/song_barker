@@ -200,6 +200,7 @@ async function send_login_ga4 (clientId, loginMethod) {
 // });
 
 async function send_install_ga4(clientId, platform) {
+    platform = clientId.split('-').length > 1 ? "iOS" : "google";
     var result = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, 
         {
         method: "POST",
